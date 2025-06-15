@@ -3,7 +3,6 @@ import FeaturedBroadcastSection from "@/components/layout/FeaturedBroadcastSecti
 import CategoryReplaySection from "@/components/layout/CategoryReplaySection";
 import FilterBarReplays from "@/components/layout/FilterBarReplays";
 import {
-  Replay,
   FeaturedBroadcastItem,
   HighlightedEventInfo,
   CategorizedReplayGroup,
@@ -11,6 +10,7 @@ import {
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
+import { Replay } from "@/types/replay.types";
 
 interface ReplayHubPageProps {
   featuredBroadcasts: FeaturedBroadcastItem[];
@@ -51,7 +51,8 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
 
     lg:translate-x-0
     xl:translate-x-[calc((100vw-1200px)/2)]
-    2xl:translate-x-[calc((100vw-1440px)/2)]"
+   2xl:translate-x-[calc((100vw-1440px)/12)]
+    3xl:translate-x-[calc((100vw-1440px)/2)]"
     >
       <main className="w-full">
         <ReplayHubBreadcrumbs />

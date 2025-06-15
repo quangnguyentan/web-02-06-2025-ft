@@ -62,7 +62,8 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
     2xl:max-w-[1440px]
     lg:translate-x-0
     xl:translate-x-[calc((100vw-1200px)/2)]
-    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    2xl:translate-x-[calc((100vw-1440px)/12)]
+    3xl:translate-x-[calc((100vw-1440px)/2)]"
     >
       <main className="w-full">
         <ResultsBreadcrumbs />

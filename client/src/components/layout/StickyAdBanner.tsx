@@ -11,6 +11,7 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
   imageUrl,
   buttonText,
 }) => {
+  const [hiddenBanner, setHiddenBanner] = React.useState(false);
   return (
     <div
       className={`
@@ -33,17 +34,25 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
     2xl:translate-x-[calc((100vw-1440px)/2)]
   `}
     >
-      <img src={imageUrl} alt="Ad Banner" className="object-cover md:w-full " />
-      {position === "bottom" && (
-        <a
-          href="#"
-          className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 rounded text-sm shadow absolute right-0 top-0 md:mr-16 sm:mr-0"
-        >
-          {buttonText}
-          <button className="text-white hover:text-yellow-200 text-xl leading-none">
-            &times;
-          </button>
-        </a>
+      {!hiddenBanner && (
+        <>
+          <img
+            src={imageUrl}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+          {position === "bottom" && (
+            <a
+              onClick={() => setHiddenBanner(true)}
+              className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 rounded text-sm shadow absolute right-0 top-0 "
+            >
+              {buttonText}
+              <button className="text-white hover:text-yellow-200 text-xl leading-none">
+                &times;
+              </button>
+            </a>
+          )}
+        </>
       )}
     </div>
   );

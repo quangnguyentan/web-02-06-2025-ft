@@ -32,7 +32,7 @@ const SportSection: React.FC<SportSectionProps> = ({
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: location.pathname === "/truc-tiep" ? 2 : 3.5, // Show 3 cards at a time on desktop
+    slidesToShow: location.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
     slidesToScroll: 1,
 
     arrows: true,
@@ -87,11 +87,11 @@ const SportSection: React.FC<SportSectionProps> = ({
               <div className="flex-shrink-0 w-px"></div>
             </div>
           </div>
-          <div className="hidden lg:block">
+          <div className="hidden lg:block ">
             <Slider {...sliderSettings} className="!text-left">
               {matches.map((match) => (
-                <div key={match._id} className="px-0 h-full flex">
-                  <div className="h-full flex">
+                <div key={match._id} className="px-0 h-full flex ">
+                  <div className="h-full flex ">
                     <MatchCard match={match} small />
                   </div>
                 </div>

@@ -14,7 +14,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
 }) => {
   const navigate = useNavigate();
   // const targetUrl = replay.url || "/replay";
-  const targetUrl = "/replay";
+  const targetUrl = `/replay/${replay?.slug}`;
   if (variant === "compact") {
     return (
       <div
@@ -71,7 +71,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   // Default variant
   return (
     <div
-      onClick={() => navigate(`/replay/${replay?.slug}`)}
+      onClick={() => navigate(targetUrl)}
       className="block bg-slate-800 rounded-lg shadow-md overflow-hidden group cursor-pointer"
     >
       <div className="relative">

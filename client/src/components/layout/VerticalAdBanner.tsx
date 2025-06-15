@@ -17,7 +17,7 @@ const VerticalAdBanner: React.FC<VerticalAdBannerProps> = ({
 
   return (
     <div
-      className={`hidden lg:block fixed top-4 -translate-y-0 z-50 w-36
+      className={`hidden 3xl:block 2xl:hidden fixed top-4 -translate-y-0 z-50 w-36
         ${
           position === "left"
             ? "left-4 xl:left-8 2xl:left-[4%]"
