@@ -57,7 +57,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
   return (
-    <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 sm:p-3 px-3 sm:px-6 xl:mx-4 relative">
+    <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 relative">
       <img
         src="https://via.placeholder.com/120x32/FFFFFF/1A202C?text=THAPCAM"
         alt="ThapCam TV Logo"
@@ -269,7 +269,7 @@ const SportsNavbar: React.FC = () => {
 
   // Chỉ hiển thị trên md trở lên
   return (
-    <div className="hidden md:flex bg-[#22252D] px-3 sm:px-6 xl:mx-4 py-2 gap-12 overflow-x-auto shadow-xl">
+    <div className="hidden md:flex bg-[#22252D] px-3 py-2 gap-12 overflow-x-auto shadow-xl">
       {sportData.map((category) => (
         <div
           key={category._id}
@@ -449,7 +449,15 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="z-30 shadow-lg container mx-auto max-w-screen-xl">
+    <header
+      className=" lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       <MainNavbar onOpenMenu={() => setDrawerOpen(true)} />
       <SportsNavbar />
       <DrawerMenu

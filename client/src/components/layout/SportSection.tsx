@@ -27,13 +27,12 @@ const SportSection: React.FC<SportSectionProps> = ({
   if (!matches || matches.length === 0) {
     return null;
   }
-  console.log(location.pathname);
   // Slider settings for desktop
   const sliderSettings = {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: location.pathname === "/truc-tiep" ? 2 : 3, // Show 3 cards at a time on desktop
+    slidesToShow: location.pathname === "/truc-tiep" ? 2 : 3.5, // Show 3 cards at a time on desktop
     slidesToScroll: 1,
 
     arrows: true,
@@ -48,7 +47,6 @@ const SportSection: React.FC<SportSectionProps> = ({
       },
     ],
   };
-  console.log(matches);
   return (
     <section
       className={`py-3 sm:py-4 ${
@@ -75,8 +73,8 @@ const SportSection: React.FC<SportSectionProps> = ({
       </div>
       {isSpotlight ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-          {matches.map((match) => (
-            <SpotlightMatchCard key={match._id} match={match} />
+          {matches?.map((match) => (
+            <SpotlightMatchCard key={match?._id} match={match} />
           ))}
         </div>
       ) : (

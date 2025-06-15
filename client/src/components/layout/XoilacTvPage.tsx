@@ -1,7 +1,6 @@
 import HeroSection from "@/components/layout/HeroSection";
 import SportSection from "@/components/layout/SportSection";
 import HorizontalAdBanner from "@/components/layout/HorizontalAdBanner";
-import { Match } from "@/types/index.types";
 import {
   HomeIconSolid,
   ChevronRightIcon,
@@ -12,6 +11,7 @@ import {
   VolleyballIcon,
 } from "@/components/layout/Icon";
 import * as React from "react";
+import { Match } from "@/types/match.types";
 
 interface XoilacTvPageProps {
   spotlightMatches: Match[];
@@ -46,7 +46,15 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
   const titleText =
     "THAPCAM TV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online nhanh nhất - Thập Cẩm TV";
   return (
-    <main className="lg:mx-44 xl:mx-36">
+    <main
+      className="lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       {/* Margin to avoid overlap with side ads */}
       <XoilacTvBreadcrumbs />
       <HeroSection />

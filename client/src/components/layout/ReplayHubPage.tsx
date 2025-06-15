@@ -44,7 +44,15 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     "Trang Thapcam TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
 
   return (
-    <div className="container mx-auto max-w-screen-xl px-2 sm:px-4 py-4 ">
+    <div
+      className=" lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       <main className="w-full">
         <ReplayHubBreadcrumbs />
 
@@ -59,9 +67,9 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
 
         <FilterBarReplays />
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row">
           {/* Main Content: Featured and Categorized Replays */}
-          <div className="lg:w-2/3 flex-shrink-0">
+          <div className="lg:w-2/3 flex-shrink-0 pr-2">
             <div className="bg-slate-800 p-1 rounded-lg shadow-md mb-4">
               <h2 className="text-sm font-semibold uppercase text-gray-400 px-3 pt-2">
                 Mới cập nhật

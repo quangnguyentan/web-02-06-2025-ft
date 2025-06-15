@@ -13,15 +13,27 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
 }) => {
   return (
     <div
-      className={`${
-        position === "top" ? "top-0" : "sticky bottom-0"
-      } transform md:translate-x-[24%] z-40 flex items-center sm:justify-center md:justify-between shadow-lg max-w-[1330px] h-auto w-full max-h-[90px]`}
+      className={`
+    ${position === "top" ? "top-0" : "sticky bottom-0"}
+    z-40
+    flex items-center
+    justify-between
+    shadow-lg
+    w-full h-auto max-h-[90px]
+    
+    sm:justify-center
+    md:justify-between
+
+    lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]
+  `}
     >
-      <img
-        src={imageUrl}
-        alt="Ad Banner"
-        className="object-cover md:w-[95%] "
-      />
+      <img src={imageUrl} alt="Ad Banner" className="object-cover md:w-full " />
       {position === "bottom" && (
         <a
           href="#"

@@ -56,7 +56,14 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
   } mới nhất được ThapCamTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại ThapCamTV.`;
 
   return (
-    <div className="container mx-auto max-w-screen-xl px-2 sm:px-4 py-4">
+    <div
+      className="lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       <main className="w-full">
         <ResultsBreadcrumbs />
         <div className="bg-slate-800 p-4 rounded-lg shadow-xl mb-4">
@@ -68,9 +75,9 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row">
           {/* Left Column: Date Selector + Results List */}
-          <div className="lg:w-2/3 flex-shrink-0">
+          <div className="lg:w-2/3 flex-shrink-0 pr-2">
             <DateSelector
               dates={availableDates}
               selectedDateId={selectedDateId}

@@ -40,7 +40,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
-        path: "/truc-tiep",
+        path: "/truc-tiep/:slug",
         element: (
           <Suspense
             fallback={
@@ -155,7 +155,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
-        path: "/replay",
+        path: "/replay/:slug",
         element: (
           <Suspense
             fallback={

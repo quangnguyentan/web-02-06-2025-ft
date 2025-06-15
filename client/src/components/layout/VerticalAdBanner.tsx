@@ -17,9 +17,13 @@ const VerticalAdBanner: React.FC<VerticalAdBannerProps> = ({
 
   return (
     <div
-      className={`hidden lg:block fixed top-1/2 -translate-y-1/2 ${
-        position === "left" ? "left-32" : "right-36 "
-      } z-50 w-40`}
+      className={`hidden lg:block fixed top-4 -translate-y-0 z-50 w-36
+        ${
+          position === "left"
+            ? "left-4 xl:left-8 2xl:left-[4%]"
+            : "right-4 xl:right-8 2xl:right-[4%]"
+        }
+      `}
     >
       <a
         href={adLink}
@@ -31,7 +35,7 @@ const VerticalAdBanner: React.FC<VerticalAdBannerProps> = ({
           src={imageUrl || defaultImageUrl}
           alt={altText}
           className="w-full h-auto object-contain"
-          onError={(e) => (e.currentTarget.src = defaultImageUrl)} // Fallback if primary image fails
+          onError={(e) => (e.currentTarget.src = defaultImageUrl)}
         />
       </a>
     </div>

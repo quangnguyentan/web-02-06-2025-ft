@@ -23,16 +23,19 @@ export const getAllMatches = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, sport, league } = req.query;
+    const { status, sport, league, excludeId } = req.query;
     const filter: any = {};
     if (status) filter.status = status;
     if (sport) filter.sport = sport;
     if (league) filter.league = league;
-
+    if (excludeId) {
+      filter._id = { $ne: excludeId };
+    }
     const matches = await Match.find(filter)
       .populate("homeTeam", "name logo")
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
+      .populate("sport", "name icon slug")
       .sort({ startTime: -1 }); // Sắp xếp trận mới nhất lên đầu
 
     res.status(200).json(matches);
@@ -49,10 +52,10 @@ export const getMatchById = async (
 ): Promise<void> => {
   try {
     const match = await Match.findById(req.params.id)
-      .populate("homeTeam")
-      .populate("awayTeam")
-      .populate("league")
-      .populate("sport");
+      .populate("homeTeam", "name logo")
+      .populate("awayTeam", "name logo")
+      .populate("league", "name logo")
+      .populate("sport", "name icon slug")
 
     if (!match) {
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
@@ -63,7 +66,26 @@ export const getMatchById = async (
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
+export const getMatchBySlug = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const match = await Match.findOne({ slug: req.params.slug })
+      .populate("homeTeam", "name logo")
+      .populate("awayTeam", "name logo")
+      .populate("league", "name logo")
+      .populate("sport", "name icon slug")
 
+    if (!match) {
+      res.status(404).json({ message: "Không tìm thấy trận đấu" });
+      return;
+    }
+    res.status(200).json(match);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error });
+  }
+};
 // @desc    Cập nhật một trận đấu
 // @route   PUT /api/matches/:id
 export const updateMatch = async (

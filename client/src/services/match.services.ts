@@ -1,10 +1,15 @@
 import { Match } from "@/types/match.types";
 import axiosConfig from "../axios";
-export const apiGetAllMatches = async () => {
+export const apiGetAllMatches = async (matchIdCanBo?: string) => {
   try {
     const response = await axiosConfig({
       method: "GET",
       url: "/matches/",
+      params: {
+        excludeId: matchIdCanBo,
+        // status: 'ongoing',
+        // sport: 'football'
+      }
     });
     return response;
   } catch (error) {
@@ -17,6 +22,18 @@ export const apiGetMatchById = async (id: string) => {
     const response = await axiosConfig({
       method: "GET",
       url: "/matches/" + id,
+    });
+    return response;
+  } catch (error) {
+    console.error("Error fetching match by ID:", error);
+    throw error;
+  }
+};
+export const apiGetMatchBySlug = async (slug: string) => {
+  try {
+    const response = await axiosConfig({
+      method: "GET",
+      url: "/matches/getMatch/" + slug,
     });
     return response;
   } catch (error) {

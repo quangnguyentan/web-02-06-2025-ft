@@ -1,7 +1,7 @@
-import { Replay } from "@/types/index.types";
 import ReplayCard from "./ReplayCard"; // Using the updated ReplayCard with 'compact' variant
 import { TVIcon } from "./Icon";
 import * as React from "react";
+import { Replay } from "@/types/replay.types";
 
 interface ReplaySuggestionsPanelProps {
   replays: Replay[];
@@ -28,8 +28,8 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
       </h3>
       <div className="space-y-2 max-h-[320px] sm:max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
         {/* Added max-h and pr for scrollbar spacing */}
-        {replays.map((replay) => (
-          <ReplayCard key={replay.id} replay={replay} variant="compact" />
+        {replays?.map((replay) => (
+          <ReplayCard key={replay?._id} replay={replay} variant="compact" />
         ))}
       </div>
     </div>

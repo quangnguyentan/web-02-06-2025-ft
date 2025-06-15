@@ -42,16 +42,23 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
   suggestedReplays,
 }) => {
   return (
-    <div className="container mx-auto max-w-screen-xl px-1 sm:px-4 py-3">
+    <div
+      className="lg:max-w-[1024px]
+    xl:max-w-[1200px]
+    2xl:max-w-[1440px]
+    lg:translate-x-0
+    xl:translate-x-[calc((100vw-1200px)/2)]
+    2xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       <ReplayStreamBreadcrumbs replay={mainReplay} />
       <FilterBarReplays currentCategory={mainReplay.categoryDisplayName} />
       <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white my-3 px-1">
         {mainReplay.title}
       </h1>
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row">
         {/* Left Column: Video Player + Ad */}
-        <div className="w-full lg:w-full xl:w-3/4 flex-shrink-0">
+        <div className="w-full lg:w-full xl:w-3/4 flex-shrink-0 pr-2">
           <VideoPlayer
             videoTitle={mainReplay.title}
             videoUrl={mainReplay.videoUrl}

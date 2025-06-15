@@ -11,12 +11,12 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   const navigate = useNavigate();
   return (
     <div
-      className={`bg-slate-800 rounded-lg shadow-md overflow-hidden ${
+      className={`bg-slate-800 rounded-lg shadow-md overflow-hidden  ${
         small
-          ? "w-[260px] sm:w-[320px] md:w-[400px]"
+          ? "w-[260px] sm:w-[320px] md:w-[390px]"
           : "w-72 sm:w-80 md:w-[420px] xl:w-[450px]"
       } flex-shrink-0 cursor-pointer`}
-      onClick={() => navigate("/truc-tiep")}
+      onClick={() => navigate(`/truc-tiep/${match?.slug}`)}
     >
       <div className="p-2 sm:p-3 bg-slate-700/50">
         <div className="flex justify-between items-center mb-2">
@@ -26,12 +26,20 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
               {match.title}
             </span>
           </div>
-          {/* <div className="text-xs text-gray-400 whitespace-nowrap">
-            <span>{match.startTime}</span>
-            <span className="mx-1">|</span>
-            <span>{match.date}</span>
-          </div> */}
-          {match.status && (
+          <div className="text-xs text-gray-400 whitespace-nowrap">
+            <span>
+              {new Date(match?.startTime).toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+              })}
+            </span>
+          </div>
+          {match.status === "LIVE" && (
             <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded font-semibold">
               {match.status || "LIVE"}
             </span>
@@ -50,7 +58,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             </span>
           </div>
 
-          {match.status && typeof match.scores === "object" ? (
+          {match?.status && typeof match.scores === "object" ? (
             <div className="text-center px-1">
               <span className="text-xs md:text-xl font-bold text-white">
                 {match.scores?.homeScore} - {match.scores.awayScore}
@@ -80,14 +88,14 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 
       <div className="p-2 sm:p-3 bg-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          {match?.streamLinks[0]?.commentatorImage && (
+          {match?.streamLinks?.[0]?.commentatorImage && (
             <img
-              src={match.streamLinks[0]?.commentatorImage}
-              alt={match.streamLinks[0]?.commentator}
+              src={match.streamLinks?.[0]?.commentatorImage}
+              alt={match.streamLinks?.[0]?.commentator}
               className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
             />
           )}
-          {match.streamLinks[0].commentator && (
+          {match.streamLinks?.[0].commentator && (
             <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[90px] sm:max-w-[120px]">
               {match.streamLinks[0].commentator}
             </span>

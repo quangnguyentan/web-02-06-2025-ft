@@ -1,7 +1,7 @@
-import { Replay } from "@/types/index.types";
 import * as React from "react";
 import { PlayCircleIconSolid as DefaultPlayIcon } from "./Icon";
 import { useNavigate } from "react-router-dom";
+import { Replay } from "@/types/replay.types";
 
 interface ReplayCardProps {
   replay: Replay;
@@ -13,8 +13,8 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   variant = "default",
 }) => {
   const navigate = useNavigate();
-  const targetUrl = replay.url || "/replay";
-
+  // const targetUrl = replay.url || "/replay";
+  const targetUrl = "/replay";
   if (variant === "compact") {
     return (
       <div
@@ -23,7 +23,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
       >
         <div className="relative flex-shrink-0">
           <img
-            src={replay.thumbnailUrl}
+            src={replay?.thumbnail}
             alt={replay.title}
             className="w-[100px] h-[60px] sm:w-[120px] sm:h-[70px] object-cover rounded"
           />
@@ -52,7 +52,16 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
               </p>
             )}
           <p className="text-[10px] sm:text-[11px] text-gray-500 group-hover:text-gray-400">
-            {replay.sportType} - {replay.date}
+            {replay?.sport?.name} -{" "}
+            {new Date(replay?.publishDate).toLocaleString("vi-VN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })}
           </p>
         </div>
       </div>
@@ -62,12 +71,12 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   // Default variant
   return (
     <div
-      onClick={() => navigate("/replay")}
+      onClick={() => navigate(`/replay/${replay?.slug}`)}
       className="block bg-slate-800 rounded-lg shadow-md overflow-hidden group cursor-pointer"
     >
       <div className="relative">
         <img
-          src={replay.thumbnailUrl}
+          src={replay?.thumbnail}
           alt={replay.title}
           className="w-full h-32 sm:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
         />
@@ -75,7 +84,15 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
           <DefaultPlayIcon className="w-10 h-10 sm:w-12 sm:h-12 text-white opacity-70 group-hover:opacity-100" />
         </div>
         <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-[11px] sm:text-xs px-2 py-1 rounded-sm">
-          {replay.date}
+          {new Date(replay?.publishDate).toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          })}
         </div>
         {replay.duration && (
           <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-[11px] sm:text-xs px-1.5 py-0.5 rounded-sm">
@@ -96,7 +113,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
           </p>
         )}
         <p className="text-[11px] sm:text-xs text-gray-500">
-          {replay.sportType}
+          {replay?.sport?.name}
         </p>
       </div>
     </div>

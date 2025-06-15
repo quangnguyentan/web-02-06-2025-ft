@@ -4,6 +4,13 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      screens: {
+        lg: "1024px", // Laptop
+        xl: "1280px",
+        "2xl": "1440px", // Desktop
+        "3xl": "1920px", // Large Desktop
+      },
+
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
         spaceGrotesk: ["Space Grotesk", "sans-serif"],

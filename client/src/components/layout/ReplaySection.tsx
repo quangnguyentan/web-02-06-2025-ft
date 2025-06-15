@@ -1,7 +1,7 @@
-import { Replay } from "@/types/index.types";
 import * as React from "react";
 import ReplayCard from "@/components/layout/ReplayCard";
 import { ChevronRightIcon, TVIcon } from "@/components/layout/Icon";
+import { Replay } from "@/types/replay.types";
 
 interface ReplaySectionProps {
   title: string;
@@ -34,8 +34,8 @@ const ReplaySection: React.FC<ReplaySectionProps> = ({
         )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-        {replays.map((replay) => (
-          <ReplayCard key={replay.id} replay={replay} />
+        {replays?.map((replay) => (
+          <ReplayCard key={replay?._id} replay={replay} />
         ))}
       </div>
     </section>
