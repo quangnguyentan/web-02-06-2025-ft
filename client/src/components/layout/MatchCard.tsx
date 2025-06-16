@@ -14,7 +14,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     year: "numeric",
     hour12: false,
   });
-  const isLive = match.status === "LIVE";
+  const isLive = match?.status === "LIVE";
 
   return (
     <div
@@ -63,13 +63,14 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             </span>
           </div>
 
-          {match.status && match.scores ? (
+          {match?.status && match?.scores ? (
             <div className="text-center px-1">
               <span className="text-xs md:text-xl font-bold text-white">
                 {match.scores.homeScore} - {match.scores.awayScore}
               </span>
-              <div className="text-xs text-yellow-400 mt-1">
-                {isLive ? "LIVE" : match.status}
+              <div className="text-xs text-yellow-400 mt-1 font-medium">
+                {/* {isLive ? "LIVE" : match?.status} */}
+                {isLive && "LIVE"}
               </div>
             </div>
           ) : (

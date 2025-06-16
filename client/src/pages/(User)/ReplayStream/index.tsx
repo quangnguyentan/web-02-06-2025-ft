@@ -1,9 +1,5 @@
 import ReplayStreamPage from "@/components/layout/ReplayStreamPage";
 import {
-  mockMainReplayItem,
-  mockSidebarReplaysForStreamPage,
-} from "@/data/mockStreamData";
-import {
   apiGetAllReplays,
   apiGetReplayBySlug,
 } from "@/services/replay.services";

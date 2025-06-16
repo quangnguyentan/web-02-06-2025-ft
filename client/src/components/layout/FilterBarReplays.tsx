@@ -25,7 +25,7 @@ const FilterBarReplays: React.FC<FilterBarReplaysProps> = ({
       : "Tìm kiếm tên trận đấu, giải đấu, BLV...";
 
   return (
-    <div className="p-3 my-4 rounded-lg shadow flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
+    <div className="my-4 rounded-lg shadow flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
       <div className="relative w-full sm:w-auto">
         <select
           className="appearance-none w-full sm:w-auto bg-slate-700 border border-slate-600 text-white text-sm rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"

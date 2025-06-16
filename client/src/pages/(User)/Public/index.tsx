@@ -18,32 +18,8 @@ const Public = () => {
     useSelectedPageContext();
   // Load saved scroll position from localStorage when component mounts or pathname changes
   React.useEffect(() => {
-    const savedScrollPosition = localStorage.getItem(
-      `scrollPosition_${location.pathname}`
-    );
-    if (containerRef.current && savedScrollPosition) {
-      containerRef.current.scrollTo({
-        top: parseInt(savedScrollPosition, 10),
-        behavior: "auto",
-      });
-    } else if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    containerRef.current.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
-
-  // Save scroll position to localStorage when scrolling
-  const handleScroll = React.useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      if (containerRef.current) {
-        const scrollPosition = containerRef.current.scrollTop;
-        localStorage.setItem(
-          `scrollPosition_${location.pathname}`,
-          scrollPosition.toString()
-        );
-      }
-    },
-    [location.pathname]
-  );
 
   React.useEffect(() => {
     const savedPage = localStorage.getItem("selectedPage");
@@ -55,8 +31,7 @@ const Public = () => {
   return (
     <div
       ref={containerRef}
-      className="bg-transparent text-brand-text overflow-y-auto h-screen"
-      onScroll={handleScroll}
+      className="bg-[#1e2027] text-brand-text overflow-y-auto h-screen"
     >
       <div className="flex flex-col min-h-screen bg-[#1E2027]">
         <StickyAdBanner position="top" imageUrl={belt_bottom_top} />

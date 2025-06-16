@@ -9,7 +9,6 @@ import {
 } from "@/types/replay.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { Replay } from "@/types/replay.types";
 
 interface ReplayHubPageProps {
@@ -53,8 +52,9 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
    2xl:translate-x-[calc((100vw-1440px)/12)]
     3xl:translate-x-[calc((100vw-1440px)/2)]"
     >
-      <main className="w-full">
+      <main className="w-full pt-2">
         <ReplayHubBreadcrumbs />
+        <FilterBarReplays />
         <div className="bg-slate-800 p-4 rounded-lg shadow-xl mb-4">
           <h1 className="text-xl font-bold text-yellow-400 mb-2">
             {pageTitle}
@@ -63,19 +63,13 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
             {pageDescription}
           </p>
         </div>
-
-        <FilterBarReplays />
-
+        <h2 className="text-lg font-bold uppercase text-gray-100/80 py-4">
+          Mới cập nhật
+        </h2>
         <div className="flex flex-col lg:flex-row">
-          {/* Main Content: Featured and Categorized Replays */}
           <div className="lg:w-2/3 flex-shrink-0 pr-2">
-            <div className="bg-slate-800 p-1 rounded-lg shadow-md mb-4">
-              <h2 className="text-sm font-semibold uppercase text-gray-400 px-3 pt-2">
-                Mới cập nhật
-              </h2>
+            <div className="rounded-lg shadow-md mb-4">
               <FeaturedBroadcastSection
-                mainTitle="Lịch Phát Sóng & Bình Luận Trực Tiếp ROLAND GARROS"
-                subTitle="THAPCAM.TV"
                 items={featuredBroadcasts}
                 highlightedEvent={highlightedEvent}
               />
@@ -94,14 +88,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
                 replays={sidebarReplays}
                 title="XEM LẠI BÓNG ĐÁ"
               />
-              <div className="my-3">
-                {/* Ad placeholder */}
-                <img
-                  src={belt_bottom_top}
-                  alt="Ad Banner"
-                  className="w-full rounded-md shadow"
-                />
-              </div>
             </div>
           </div>
         </div>

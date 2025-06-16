@@ -63,10 +63,7 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
           <VideoPlayer
             videoTitle={mainReplay?.title}
             videoUrl={mainReplay?.videoUrl}
-            posterUrl={
-              mainReplay?.thumbnail ||
-              "https://picsum.photos/seed/superbowl_poster/1280/720"
-            }
+            posterUrl={mainReplay?.thumbnail}
           />
           <div className="">
             <img
@@ -75,18 +72,14 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
               className="object-cover md:w-full "
             />
           </div>
-          <div className="bg-slate-800 p-3 rounded-md text-xs sm:text-sm text-gray-400 mt-3">
-            <p>
-              Nội dung mô tả thêm về trận đấu hoặc video này. Ví dụ:{" "}
-              {mainReplay.title}. Bình luận bởi {mainReplay.commentator}. Video
-              có thời lượng {mainReplay.duration}.
-            </p>
+          <div className="rounded-md text-xs sm:text-sm text-white py-2">
+            <p>{mainReplay?.title}</p>
           </div>
         </div>
 
         {/* Right Column: Replay Suggestions */}
         <div className="w-full lg:w-1/3 xl:w-1/4 flex-shrink-0 mt-4 lg:mt-0">
-          <div className="">
+          <div>
             <ReplaySuggestionsPanel
               replays={suggestedReplays}
               title={`XEM LẠI ${

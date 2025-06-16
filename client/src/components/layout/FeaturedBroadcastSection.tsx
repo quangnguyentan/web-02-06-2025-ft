@@ -5,29 +5,16 @@ import {
 } from "@/types/replay.types";
 
 interface FeaturedBroadcastSectionProps {
-  mainTitle: string;
-  subTitle: string;
   items: FeaturedBroadcastItem[];
   highlightedEvent: HighlightedEventInfo;
 }
 
 const FeaturedBroadcastSection: React.FC<FeaturedBroadcastSectionProps> = ({
-  mainTitle,
-  subTitle,
   highlightedEvent,
 }) => {
   return (
-    <div className="bg-slate-800/50 p-4 rounded-lg shadow-xl my-4">
-      <h2 className="text-lg sm:text-2xl font-bold text-white uppercase tracking-wide">
-        {mainTitle}
-      </h2>
-      <p className="text-base sm:text-lg font-semibold text-orange-400 mb-4">
-        {subTitle}
-      </p>
-
-      {/* Highlighted Event Summary Area */}
-      <div className="relative rounded-md overflow-hidden shadow-md border border-slate-500/70">
-        {/* Background Image */}
+    <div className="rounded-lg shadow-xl">
+      <div className="relative rounded-md overflow-hidden shadow-md">
         <img
           src={highlightedEvent?.replay?.thumbnail}
           alt="Player highlight"

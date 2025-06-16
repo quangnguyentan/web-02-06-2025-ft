@@ -2,6 +2,7 @@ import * as React from "react";
 import { PlayCircleIconSolid as DefaultPlayIcon } from "./Icon";
 import { useNavigate } from "react-router-dom";
 import { Replay } from "@/types/replay.types";
+import { formatDuration } from "@/lib/helper";
 
 interface ReplayCardProps {
   replay: Replay;
@@ -30,9 +31,9 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
           <div className="absolute inset-0 bg-black bg-opacity-10 group-hover:bg-opacity-40 flex items-center justify-center transition-opacity duration-300 rounded">
             <DefaultPlayIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white opacity-60 group-hover:opacity-100 transition-opacity" />
           </div>
-          {replay.duration && (
+          {replay?.duration && (
             <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[10px] px-1.5 py-0.5 rounded-sm font-medium">
-              {replay.duration}
+              {formatDuration(replay?.duration)}
             </div>
           )}
         </div>
@@ -72,7 +73,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   return (
     <div
       onClick={() => navigate(targetUrl)}
-      className="block  rounded-lg shadow-md overflow-hidden group cursor-pointer"
+      className="block rounded-lg shadow-md overflow-hidden group cursor-pointer"
     >
       <div className="relative">
         <img
@@ -96,7 +97,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
         </div>
         {replay?.duration && (
           <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-[11px] sm:text-xs px-1.5 py-0.5 rounded-sm">
-            {replay.duration}
+            {formatDuration(replay?.duration)}
           </div>
         )}
       </div>
@@ -109,12 +110,12 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
         </h3>
         {replay.commentator && (
           <p className="text-[11px] sm:text-xs text-gray-400 truncate">
-            BLV: {replay.commentator}
+            BLV {replay.commentator} -{" "}
+            <span className="text-[11px] sm:text-xs text-gray-500">
+              {replay?.sport?.name}
+            </span>
           </p>
         )}
-        <p className="text-[11px] sm:text-xs text-gray-500">
-          {replay?.sport?.name}
-        </p>
       </div>
     </div>
   );

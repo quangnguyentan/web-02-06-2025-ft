@@ -3,10 +3,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body {
-  background: #1E2027 !important; /* red-500 */
-  color: #ffffff; /* white text for contrast */
-}
 .slick-track {
   margin-left: 0 !important;
 }
@@ -28,7 +24,5 @@ body {
 /* Note: Firefox scrollbar styling is less customizable via CSS only */
 html {
   scrollbar-width: thin;
-  scrollbar-color: silver transparent; 
+  scrollbar-color: silver transparent;
 }
-
-

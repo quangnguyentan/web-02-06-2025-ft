@@ -29,7 +29,7 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
       <div className="space-y-2 max-h-[320px] sm:max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
         {/* Added max-h and pr for scrollbar spacing */}
         {replays?.map((replay) => (
-          <ReplayCard key={replay?._id} replay={replay} variant="compact" />
+          <ReplayCard key={replay?._id} replay={replay} variant="default" />
         ))}
       </div>
     </div>
