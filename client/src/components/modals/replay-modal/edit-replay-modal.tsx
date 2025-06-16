@@ -99,10 +99,10 @@ export const EditReplayModal = () => {
 
     fetchData();
   }, [isModalOpen]);
-  console.log(data?.replay);
+
   // Populate form with existing replay data when available
   useEffect(() => {
-    if (data?.replay) {
+    if (data?.replay && isModalOpen) {
       form.reset({
         title: data.replay.title,
         slug: data.replay.slug,
@@ -118,8 +118,22 @@ export const EditReplayModal = () => {
           .slice(0, 16),
         sport: data.replay.sport._id,
       });
+    } else if (!isModalOpen) {
+      form.reset({
+        title: "",
+        slug: "",
+        description: "",
+        videoUrl: "",
+        thumbnail: "",
+        match: "",
+        duration: 0,
+        views: 0,
+        commentator: "",
+        publishDate: "",
+        sport: "",
+      });
     }
-  }, [form, data?.replay]);
+  }, [isModalOpen, data?.replay, form]);
 
   // Watch title and update slug dynamically
   const watchTitle = form.watch("title");

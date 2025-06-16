@@ -81,8 +81,15 @@ export const EditTeamModal = () => {
         logo: data.team.logo || "",
         sport: data?.team?.sport?._id,
       });
+    } else if (!isModalOpen) {
+      form.reset({
+        name: "",
+        slug: "",
+        logo: "",
+        sport: "",
+      });
     }
-  }, [form, data?.team, isModalOpen]);
+  }, [isModalOpen, data?.team, form]);
 
   const fetchSports = async () => {
     try {

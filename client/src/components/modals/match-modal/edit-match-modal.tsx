@@ -145,27 +145,39 @@ export const EditMatchModal = () => {
     fetchData();
   }, [isModalOpen, matchToEdit, form]); // Thêm form vào dependency array
   useEffect(() => {
-    if (matchToEdit) {
-      form.setValue("title", matchToEdit.title);
-      form.setValue("slug", matchToEdit.slug);
-      form.setValue("homeTeam", matchToEdit.homeTeam._id);
-      form.setValue("awayTeam", matchToEdit.awayTeam._id);
-      form.setValue("league", matchToEdit.league._id);
-      form.setValue("sport", matchToEdit.sport._id);
-      // Định dạng thời gian cho input datetime-local
-      const startTimeFormatted = new Date(matchToEdit.startTime)
-        .toISOString()
-        .slice(0, 16);
-      form.setValue("startTime", startTimeFormatted);
-      form.setValue("status", matchToEdit.status);
-      form.setValue("scores", {
-        homeScore: matchToEdit.scores.homeScore,
-        awayScore: matchToEdit.scores.awayScore,
+    if (isModalOpen && matchToEdit) {
+      form.reset({
+        title: matchToEdit.title,
+        slug: matchToEdit.slug,
+        homeTeam: matchToEdit.homeTeam._id,
+        awayTeam: matchToEdit.awayTeam._id,
+        league: matchToEdit.league._id,
+        sport: matchToEdit.sport._id,
+        startTime: new Date(matchToEdit.startTime).toISOString().slice(0, 16),
+        status: matchToEdit.status,
+        scores: {
+          homeScore: matchToEdit.scores.homeScore,
+          awayScore: matchToEdit.scores.awayScore,
+        },
+        streamLinks: matchToEdit.streamLinks,
+        isHot: matchToEdit.isHot,
       });
-      form.setValue("streamLinks", matchToEdit.streamLinks);
-      form.setValue("isHot", matchToEdit.isHot);
+    } else if (!isModalOpen) {
+      form.reset({
+        title: "",
+        slug: "",
+        homeTeam: "",
+        awayTeam: "",
+        league: "",
+        sport: "",
+        startTime: "",
+        status: MatchStatusType.UPCOMING,
+        scores: { homeScore: 0, awayScore: 0 },
+        streamLinks: [{ label: "", url: "", commentator: "", priority: 1 }],
+        isHot: false,
+      });
     }
-  }, [matchToEdit, form]);
+  }, [isModalOpen, matchToEdit, form]);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       // Tìm object Team, League, Sport dựa trên ID

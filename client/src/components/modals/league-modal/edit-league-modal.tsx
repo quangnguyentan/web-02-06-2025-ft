@@ -49,6 +49,7 @@ const formSchema = z.object({
 
 export const EditLeagueModal = () => {
   const { isOpen, onClose, type, data } = useModal();
+  const { league: leagueToEdit } = data;
   const isModalOpen = isOpen && type === "editLeague";
   const { setSelectedPage, league, setLeague } = useSelectedPageContext();
   const [sports, setSports] = useState<Sport[]>([]);
@@ -81,13 +82,22 @@ export const EditLeagueModal = () => {
   };
 
   useEffect(() => {
-    if (data?.league) {
-      form.setValue("name", data.league.name || "");
-      form.setValue("slug", data.league.slug || "");
-      form.setValue("logo", data.league.logo || "");
-      form.setValue("sport", data.league.sport?._id || "");
+    if (isModalOpen && leagueToEdit) {
+      form.reset({
+        name: leagueToEdit.name || "",
+        slug: leagueToEdit.slug || "",
+        logo: leagueToEdit.logo || "",
+        sport: leagueToEdit.sport?._id || "",
+      });
+    } else if (!isModalOpen) {
+      form.reset({
+        name: "",
+        slug: "",
+        logo: "",
+        sport: "",
+      });
     }
-  }, [form, data?.league]);
+  }, [isModalOpen, leagueToEdit, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {

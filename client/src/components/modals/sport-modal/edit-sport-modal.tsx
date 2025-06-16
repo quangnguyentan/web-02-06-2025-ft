@@ -68,13 +68,22 @@ export const EditSportModal = () => {
     onClose();
   };
   useEffect(() => {
-    if (sport) {
-      form.setValue("name", sport.name);
-      form.setValue("slug", sport.slug);
-      form.setValue("icon", sport.icon);
-      form.setValue("order", sport.order ?? 1);
+    if (sport && isModalOpen) {
+      form.reset({
+        name: sport.name,
+        slug: sport.slug,
+        icon: sport.icon,
+        order: sport.order ?? 1,
+      });
+    } else if (!isModalOpen) {
+      form.reset({
+        name: "",
+        slug: "",
+        icon: "",
+        order: undefined,
+      });
     }
-  }, [form, sport]);
+  }, [isModalOpen, sport, form]);
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white text-black p-0 overflow-hidden">

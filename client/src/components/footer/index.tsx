@@ -31,7 +31,10 @@ const FooterInfo: React.FC = () => {
 
   return (
     <footer className="bg-slate-800 text-gray-400 py-8 px-4 md:px-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div
+        className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px]
+      lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/2)] space-y-6"
+      >
         {infoSections.map((section, index) => (
           <div key={index}>
             <h2 className="text-xl font-semibold text-yellow-400 mb-3">
