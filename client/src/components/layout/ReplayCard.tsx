@@ -72,7 +72,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   return (
     <div
       onClick={() => navigate(targetUrl)}
-      className="block bg-slate-800 rounded-lg shadow-md overflow-hidden group cursor-pointer"
+      className="block  rounded-lg shadow-md overflow-hidden group cursor-pointer"
     >
       <div className="relative">
         <img
@@ -94,7 +94,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
             hour12: false,
           })}
         </div>
-        {replay.duration && (
+        {replay?.duration && (
           <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-[11px] sm:text-xs px-1.5 py-0.5 rounded-sm">
             {replay.duration}
           </div>

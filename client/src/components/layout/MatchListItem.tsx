@@ -1,25 +1,33 @@
-import { Match } from "@/types/index.types";
 import { UserIcon } from "./Icon"; // For streamer avatar fallback
 import * as React from "react";
 import team_1 from "@/assets/user/team-1.png";
 import team_2 from "@/assets/user/team-2.png";
+import { Match } from "@/types/match.types";
 const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
   return (
     <div className="relative flex flex-wrap sm:flex-nowrap items-center justify-between p-2 sm:p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0">
       {/* Time */}
-      <div className="w-1/3 sm:w-1/6 text-xs sm:text-sm text-gray-300 font-medium mb-1 sm:mb-0">
-        {match.time}
+      <div className="w-1/3 sm:w-1/6 text-xs sm:text-xs text-gray-300 font-medium mb-1 sm:mb-0">
+        {new Date(match?.startTime).toLocaleString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        })}
       </div>
 
       {/* Team A */}
       <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 mb-1 sm:mb-0">
         <img
-          src={team_1 || match.teamA.logoUrl}
-          alt={match.teamA.name}
+          src={team_1 || match?.homeTeam?.logo}
+          alt={match?.homeTeam?.name}
           className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
         />
         <span className="text-xs sm:text-sm text-white truncate">
-          {match.teamA.name}
+          {match?.homeTeam?.name}
         </span>
       </div>
 
@@ -34,33 +42,33 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
       {/* Team B */}
       <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 justify-end mb-1 sm:mb-0">
         <span className="text-xs sm:text-sm text-white text-right line-clamp-1 overflow-hidden break-words">
-          {match.teamB.name}
+          {match?.awayTeam?.name}
         </span>
         <img
-          src={team_2 || match.teamB.logoUrl}
-          alt={match.teamB.name}
+          src={team_2 || match?.awayTeam?.logo}
+          alt={match?.homeTeam?.name}
           className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
         />
       </div>
 
       {/* Streamer */}
       <div className="w-full sm:w-1/5 flex items-center justify-end space-x-1.5 pl-0 sm:pl-2 mt-1 sm:mt-0 ">
-        {match.streamerAvatarUrl ? (
+        {match?.streamLinks?.[0]?.commentatorImage ? (
           <img
-            src={match.streamerAvatarUrl}
-            alt={match.streamerName}
+            src={match?.streamLinks?.[0]?.commentatorImage}
+            alt={match?.streamLinks?.[0]?.commentator}
             className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
           />
         ) : (
           <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
         )}
         <span className="text-[11px] sm:text-xs text-sky-400 truncate hover:text-sky-300 cursor-pointer">
-          {match.streamerName || "N/A"}
+          {match?.streamLinks?.[0]?.commentator || "N/A"}
         </span>
       </div>
 
       {/* Live badge */}
-      {match.isLive && (
+      {match.status === "LIVE" && (
         <div className="w-full sm:w-1/12 flex justify-end mt-1 sm:mt-0 absolute top-0 right-0">
           <span className="text-[11px] sm:text-xs bg-red-500 text-white px-1.5 py-0.5 rounded font-semibold animate-pulse">
             LIVE

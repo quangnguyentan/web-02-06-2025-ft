@@ -21,9 +21,9 @@ const Live: React.FC = () => {
       apiGetAllReplays(),
     ]);
 
-    const allLeagueSlug = matchResSlug.data || {};
-    const allLeagues = matchesRes.data || [];
-    const allReplay = replayRes.data || [];
+    const allLeagueSlug = matchResSlug.data ?? {};
+    const allLeagues = matchesRes.data ?? [];
+    const allReplay = replayRes.data ?? [];
 
     setCurrentMatch(allLeagueSlug);
     setRelatedMatches(allLeagues);

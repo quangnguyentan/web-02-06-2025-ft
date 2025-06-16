@@ -1,4 +1,4 @@
-import { LeagueSchedule, Match } from "@/types/index.types";
+import { LeagueSchedule, Match } from "@/types/match.types";
 import ResultsListItem from "./ResultsListItem";
 import { CalendarDaysIcon } from "./Icon";
 import * as React from "react";
@@ -40,7 +40,7 @@ const ResultsList: React.FC<ResultsListProps> = ({
           {/* Removed divide-y from here, border is on ListItem now */}
           <div>
             {league.matches.map((match: Match) => (
-              <ResultsListItem key={match.id} match={match} />
+              <ResultsListItem key={match?._id} match={match} />
             ))}
           </div>
         </div>

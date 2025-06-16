@@ -3,6 +3,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+body {
+  background: #1E2027 !important; /* red-500 */
+  color: #ffffff; /* white text for contrast */
+}
 .slick-track {
   margin-left: 0 !important;
 }
@@ -25,6 +29,6 @@
 html {
   scrollbar-width: thin;
   scrollbar-color: silver transparent; 
- 
 }
+
 

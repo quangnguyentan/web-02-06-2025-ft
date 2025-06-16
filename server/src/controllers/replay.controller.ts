@@ -30,7 +30,12 @@ export const getAllReplays = async (
   res: Response
 ): Promise<void> => {
   try {
-    const replays = await Replay.find()
+    const { excludeId } = req.query;
+    const filter: any = {};
+    if (excludeId) {
+      filter._id = { $ne: excludeId };
+    }
+    const replays = await Replay.find(filter)
       // Populate lồng nhau để lấy thông tin chi tiết của trận đấu
       .populate({
         path: "match",
@@ -39,6 +44,10 @@ export const getAllReplays = async (
           { path: "awayTeam", select: "name logo" },
           { path: "league", select: "name" },
         ],
+      })
+      .populate({
+        path: "sport",
+        select: "name icon slug",
       })
       .sort({ createdAt: -1 }); // Sắp xếp video mới nhất lên đầu
 
@@ -55,7 +64,9 @@ export const getReplayById = async (
   res: Response
 ): Promise<void> => {
   try {
-    const replay = await Replay.findById(req.params.id).populate("match");
+    const replay = await Replay.findById(req.params.id)
+      .populate("match")
+      .populate("sport");
     if (!replay) {
       res.status(404).json({ message: "Không tìm thấy video" });
       return;
@@ -65,7 +76,24 @@ export const getReplayById = async (
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
-
+export const getReplayBySlug = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    console.log(req.params?.slug);
+    const replay = await Replay.findOne({ slug: req.params.slug })
+      .populate("match")
+      .populate("sport");
+    if (!replay) {
+      res.status(404).json({ message: "Không tìm thấy video" });
+      return;
+    }
+    res.status(200).json(replay);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error });
+  }
+};
 // @desc    Cập nhật một video xem lại
 // @route   PUT /api/replays/:id
 export const updateReplay = async (

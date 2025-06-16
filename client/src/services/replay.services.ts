@@ -1,10 +1,13 @@
 import { Replay } from "@/types/replay.types";
 import axiosConfig from "../axios";
-export const apiGetAllReplays = async () => {
+export const apiGetAllReplays = async (id?: string) => {
   try {
     const response = await axiosConfig({
       method: "GET",
       url: "/replays/",
+      params: {
+        excludeId: id,
+      },
     });
     return response;
   } catch (error) {
@@ -17,6 +20,18 @@ export const apiGetReplayById = async (id: string) => {
     const response = await axiosConfig({
       method: "GET",
       url: "/replays/" + id,
+    });
+    return response;
+  } catch (error) {
+    console.error("Error fetching replay by ID:", error);
+    throw error;
+  }
+};
+export const apiGetReplayBySlug = async (slug: string) => {
+  try {
+    const response = await axiosConfig({
+      method: "GET",
+      url: "/replays/getReplay/" + slug,
     });
     return response;
   } catch (error) {

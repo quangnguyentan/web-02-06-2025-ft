@@ -4,7 +4,7 @@ import {
   HighlightedEventInfo,
   CategorizedReplayGroup,
   Replay,
-} from "../types/index.types";
+} from "../types/replay.types";
 import {
   StarIcon,
   FootballIcon,

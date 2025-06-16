@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import DateSelector from "@/components/layout/DateSelector";
 import MatchList from "@/components/layout/MatchList";
 import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
-import { DateTabInfo, LeagueSchedule, Replay } from "@/types/index.types";
+import { DateTabInfo, LeagueSchedule } from "@/types/match.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
+import { Replay } from "@/types/replay.types";
 
 interface SchedulePageProps {
   availableDates: DateTabInfo[];
@@ -44,7 +45,7 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
   const selectedDateTab = useMemo(() => {
     return availableDates.find((d) => d.id === selectedDateId);
   }, [selectedDateId, availableDates]);
-
+  console.log(availableDates);
   const pageTitle = `Lịch Thi Đấu Bóng Đá ${
     selectedDateTab?.dateSuffix || ""
   } Cập Nhật Mới Nhất 24H - Thập Cẩm TV`;
@@ -95,15 +96,15 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
                 replays={replayItems}
                 title="XEM LẠI BÓNG ĐÁ"
               />
-              <div className="my-3">
-                <img
-                  src={belt_bottom_top}
-                  alt="Small Ad Banner"
-                  className="w-full rounded-md shadow"
-                />
-              </div>
             </div>
           </div>
+        </div>
+        <div className="py-3">
+          <img
+            src={belt_bottom_top}
+            alt="Small Ad Banner"
+            className="w-full rounded-md shadow"
+          />
         </div>
       </main>
     </div>

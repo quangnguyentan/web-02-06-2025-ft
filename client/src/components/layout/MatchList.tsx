@@ -1,4 +1,4 @@
-import { LeagueSchedule, Match } from "@/types/index.types";
+import { LeagueSchedule, Match } from "@/types/match.types";
 import { CalendarDaysIcon } from "./Icon"; // For streamer avatar fallback
 import * as React from "react";
 import MatchListItem from "./MatchListItem";
@@ -37,7 +37,7 @@ const MatchList: React.FC<MatchListProps> = (props: MatchListProps) => {
               (
                 match: Match // Explicitly typing 'match' here for clarity
               ) => (
-                <MatchListItem key={match.id} match={match} />
+                <MatchListItem key={match?._id} match={match} />
               )
             )}
           </div>

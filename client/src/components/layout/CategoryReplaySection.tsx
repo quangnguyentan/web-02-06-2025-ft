@@ -1,4 +1,4 @@
-import { CategorizedReplayGroup } from "@/types/index.types";
+import { CategorizedReplayGroup } from "@/types/replay.types";
 import ReplayCard from "./ReplayCard";
 import { ChevronRightIcon } from "./Icon";
 import * as React from "react";
@@ -32,7 +32,7 @@ const CategoryReplaySection: React.FC<CategoryReplaySectionProps> = ({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
         {group.replays.map((replay) => (
-          <ReplayCard key={replay.id} replay={replay} variant="default" />
+          <ReplayCard key={replay._id} replay={replay} variant="default" />
         ))}
       </div>
     </section>

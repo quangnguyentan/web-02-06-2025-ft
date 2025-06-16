@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import { useState, useEffect } from "react";
-import { apiUpdateReplay } from "@/services/replay.services"; // Assuming you have this service
+import { apiUpdateReplay } from "@/services/replay.services";
 import { apiGetAllMatches } from "@/services/match.services";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import toast from "react-hot-toast";
@@ -43,8 +43,8 @@ const formSchema = z.object({
   description: z.string().optional(),
   videoUrl: z.string().url({ message: "Invalid video URL" }),
   thumbnail: z.string().url({ message: "Invalid thumbnail URL" }).optional(),
-  match: z.string().min(1, { message: "Match is required" }), // ID of the match
-  sport: z.string().min(1, { message: "Sport is required" }), // ID của môn thể thao
+  match: z.string().min(1, { message: "Match is required" }),
+  sport: z.string().min(1, { message: "Sport is required" }),
   duration: z.coerce
     .number()
     .min(0, { message: "Duration must be non-negative" })
@@ -57,7 +57,7 @@ const formSchema = z.object({
 export const EditReplayModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const isModalOpen = isOpen && type === "editReplay";
-  const { setSelectedPage, replay, setReplay } = useSelectedPageContext(); // Assuming 'replays' and 'setReplays' in context
+  const { setSelectedPage, replay, setReplay } = useSelectedPageContext();
   const [matches, setMatches] = useState<Match[]>([]);
   const [sports, setSports] = useState<Sport[]>([]);
 
@@ -99,7 +99,7 @@ export const EditReplayModal = () => {
 
     fetchData();
   }, [isModalOpen]);
-
+  console.log(data?.replay);
   // Populate form with existing replay data when available
   useEffect(() => {
     if (data?.replay) {
@@ -109,21 +109,32 @@ export const EditReplayModal = () => {
         description: data.replay.description || "",
         videoUrl: data.replay.videoUrl,
         thumbnail: data.replay.thumbnail || "",
-        match: data.replay.match._id, // Set the ID of the current match
+        match: data.replay.match._id,
         duration: data.replay.duration,
         views: data.replay.views,
         commentator: data.replay.commentator || "",
         publishDate: new Date(data.replay.publishDate)
           .toISOString()
-          .slice(0, 16), // Format to datetime-local
-        sport: data.replay.match.sport._id, // Assuming match has a sport field
+          .slice(0, 16),
+        sport: data.replay.sport._id,
       });
     }
   }, [form, data?.replay]);
 
+  // Watch title and update slug dynamically
+  const watchTitle = form.watch("title");
+  useEffect(() => {
+    if (watchTitle) {
+      const newSlug = watchTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      form.setValue("slug", newSlug, { shouldValidate: true });
+    }
+  }, [watchTitle, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Find the Match object based on the selected ID
       const selectedMatch = matches.find((m) => m._id === values.match);
       if (!selectedMatch) {
         toast.error("Trận đấu không hợp lệ");
@@ -134,19 +145,19 @@ export const EditReplayModal = () => {
         toast.error("Trận đấu không hợp lệ");
         return;
       }
-      // Prepare the payload for the API call
+
       const payload: Partial<Replay> = {
         title: values.title,
         slug: values.slug,
         description: values.description,
         videoUrl: values.videoUrl,
         thumbnail: values.thumbnail,
-        match: selectedMatch, // Send the full Match object
+        match: selectedMatch,
         duration: values.duration,
         views: values.views,
         commentator: values.commentator,
         publishDate: new Date(values.publishDate),
-        sport: selectedSport, // Send the full Sport object
+        sport: selectedSport,
       };
 
       if (!data?.replay?._id) {
@@ -154,16 +165,15 @@ export const EditReplayModal = () => {
         return;
       }
 
-      const res = await apiUpdateReplay(data.replay._id, payload); // Assuming apiUpdateReplay service exists
+      const res = await apiUpdateReplay(data.replay._id, payload);
       if (res?.data) {
         toast.success(`Đã cập nhật ${values.title} thành công`);
-        // Update the replays list in context
         const updatedList = replay?.map((item) =>
           item._id === res.data._id ? res.data : item
         );
         setReplay(updatedList);
         onClose();
-        setSelectedPage("Replays"); // Navigate back to the Replays page if needed
+        setSelectedPage("Replays");
       }
     } catch (error) {
       toast.error("Lỗi khi cập nhật replay");
@@ -321,6 +331,8 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
@@ -349,6 +361,7 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
+
               {/* Duration */}
               <FormField
                 control={form.control}
@@ -370,12 +383,14 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Publish Date */}
               <FormField
                 control={form.control}
                 name="publishDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pushlish Date</FormLabel>
+                    <FormLabel>Publish Date</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
@@ -387,6 +402,7 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
+
               {/* Views */}
               <FormField
                 control={form.control}

@@ -11,11 +11,16 @@ import { User } from "@/types/user.types";
 export const SelectedPageProvider = ({
   children,
   initialPage = "Users",
+  inititalSportsNavbarPage = "eSports",
 }: {
   children: ReactNode;
   initialPage?: string;
+  inititalSportsNavbarPage?: string;
 }) => {
   const [selectedPage, setSelectedPage] = useState(initialPage);
+  const [selectedSportsNavbarPage, setSelectedSportsNavbarPage] = useState(
+    inititalSportsNavbarPage
+  );
 
   // User
   const [user, setUser] = useState<User[]>([]);
@@ -60,6 +65,8 @@ export const SelectedPageProvider = ({
         addUser,
         selectedPage,
         setSelectedPage,
+        selectedSportsNavbarPage,
+        setSelectedSportsNavbarPage,
         sports,
         setSports,
         addSport,

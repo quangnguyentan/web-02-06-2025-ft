@@ -64,47 +64,9 @@ export interface ChatMessage {
 }
 
 // Types for Schedule Page & Results Page
-export interface DateTabInfo {
-  id: string; // YYYY-MM-DD
-  label: string; // "Hôm Nay", "T4", "T5"
-  dateSuffix: string; // "03/06"
-  isToday?: boolean;
-  hasLive?: boolean; // To show a live indicator on the tab
-}
-
-export interface LeagueSchedule {
-  id: string;
-  name: string;
-  icon: React.ReactNode; // Specific icon for the league header
-  matches: Match[];
-}
 
 // Types for Replay Hub Page
 export interface FeaturedPlayerInfo {
   name: string;
   imageUrl: string;
-}
-
-export interface FeaturedBroadcastItem {
-  id: string;
-  playerImage: string;
-  playerName: string;
-  time: string; // e.g., "16:00 ---"
-  opponentName: string;
-  commentator: string;
-}
-
-export interface HighlightedEventInfo {
-  playerImages: string[]; // URLs for the 3 smaller images
-  description: string; // e.g., "Tennis Roland Garros Carlos Alcaraz vs Ben Shelton"
-  commentatorInfo: string; // e.g., "BLV My Tom | 01.06.25"
-  dateDisplay: string; // e.g., "01/06"
-}
-
-export interface CategorizedReplayGroup {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  replays: Replay[];
-  viewAllUrl?: string;
 }

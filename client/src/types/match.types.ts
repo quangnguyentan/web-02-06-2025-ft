@@ -36,3 +36,17 @@ export enum MatchStatusType {
   POSTPONED = "POSTPONED",
   CANCELLED = "CANCELLED",
 }
+export interface DateTabInfo {
+  id: string; // YYYY-MM-DD
+  label: string; // "Hôm Nay", "T4", "T5"
+  dateSuffix: string; // "03/06"
+  isToday?: boolean;
+  hasLive?: boolean; // To show a live indicator on the tab
+}
+
+export interface LeagueSchedule {
+  id: string;
+  name: string;
+  icon: React.ReactNode; // Specific icon for the league header
+  matches: Match[]; // Ensure matches are of type Match
+}

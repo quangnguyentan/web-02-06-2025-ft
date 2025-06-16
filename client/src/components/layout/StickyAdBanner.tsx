@@ -15,7 +15,7 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
   return (
     <div
       className={`
-    ${position === "top" ? "top-0" : "sticky bottom-0"}
+    ${position === "top" ? "top-0" : "absolute bottom-0"}
     z-40
     flex items-center
     justify-between
@@ -39,18 +39,18 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
           <img
             src={imageUrl}
             alt="Ad Banner"
-            className="object-cover md:w-full "
+            className="object-cover md:w-full"
           />
           {position === "bottom" && (
-            <a
+            <div
               onClick={() => setHiddenBanner(true)}
-              className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 rounded text-sm shadow absolute right-0 top-0 "
+              className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 rounded text-sm shadow absolute right-0 top-0 cursor-pointer"
             >
               {buttonText}
               <button className="text-white hover:text-yellow-200 text-xl leading-none">
                 &times;
               </button>
-            </a>
+            </div>
           )}
         </>
       )}

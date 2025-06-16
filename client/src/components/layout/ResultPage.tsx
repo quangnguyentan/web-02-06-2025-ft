@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import DateSelector from "@/components/layout/DateSelector";
 import ResultsList from "@/components/layout/ResultsList";
 import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
-import { DateTabInfo, LeagueSchedule, Replay } from "@/types/index.types";
+import { DateTabInfo, LeagueSchedule } from "@/types/match.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
+import { Replay } from "@/types/replay.types";
 
 interface ResultsPageProps {
   availableDates: DateTabInfo[];

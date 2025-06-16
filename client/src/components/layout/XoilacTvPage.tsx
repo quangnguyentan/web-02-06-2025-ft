@@ -1,6 +1,5 @@
 import HeroSection from "@/components/layout/HeroSection";
 import SportSection from "@/components/layout/SportSection";
-import HorizontalAdBanner from "@/components/layout/HorizontalAdBanner";
 import {
   HomeIconSolid,
   ChevronRightIcon,
@@ -12,6 +11,7 @@ import {
 } from "@/components/layout/Icon";
 import * as React from "react";
 import { Match } from "@/types/match.types";
+import belt_bottom_top from "@/assets/user/1330t190.gif";
 
 interface XoilacTvPageProps {
   spotlightMatches: Match[];
@@ -65,7 +65,13 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
         </p>
         <p className="text-sm text-gray-300 leading-relaxed">{introText}</p>
       </div>
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
       <SportSection
         title="TÂM ĐIỂM THỂ THAO"
         icon={<StarIcon className="w-5 h-5 text-yellow-400" />}
@@ -73,35 +79,65 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
         isSpotlight={true}
         titleClassName="text-lg md:text-xl font-bold text-yellow-400 uppercase"
       />
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
       <SportSection
         title="BÓNG ĐÁ"
         icon={<FootballIcon className="w-5 h-5 text-green-400" />}
         matches={footballMatches}
         viewAllUrl="#"
       />
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
       <SportSection
         title="TENNIS"
         icon={<TennisIcon className="w-5 h-5 text-lime-400" />}
         matches={tennisMatches}
         viewAllUrl="#"
       />
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
       <SportSection
         title="BÓNG RỔ"
         icon={<BasketballIcon className="w-5 h-5 text-orange-400" />}
         matches={basketballMatches}
         viewAllUrl="#"
       />
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
       <SportSection
         title="BÓNG CHUYỀN"
         icon={<VolleyballIcon className="w-5 h-5 text-sky-400" />}
         matches={volleyballMatches}
         viewAllUrl="#"
       />
-      <HorizontalAdBanner />
+      <div className="px-1 sm:px-4 md:px-6">
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
+      </div>
     </main>
   );
 };

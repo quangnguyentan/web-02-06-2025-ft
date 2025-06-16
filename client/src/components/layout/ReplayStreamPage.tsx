@@ -1,10 +1,10 @@
 import VideoPlayer from "@/components/layout/VideoPlayer";
 import FilterBarReplays from "@/components/layout/FilterBarReplays";
 import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
-import HorizontalAdBanner from "@/components/layout/HorizontalAdBanner";
-import { Replay } from "@/types/index.types";
+import { Replay } from "@/types/replay.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
+import belt_bottom_top from "@/assets/user/1330t190.gif";
 
 interface ReplayStreamPageProps {
   mainReplay: Replay;
@@ -25,11 +25,11 @@ const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => (
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
     <a href="#" className="hover:text-yellow-400">
-      {replay.categoryDisplayName || "Thể loại"}
+      {replay?.sport?.name || "Thể loại"}
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
     <span
-      className="text-gray-200 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
+      className="text-orange-500 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
       title={replay.title}
     >
       {replay.title}
@@ -52,7 +52,7 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
     3xl:translate-x-[calc((100vw-1440px)/2)]"
     >
       <ReplayStreamBreadcrumbs replay={mainReplay} />
-      <FilterBarReplays currentCategory={mainReplay.categoryDisplayName} />
+      <FilterBarReplays currentCategory={mainReplay?.slug} />
       <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white my-3 px-1">
         {mainReplay.title}
       </h1>
@@ -61,18 +61,18 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
         {/* Left Column: Video Player + Ad */}
         <div className="w-full lg:w-full xl:w-3/4 flex-shrink-0 pr-2">
           <VideoPlayer
-            videoTitle={mainReplay.title}
-            videoUrl={mainReplay.videoUrl}
+            videoTitle={mainReplay?.title}
+            videoUrl={mainReplay?.videoUrl}
             posterUrl={
-              mainReplay.thumbnailUrl ||
+              mainReplay?.thumbnail ||
               "https://picsum.photos/seed/superbowl_poster/1280/720"
             }
           />
-          <div>
-            <HorizontalAdBanner
-              imageUrl="https://via.placeholder.com/150x50/0B65C2/FFFFFF?text=8XBET+Horizontal"
-              text="HOÀN TIỀN VỀ CƯỢC ĐẦU TIÊN 100%"
-              buttonText="ĐĂNG KÝ NGAY"
+          <div className="">
+            <img
+              src={belt_bottom_top}
+              alt="Ad Banner"
+              className="object-cover md:w-full "
             />
           </div>
           <div className="bg-slate-800 p-3 rounded-md text-xs sm:text-sm text-gray-400 mt-3">
@@ -86,11 +86,11 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
 
         {/* Right Column: Replay Suggestions */}
         <div className="w-full lg:w-1/3 xl:w-1/4 flex-shrink-0 mt-4 lg:mt-0">
-          <div className="lg:sticky lg:top-[120px]">
+          <div className="">
             <ReplaySuggestionsPanel
               replays={suggestedReplays}
               title={`XEM LẠI ${
-                mainReplay.categoryDisplayName?.toUpperCase() || "KHÁC"
+                mainReplay.sport?.name?.toUpperCase() || "KHÁC"
               }`}
             />
           </div>

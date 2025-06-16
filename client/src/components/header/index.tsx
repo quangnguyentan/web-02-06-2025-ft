@@ -22,11 +22,12 @@ import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
 import Typography from "@mui/material/Typography";
 import Input from "@mui/material/Input";
-
 import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { Button } from "@mui/material";
 import { apiGetAllSports } from "@/services/sport.services";
 import { Sport } from "@/types/sport.types";
+import { useSelectedPageContext } from "@/hooks/use-context";
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -38,6 +39,7 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
+
 // MainNavbar nhận prop onOpenMenu để mở drawer trên mobile
 const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const [open, setOpen] = React.useState(false);
@@ -45,6 +47,9 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const handleClose = () => setOpen(false);
   const [passwordShown, setPasswordShown] = React.useState(false);
   const togglePasswordVisiblity = () => setPasswordShown((cur) => !cur);
+  const { selectedPage, setSelectedPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
+
   const navItems: NavItem[] = [
     { label: "TRANG CHỦ", url: "/" },
     { label: "LỊCH THI ĐẤU", url: "/lich-thi-dau" },
@@ -53,9 +58,11 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     { label: "XOILAC.TV", url: "/xoi-lac-tv" },
   ];
   const navigate = useNavigate();
+
   const handleClickTypeLogin = (type: string) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
+
   return (
     <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 relative">
       <img
@@ -68,8 +75,17 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
           {navItems.map((item) => (
             <div
               key={item.label}
-              onClick={() => navigate(item.url)}
-              className="px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs lg:text-sm hover:text-white hover:bg-slate-700 rounded transition-colors whitespace-nowrap font-medium cursor-pointer"
+              onClick={() => {
+                navigate(item.url);
+                setSelectedPage(item.label);
+                setSelectedSportsNavbarPage("");
+                localStorage.setItem("selectedPage", item.label); // Save to localStorage
+              }}
+              className={`px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs lg:text-sm rounded transition-colors whitespace-nowrap font-medium cursor-pointer ${
+                selectedPage === item.label
+                  ? "text-[#ff7f32]"
+                  : "text-gray-300 hover:text-[#ff7f32]"
+              }`}
             >
               {item.label}
             </div>
@@ -110,7 +126,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                   >
                     Sign In
                   </Typography>
-
                   <Typography
                     id="signin-modal-description"
                     variant="body1"
@@ -119,9 +134,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                   >
                     Enter your email and password to sign in
                   </Typography>
-
                   <form className="mx-auto max-w-md text-left space-y-4">
-                    {/* Email */}
                     <div>
                       <Typography
                         variant="subtitle2"
@@ -138,8 +151,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                         size="medium"
                       />
                     </div>
-
-                    {/* Password */}
                     <div>
                       <Typography
                         variant="subtitle2"
@@ -168,8 +179,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                         }
                       />
                     </div>
-
-                    {/* Actions */}
                     <Button
                       variant="contained"
                       color="primary"
@@ -179,7 +188,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                     >
                       Sign In
                     </Button>
-
                     <Typography
                       variant="body2"
                       align="right"
@@ -189,8 +197,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                         Forgot password?
                       </a>
                     </Typography>
-
-                    {/* Sign in with Google */}
                     <Button
                       onClick={() => handleClickTypeLogin("google")}
                       variant="outlined"
@@ -207,8 +213,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                     >
                       Sign in with Google
                     </Button>
-
-                    {/* Footer */}
                     <Typography
                       variant="body2"
                       align="center"
@@ -255,6 +259,9 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 // SportsNavbar: thanh menu thể thao ngang, ẩn trên mobile
 const SportsNavbar: React.FC = () => {
   const [sportData, setSportData] = React.useState<Sport[]>([]);
+  const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
+
   const getAllSport = async () => {
     try {
       const response = await apiGetAllSports();
@@ -263,6 +270,23 @@ const SportsNavbar: React.FC = () => {
       console.error("Error fetching sports data:", error);
     }
   };
+  React.useEffect(() => {
+    if (
+      location.pathname === "/lich-thi-dau" ||
+      location.pathname === "/ket-qua"
+    ) {
+      const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");
+      if (savedSportsPage) {
+        setSelectedSportsNavbarPage(savedSportsPage);
+      } else {
+        setSelectedSportsNavbarPage("eSports");
+        localStorage.setItem("selectedSportsNavbarPage", "eSports");
+      }
+    } else {
+      setSelectedSportsNavbarPage("");
+      localStorage.removeItem("selectedSportsNavbarPage"); // Clear when not on sports pages
+    }
+  }, [setSelectedSportsNavbarPage, location.pathname]);
   React.useEffect(() => {
     getAllSport();
   }, []);
@@ -273,7 +297,15 @@ const SportsNavbar: React.FC = () => {
       {sportData.map((category) => (
         <div
           key={category._id}
-          className="flex items-center gap-2  pb-2 pt-4 text-gray-200 text-sm font-medium cursor-pointer hover:text-white relative"
+          onClick={() => {
+            setSelectedSportsNavbarPage(category.name);
+            localStorage.setItem("selectedSportsNavbarPage", category.name); // Save to localStorage
+          }}
+          className={`flex items-center gap-2 pb-2 pt-4 text-gray-200 text-sm font-medium cursor-pointer hover:text-white relative ${
+            selectedSportsNavbarPage === category.name
+              ? "text-[#ff7f32] border-b-2 border-[#ff7f32]"
+              : "hover:text-[#ff7f32]"
+          }`}
         >
           <img src={category?.icon} className="w-4 h-4" alt={category?.name} />
           <span>{category.name}</span>
@@ -300,86 +332,89 @@ const DrawerMenu: React.FC<{
   navItems: NavItem[];
   sportCategories: SportCategory[];
   navigate: (url: string) => void;
-}> = ({ open, onClose, navItems, sportCategories, navigate }) => (
-  <div
-    className={`fixed inset-0 z-50 transition-all duration-300 ${
-      open ? "visible" : "invisible"
-    }`}
-  >
-    {/* Overlay */}
+}> = ({ open, onClose, navItems, sportCategories, navigate }) => {
+  const { setSelectedPage } = useSelectedPageContext();
+  return (
     <div
-      className={`absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ${
-        open ? "opacity-100" : "opacity-0"
+      className={`fixed inset-0 z-50 transition-all duration-300 ${
+        open ? "visible" : "invisible"
       }`}
-      onClick={onClose}
-    />
-    {/* Drawer */}
-    <div
-      className={`absolute left-0 top-0 h-full w-64 max-w-[80vw] bg-slate-800 shadow-lg transition-transform duration-300 ${
-        open ? "translate-x-0" : "-translate-x-full"
-      } flex flex-col`}
     >
-      <button
-        className="self-end m-3 p-2 text-gray-400 hover:text-white"
+      <div
+        className={`absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
+      />
+      <div
+        className={`absolute left-0 top-0 h-full w-64 max-w-[80vw] bg-slate-800 shadow-lg transition-transform duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } flex flex-col`}
       >
-        <svg
-          width={24}
-          height={24}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
+        <button
+          className="self-end m-3 p-2 text-gray-400 hover:text-white"
+          onClick={onClose}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-      <nav className="flex-1 px-4">
-        {navItems.map((item) => (
-          <div
-            key={item.label}
-            onClick={() => {
-              navigate(item.url);
-              onClose();
-            }}
-            className="py-2 text-sm font-semibold text-white hover:text-orange-400 cursor-pointer"
-            style={{
-              color: item.label === "TRANG CHỦ" ? "#ff7f32" : undefined,
-            }}
+          <svg
+            width={24}
+            height={24}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
           >
-            {item.label}
-          </div>
-        ))}
-        <hr className="my-2 border-slate-700" />
-        <div className="flex flex-col gap-1">
-          {sportCategories.map((category) => (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        <nav className="flex-1 px-4">
+          {navItems.map((item) => (
             <div
-              key={category.id}
-              className="flex items-center gap-2 py-1 text-gray-200 text-sm"
+              key={item.label}
+              onClick={() => {
+                navigate(item.url);
+                setSelectedPage(item.label); // Ensure context is updated
+                localStorage.setItem("selectedPage", item.label); // Save to localStorage
+
+                onClose();
+              }}
+              className="py-2 text-sm font-semibold text-white hover:text-orange-400 cursor-pointer"
+              style={{
+                color: item.label === "TRANG CHỦ" ? "#ff7f32" : undefined,
+              }}
             >
-              {category.icon}
-              <span>{category.name}</span>
-              {(category.name === "Cầu lông" ||
-                category.name === "Bóng rổ" ||
-                category.name === "Môn khác" ||
-                category.name === "Tennis" ||
-                category.name === "Đua xe" ||
-                category.name === "eSports") && (
-                <span className="text-[9px] bg-red-500 text-white rounded-[5px] px-[6px]">
-                  Live
-                </span>
-              )}
+              {item.label}
             </div>
           ))}
-        </div>
-      </nav>
+          <hr className="my-2 border-slate-700" />
+          <div className="flex flex-col gap-1">
+            {sportCategories.map((category) => (
+              <div
+                key={category.id}
+                className="flex items-center gap-2 py-1 text-gray-200 text-sm"
+              >
+                {category.icon}
+                <span>{category.name}</span>
+                {(category.name === "Cầu lông" ||
+                  category.name === "Bóng rổ" ||
+                  category.name === "Môn khác" ||
+                  category.name === "Tennis" ||
+                  category.name === "Đua xe" ||
+                  category.name === "eSports") && (
+                  <span className="text-[9px] bg-red-500 text-white rounded-[5px] px-[6px]">
+                    Live
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
-  </div>
-);
-
+  );
+};
 const Header: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const navItems: NavItem[] = [
@@ -390,16 +425,8 @@ const Header: React.FC = () => {
     { label: "XOILAC.TV", url: "/xoi-lac-tv" },
   ];
   const sportCategories: SportCategory[] = [
-    {
-      id: "tennis",
-      name: "Tennis",
-      icon: <TennisIcon className="w-4 h-4" />,
-    },
-    {
-      id: "racing",
-      name: "Đua xe",
-      icon: <RacingIcon className="w-4 h-4" />,
-    },
+    { id: "tennis", name: "Tennis", icon: <TennisIcon className="w-4 h-4" /> },
+    { id: "racing", name: "Đua xe", icon: <RacingIcon className="w-4 h-4" /> },
     {
       id: "esports",
       name: "eSports",
@@ -447,16 +474,20 @@ const Header: React.FC = () => {
     },
   ];
   const navigate = useNavigate();
+  const { setSelectedPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
+  // Load initial values from localStorage on mount
+  React.useEffect(() => {
+    const savedPage = localStorage.getItem("selectedPage");
+    const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");
+    if (savedPage) setSelectedPage(savedPage); // Update context with saved page
+    if (savedSportsPage) setSelectedSportsNavbarPage(savedSportsPage); // Update context with saved sports page
+  }, [setSelectedPage, setSelectedSportsNavbarPage]);
 
   return (
     <header
-      className=" lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
-
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-    2xl:translate-x-[calc((100vw-1440px)/2)]"
+      className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px]
+      lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/2)]"
     >
       <MainNavbar onOpenMenu={() => setDrawerOpen(true)} />
       <SportsNavbar />

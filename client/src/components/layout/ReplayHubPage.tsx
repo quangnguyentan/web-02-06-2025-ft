@@ -6,17 +6,17 @@ import {
   FeaturedBroadcastItem,
   HighlightedEventInfo,
   CategorizedReplayGroup,
-} from "@/types/index.types";
+} from "@/types/replay.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { Replay } from "@/types/replay.types";
 
 interface ReplayHubPageProps {
-  featuredBroadcasts: FeaturedBroadcastItem[];
-  highlightedEvent: HighlightedEventInfo;
-  categorizedReplays: CategorizedReplayGroup[];
-  sidebarReplays: Replay[];
+  featuredBroadcasts?: FeaturedBroadcastItem[];
+  highlightedEvent?: HighlightedEventInfo;
+  categorizedReplays?: CategorizedReplayGroup[];
+  sidebarReplays?: Replay[];
 }
 
 const ReplayHubBreadcrumbs: React.FC = () => (
@@ -42,7 +42,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     "XEM LẠI NHỮNG TRẬN ĐẤU ĐỈNH CAO TRÊN THAPCAM TV MỚI NHẤT, CẬP NHẬT LIÊN TỤC";
   const pageDescription =
     "Trang Thapcam TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
-
   return (
     <div
       className=" lg:max-w-[1024px]
@@ -56,7 +55,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     >
       <main className="w-full">
         <ReplayHubBreadcrumbs />
-
         <div className="bg-slate-800 p-4 rounded-lg shadow-xl mb-4">
           <h1 className="text-xl font-bold text-yellow-400 mb-2">
             {pageTitle}
@@ -90,7 +88,7 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
 
           {/* Right Sidebar: Replay Suggestions + Ad */}
           <div className="lg:w-1/3 flex-shrink-0">
-            <div className="sticky top-[180px]">
+            <div className="">
               {/* Adjust top based on header height */}
               <ReplaySuggestionsPanel
                 replays={sidebarReplays}

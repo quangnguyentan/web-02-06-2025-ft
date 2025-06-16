@@ -1,47 +1,52 @@
 import * as React from "react";
-import { FootballIcon } from "./Icon"; // Using FootballIcon as a generic sport icon
-import { useNavigate } from "react-router-dom";
-import team_1 from "@/assets/user/team-1.png";
-import team_2 from "@/assets/user/team-2.png";
+import { FootballIcon } from "./Icon";
 import { Match } from "@/types/match.types";
+
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
   small = false,
 }) => {
-  const navigate = useNavigate();
+  const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour12: false,
+  });
+  const isLive = match.status === "LIVE";
+
   return (
     <div
-      className={`bg-slate-800 rounded-lg shadow-md overflow-hidden  ${
+      className={`bg-slate-800 rounded-xl shadow-md overflow-hidden mt-1 ml-1 ${
         small
           ? "w-[260px] sm:w-[320px] md:w-[390px]"
           : "w-72 sm:w-80 md:w-[420px] xl:w-[450px]"
-      } flex-shrink-0 cursor-pointer`}
-      onClick={() => navigate(`/truc-tiep/${match?.slug}`)}
+      } flex-shrink-0 cursor-pointer relative`}
+      style={{
+        backgroundImage: `url(https://b.thapcam73.life/images/bg/football-min.jpg)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+      }}
     >
-      <div className="p-2 sm:p-3 bg-slate-700/50">
+      {/* Overlay to ensure readability */}
+      <div className="absolute inset-0"></div>
+
+      <div className="p-2 sm:p-3  relative z-10">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center space-x-1 text-xs text-gray-400">
             <FootballIcon className="w-4 h-4 text-yellow-400" />
             <span className="truncate max-w-[90px] sm:max-w-[140px]">
-              {match.title}
+              {match.league?.name || match.title}
             </span>
           </div>
           <div className="text-xs text-gray-400 whitespace-nowrap">
-            <span>
-              {new Date(match?.startTime).toLocaleString("vi-VN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-              })}
-            </span>
+            {startTime}
           </div>
-          {match.status === "LIVE" && (
+          {isLive && (
             <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded font-semibold">
-              {match.status || "LIVE"}
+              LIVE
             </span>
           )}
         </div>
@@ -49,22 +54,22 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         <div className="flex items-center justify-around my-2 sm:my-3">
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={team_1}
-              alt={match?.homeTeam?.logo}
+              src={match.homeTeam?.logo || ""}
+              alt={match.homeTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />
             <span className="text-white text-xs sm:text-sm font-medium truncate w-full">
-              {match?.homeTeam?.name}
+              {match.homeTeam?.name}
             </span>
           </div>
 
-          {match?.status && typeof match.scores === "object" ? (
+          {match.status && match.scores ? (
             <div className="text-center px-1">
               <span className="text-xs md:text-xl font-bold text-white">
-                {match.scores?.homeScore} - {match.scores.awayScore}
+                {match.scores.homeScore} - {match.scores.awayScore}
               </span>
               <div className="text-xs text-yellow-400 mt-1">
-                {match.status === "LIVE" ? "LIVE" : match.status}
+                {isLive ? "LIVE" : match.status}
               </div>
             </div>
           ) : (
@@ -75,23 +80,28 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={team_2}
-              alt={match?.awayTeam?.logo}
+              src={match.awayTeam?.logo || ""}
+              alt={match.awayTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />
             <span className="text-white text-xs sm:text-sm font-medium truncate w-full">
-              {match?.awayTeam?.name}
+              {match.awayTeam?.name}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="p-2 sm:p-3 bg-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div
+        className="p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-10"
+        style={{
+          boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+        }}
+      >
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          {match?.streamLinks?.[0]?.commentatorImage && (
+          {match.streamLinks?.[0]?.commentatorImage && (
             <img
-              src={match.streamLinks?.[0]?.commentatorImage}
-              alt={match.streamLinks?.[0]?.commentator}
+              src={match.streamLinks[0].commentatorImage}
+              alt={match.streamLinks[0].commentator}
               className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
             />
           )}
@@ -101,22 +111,12 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             </span>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <a
-            // href={match.matchUrl || "#"}
-            className="bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center"
-          >
-            Xem Ngay
-          </a>
-          {/* {match.showBetButton && (
-            <a
-              href={match.betUrl || "#"}
-              className="bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center"
-            >
-              Đặt Cược
-            </a>
-          )} */}
-        </div>
+        <a
+          href="#"
+          className="bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto"
+        >
+          Xem Ngay
+        </a>
       </div>
     </div>
   );

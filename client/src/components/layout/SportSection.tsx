@@ -27,14 +27,14 @@ const SportSection: React.FC<SportSectionProps> = ({
   if (!matches || matches.length === 0) {
     return null;
   }
+
   // Slider settings for desktop
   const sliderSettings = {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: location.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
+    slidesToShow: 3.5,
     slidesToScroll: 1,
-
     arrows: true,
     responsive: [
       {
@@ -47,17 +47,10 @@ const SportSection: React.FC<SportSectionProps> = ({
       },
     ],
   };
+
   return (
-    <section
-      className={`py-3 sm:py-4 ${
-        isSpotlight ? "px-0 xl:px-6" : "px-1 sm:px-4 md:px-3"
-      }`}
-    >
-      <div
-        className={`flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 ${
-          isSpotlight ? "px-2 sm:px-4 md:px-0" : ""
-        }`}
-      >
+    <section className="py-3 sm:py-4 px-1 sm:px-4 md:px-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4">
         <h2 className={`${titleClassName} flex items-center mb-2 sm:mb-0`}>
           {icon && <span className="mr-2 text-yellow-400">{icon}</span>}
           {title}
@@ -73,8 +66,8 @@ const SportSection: React.FC<SportSectionProps> = ({
       </div>
       {isSpotlight ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-          {matches?.map((match) => (
-            <SpotlightMatchCard key={match?._id} match={match} />
+          {matches.map((match) => (
+            <SpotlightMatchCard key={match._id} match={match} />
           ))}
         </div>
       ) : (
@@ -87,11 +80,11 @@ const SportSection: React.FC<SportSectionProps> = ({
               <div className="flex-shrink-0 w-px"></div>
             </div>
           </div>
-          <div className="hidden lg:block ">
+          <div className="hidden lg:block">
             <Slider {...sliderSettings} className="!text-left">
               {matches.map((match) => (
-                <div key={match._id} className="px-0 h-full flex ">
-                  <div className="h-full flex ">
+                <div key={match._id} className="px-0 h-full flex">
+                  <div className="h-full flex">
                     <MatchCard match={match} small />
                   </div>
                 </div>

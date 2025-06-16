@@ -9,6 +9,8 @@ import { createContext, useContext } from "react";
 export type SelectedPageProps = {
   selectedPage: string;
   setSelectedPage: (c: string) => void;
+  selectedSportsNavbarPage: string;
+  setSelectedSportsNavbarPage: (c: string) => void;
   user: User[];
   setUser: (list: User[]) => void;
   addUser: (s: User) => void;

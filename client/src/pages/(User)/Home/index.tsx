@@ -1,6 +1,8 @@
 import HeroSection from "@/components/layout/HeroSection";
 import SportSection from "@/components/layout/SportSection";
 import ReplaySection from "@/components/layout/ReplaySection";
+import belt_bottom_top from "@/assets/user/1330t190.gif";
+
 import {
   FootballIcon,
   TennisIcon,
@@ -62,22 +64,11 @@ const App: React.FC = () => {
         isSpotlight
       />
       <div className="px-1 sm:px-4 md:px-6">
-        <div className="bg-blue-600 text-white p-2 sm:p-3 my-3 sm:my-4 flex flex-col sm:flex-row sm:justify-between sm:items-center rounded-md gap-2 sm:gap-0">
-          <img
-            src="https://via.placeholder.com/200x50/FFFFFF/000000?text=ĐỐI+TÁC+CHÍNH+THỨC"
-            alt="Partner Ad"
-            className="h-8 sm:h-10 mx-auto sm:mx-0"
-          />
-          <span className="text-base sm:text-lg font-bold text-yellow-300 text-center sm:text-left">
-            CLB MANCHESTER CITY TẠI CHÂU Á
-          </span>
-          <a
-            href="#"
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded text-xs sm:text-sm mx-auto sm:mx-0"
-          >
-            ĐĂNG KÝ
-          </a>
-        </div>
+        <img
+          src={belt_bottom_top}
+          alt="Ad Banner"
+          className="object-cover md:w-full "
+        />
       </div>
       <SportSection
         title="BÓNG ĐÁ"
