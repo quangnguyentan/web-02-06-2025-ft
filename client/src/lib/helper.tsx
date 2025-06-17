@@ -16,3 +16,15 @@ export function formatDuration(minutes) {
 export function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
+export const formatTime = (date: string | Date) =>
+  new Date(date).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+export const formatDate = (date: string | Date) =>
+  new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+  });

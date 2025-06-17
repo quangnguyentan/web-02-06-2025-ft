@@ -38,8 +38,11 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
         <>
           <img
             src={imageUrl}
-            alt="Ad Banner"
+            srcSet={`${imageUrl}?w=320 320w, ${imageUrl}?w=640 640w`}
+            sizes="(max-width: 640px) 320px, 640px"
+            alt="Banner Quảng Cáo"
             className="object-cover md:w-full"
+            loading="lazy" // Tải lười hình ảnh
           />
           {position === "bottom" && (
             <div

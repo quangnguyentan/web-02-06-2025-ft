@@ -16,6 +16,25 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   const navigate = useNavigate();
   // const targetUrl = replay.url || "/replay";
   const targetUrl = `/replay/${replay?.slug}`;
+  const [isVisible, setIsVisible] = React.useState(false);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  if (!isVisible) return <div ref={cardRef} className="h-32 sm:h-40" />;
   if (variant === "compact") {
     return (
       <div
@@ -74,11 +93,13 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
     <div
       onClick={() => navigate(targetUrl)}
       className="block rounded-lg shadow-md overflow-hidden group cursor-pointer"
+      ref={cardRef}
     >
       <div className="relative">
         <img
           src={replay?.thumbnail}
           alt={replay.title}
+          loading="lazy"
           className="w-full h-32 sm:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute inset-0  bg-opacity-20 group-hover:bg-opacity-40 flex items-center justify-center transition-opacity duration-300">

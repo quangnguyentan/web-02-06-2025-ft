@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
-import { apiGetMatchBySlug } from "@/services/match.services";
 import { useData } from "@/context/DataContext";
 
 const Live: React.FC = () => {
@@ -17,6 +16,7 @@ const Live: React.FC = () => {
 
   useEffect(() => {
     const loadMatchData = async () => {
+      console.log(matchData);
       if (!matchData.length || !replayData.length) {
         await fetchData(); // Chỉ gọi nếu chưa có dữ liệu
       }

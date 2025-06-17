@@ -38,6 +38,7 @@ const SportSection: React.FC<SportSectionProps> = ({
     slidesToShow: location?.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
     slidesToScroll: 1,
     arrows: true,
+    lazyLoad: "ondemand",
     responsive: [
       {
         breakpoint: 1280,

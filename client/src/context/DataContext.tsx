@@ -2,16 +2,22 @@ import useSWR, { mutate } from "swr";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
-import { apiGetAllMatches } from "@/services/match.services"; // Nếu có
-import { apiGetAllReplays } from "@/services/replay.services"; // Nếu có
 
-const BASE_URL = "http://localhost:8080"; // Định nghĩa URL cơ sở của server
+const BASE_URL = "http://localhost:8080";
 
 const fetcher = async (url: string) => {
-  const fullUrl = `${BASE_URL}${url}`; // Tạo URL đầy đủ
-  const res = await fetch(fullUrl);
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const fullUrl = `${BASE_URL}${url}`;
+    const res = await fetch(fullUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error("Không thể lấy dữ liệu");
+    return res.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 };
 
 interface DataContextType {
@@ -32,9 +38,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     error: matchError,
     isLoading: matchLoading,
   } = useSWR("/api/matches", fetcher, {
-    revalidateOnMount: true, // Chỉ fetch lần đầu
-    revalidateOnFocus: false, // Không fetch khi focus
-    revalidateOnReconnect: false, // Không fetch khi reconnect
+    revalidateOnMount: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
   });
 
   const {
@@ -45,25 +52,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     revalidateOnMount: true,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    dedupingInterval: 60000,
   });
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const loading = matchLoading || replayLoading;
 
   const fetchData = async () => {
-    // Sử dụng mutate để làm mới dữ liệu
-    await Promise.all([
-      mutate("/api/matches"), // Làm mới dữ liệu matches
-      mutate("/api/replays"), // Làm mới dữ liệu replays
-    ]);
-    setIsDataLoaded(true);
+    try {
+      await Promise.all([
+        mutate("/api/matches", undefined, { revalidate: true }),
+        mutate("/api/replays", undefined, { revalidate: true }),
+      ]);
+      setIsDataLoaded(true);
+    } catch (error) {
+      console.error("Lỗi khi làm mới dữ liệu:", error);
+      setIsDataLoaded(true);
+    }
   };
 
   useEffect(() => {
     if (!isDataLoaded && !loading && matches && replays) {
       setIsDataLoaded(true);
     }
-  }, [isDataLoaded, loading, matches, replays]);
+    if (matchError || replayError) {
+      console.error("Lỗi từ API:", matchError || replayError);
+    }
+  }, [isDataLoaded, loading, matches, replays, matchError, replayError]);
 
   return (
     <DataContext.Provider

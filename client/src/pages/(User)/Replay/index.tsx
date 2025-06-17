@@ -12,11 +12,10 @@ const Replay: React.FC = () => {
     []
   );
   const { slug } = useParams();
-
   React.useEffect(() => {
     const loadMatchData = async () => {
       if (!replayData.length && !loading) {
-        await fetchData(); // Chỉ gọi nếu chưa có dữ liệu
+        await fetchData();
       }
 
       const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
