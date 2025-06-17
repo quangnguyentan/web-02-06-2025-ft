@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { RouteObject } from "react-router-dom";
 import PublicPageWrapper from "./wrapper";
 const HomePage = lazy(() => import("../Home/index"));
+const SportProviderPage = lazy(() => import("../SportProvider/index"));
+
 const LivePage = lazy(() => import("../Live/index"));
 const SchedulePageIndex = lazy(() => import("../Schedule/index"));
 const ResultPage = lazy(() => import("../Result/index"));
@@ -40,6 +42,29 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
+        path: "/:slug",
+        element: (
+          <Suspense
+            fallback={
+              <>
+                <div id="load">
+                  <div>G</div>
+                  <div>N</div>
+                  <div>I</div>
+                  <div>D</div>
+                  <div>A</div>
+                  <div>O</div>
+                  <div>L</div>
+                </div>
+              </>
+            }
+          >
+            <SportProviderPage />
+          </Suspense>
+        ),
+        index: true,
+      },
+      {
         path: "/truc-tiep/:slug",
         element: (
           <Suspense
@@ -63,7 +88,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
-        path: "/lich-thi-dau",
+        path: "/lich-thi-dau/:slug",
         element: (
           <Suspense
             fallback={
@@ -86,7 +111,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
-        path: "/ket-qua",
+        path: "/ket-qua/:slug",
         element: (
           <Suspense
             fallback={
@@ -109,7 +134,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         index: true,
       },
       {
-        path: "/xem-lai",
+        path: "/xem-lai/:slug",
         element: (
           <Suspense
             fallback={

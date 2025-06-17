@@ -13,27 +13,35 @@ interface ResultsPageProps {
   initialSelectedDateId: string;
   resultsData: { [dateId: string]: LeagueSchedule[] }; // All results data keyed by dateId
   replayItems: Replay[];
+  noMatchesMessage?: string;
 }
 
-const ResultsBreadcrumbs: React.FC = () => (
-  <nav
-    className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
-    aria-label="Breadcrumb"
-  >
-    <a href="#" className="hover:text-yellow-400 flex items-center">
-      <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
-    </a>
-    <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <span className="text-gray-200 font-medium">Kết Quả Bóng Đá</span>
-  </nav>
-);
+const ResultsBreadcrumbs: React.FC = () => {
+  const nameSlug = localStorage.getItem("selectedSportsNavbarPage");
+
+  return (
+    <nav
+      className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
+      aria-label="Breadcrumb"
+    >
+      <a href="#" className="hover:text-yellow-400 flex items-center">
+        <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
+      </a>
+      <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+      <span className="text-gray-200 font-medium">Kết Quả {nameSlug}</span>
+    </nav>
+  );
+};
 
 const ResultsPage: React.FC<ResultsPageProps> = ({
   availableDates,
   initialSelectedDateId,
   resultsData,
   replayItems,
+  noMatchesMessage = "Không có trận nào",
 }) => {
+  const nameSlug = localStorage.getItem("selectedSportsNavbarPage");
+
   const [selectedDateId, setSelectedDateId] = useState<string>(
     initialSelectedDateId
   );
@@ -49,23 +57,15 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
   const pageTitleDate = selectedDateTab?.isToday
     ? "HÔM NAY"
     : selectedDateTab?.dateSuffix;
-  const pageTitle = `THAPCAM TV: KẾT QUẢ BÓNG ĐÁ ${
-    pageTitleDate || ""
+  const pageTitle = `THAPCAM TV: KẾT QUẢ ${nameSlug} ${
+    pageTitleDate ? pageTitleDate : ""
   } CẬP NHẬT MỚI NHẤT 24H`;
-  const pageDescription = `Kết quả bóng đá ${
-    pageTitleDate || ""
+  const pageDescription = `Kết quả ${nameSlug} ${
+    pageTitleDate ? pageTitleDate : ""
   } mới nhất được ThapCamTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại ThapCamTV.`;
 
   return (
-    <div
-      className="lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-    2xl:translate-x-[calc((100vw-1440px)/12)]
-    3xl:translate-x-[calc((100vw-1440px)/2)]"
-    >
+    <div className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
       <main className="w-full">
         <ResultsBreadcrumbs />
         <div className="bg-slate-800 p-4 rounded-lg shadow-xl mb-4">
@@ -89,21 +89,18 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
             <ResultsList
               leagues={currentResults}
               selectedDateLabel={selectedDateTab?.label || "ngày này"}
+              noMatchesMessage={noMatchesMessage}
             />
           </div>
 
           {/* Right Column: Replay Suggestions + Ad */}
           <div className="lg:w-1/3 flex-shrink-0">
             <div className="sticky top-[180px]">
-              {" "}
-              {/* Adjust top based on header height + main nav + sports nav */}
               <ReplaySuggestionsPanel
                 replays={replayItems}
                 title="XEM LẠI BÓNG ĐÁ"
               />
               <div className="my-3">
-                {" "}
-                {/* Ad placeholder */}
                 <img
                   src={belt_bottom_top}
                   alt="Small Ad Banner"

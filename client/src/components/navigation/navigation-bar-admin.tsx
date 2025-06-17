@@ -58,22 +58,30 @@ const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
       variants={containerVariants}
       animate={containerControls}
       initial="close"
-      className="dark:bg-gray-800 flex flex-col z-10 gap-12 h-full py-6"
+      className="dark:bg-gray-800 flex flex-col z-10 h-full py-4"
     >
       <div className="flex flex-col justify-between h-full">
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-16">
           <div className="flex flex-row w-full justify-between place-items-center px-4">
-            <img
+            {/* <img
               src={logo_v3}
               alt="logo_v3"
               className={`${
                 !isOpen ? "w-10 h-10 object-cover" : "w-12 h-12 object-cover"
               }`}
-            />
-            <h6 className="font-bold text-lg font-poppins overflow-clip truncate whitespace-nowrap tracking-wide">
-              HOIQUANTV
+            /> */}
+            <h6
+              className="font-extrabold text-lg font-ubuntu overflow-clip truncate whitespace-nowrap tracking-wide text-center w-full"
+              style={{
+                // boxShadow: "0px 3px 8.3px 0.7px rgba(163, 93, 255, 0.35)",
+                backgroundColor:
+                  "linear-gradient(to right, #da8cff, #9a55ff) !important",
+                color: "#b66dff",
+              }}
+            >
+              ADMIN PANEL
             </h6>
-            <button
+            {/* <button
               className="p-1 rounded-full flex"
               onClick={() => handleOpenClose()}
             >
@@ -83,7 +91,7 @@ const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
                 viewBox="0 0 24 24"
                 strokeWidth={1}
                 stroke="currentColor"
-                className="w-8 h-8 stroke-gray-800/70"
+                className="w-8 h-8 stroke-white"
               >
                 <motion.path
                   strokeLinecap="round"
@@ -94,7 +102,7 @@ const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 />
               </svg>
-            </button>
+            </button> */}
           </div>
           <div className="flex flex-col gap-3">
             {items?.map((item) => (

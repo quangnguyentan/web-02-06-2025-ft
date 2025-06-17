@@ -17,6 +17,7 @@ export default {
         ancizarSans: ["Ancizar Sans", "sans-serif"],
         oswald: ["Oswald", "sans-serif"],
         iBMPlexSans: ["IBM Plex Sans", "sans-serif"],
+        ubuntu: ["ubuntu-medium", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

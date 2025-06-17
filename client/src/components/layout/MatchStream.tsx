@@ -42,17 +42,6 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
 }) => {
   return (
     <div className="flex flex-col min-h-screen  ">
-      {/* Side Ads */}
-      <VerticalAdBanner
-        position="left"
-        imageUrl="https://via.placeholder.com/160x600/0A4A8F/FFFFFF?text=LEFT+AD+-+MAN+CITY"
-      />
-      <VerticalAdBanner
-        position="right"
-        imageUrl="https://via.placeholder.com/160x600/0A4A8F/FFFFFF?text=RIGHT+AD+-+PARTNER"
-      />
-
-      {/* Main Content Area (centered between potential side ads) */}
       <main
         className="lg:max-w-[1024px]
     xl:max-w-[1200px]

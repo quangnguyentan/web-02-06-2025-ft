@@ -16,7 +16,7 @@ const CategoryReplaySection: React.FC<CategoryReplaySectionProps> = ({
 
   return (
     <section className="py-4">
-      <div className="flex justify-between items-center mb-3">
+      {/* <div className="flex justify-between items-center mb-3">
         <h2 className="text-xl font-semibold text-white flex items-center">
           {group.icon && <span className="mr-2">{group.icon}</span>}
           {group.title}
@@ -29,7 +29,7 @@ const CategoryReplaySection: React.FC<CategoryReplaySectionProps> = ({
             Xem tất cả <ChevronRightIcon className="w-4 h-4 ml-1" />
           </a>
         )}
-      </div>
+      </div> */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
         {group.replays.map((replay) => (
           <ReplayCard key={replay._id} replay={replay} variant="default" />

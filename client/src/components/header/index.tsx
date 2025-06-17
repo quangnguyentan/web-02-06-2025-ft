@@ -15,7 +15,7 @@ import {
   TVIcon,
 } from "../layout/Icon";
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -47,18 +47,97 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const handleClose = () => setOpen(false);
   const [passwordShown, setPasswordShown] = React.useState(false);
   const togglePasswordVisiblity = () => setPasswordShown((cur) => !cur);
-  const { selectedPage, setSelectedPage, setSelectedSportsNavbarPage } =
-    useSelectedPageContext();
+  const {
+    selectedPage,
+    setSelectedPage,
+    setSelectedSportsNavbarPage,
+    selectedSportsNavbarPage,
+  } = useSelectedPageContext();
+
+  const location = useLocation();
+
+  const [sportDataForMapping, setSportDataForMapping] = React.useState<Sport[]>(
+    []
+  );
+
+  React.useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const response = await apiGetAllSports();
+        setSportDataForMapping(response?.data);
+      } catch (error) {
+        console.error("Error fetching sports data for mapping:", error);
+      }
+    };
+    fetchSports();
+  }, []);
+
+  const getSportNameFromSlug = (slug: string) => {
+    const sport = sportDataForMapping.find((s) => s.slug === slug);
+    return sport ? sport.name : null;
+  };
+
+  const getInitialActiveSportName = () => {
+    // Kiểm tra các đường dẫn đặc biệt
+    if (
+      location.pathname.startsWith("/lich-thi-dau/") ||
+      location.pathname.startsWith("/ket-qua/") ||
+      location.pathname.startsWith("/xem-lai/")
+    ) {
+      const parts = location.pathname.split("/");
+      const urlSlug = parts[parts.length - 1];
+      return getSportNameFromSlug(urlSlug) || "eSports";
+    }
+    // Trường hợp khác, giữ logic cũ
+    const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
+    if (
+      savedSportName &&
+      sportDataForMapping.some((s) => s.name === savedSportName)
+    ) {
+      return savedSportName;
+    }
+    return "eSports"; // Giá trị mặc định nếu không có gì khác
+  };
+
+  const [initialActiveSportName, setInitialActiveSportName] = React.useState(
+    getInitialActiveSportName()
+  );
+
+  React.useEffect(() => {
+    setInitialActiveSportName(getInitialActiveSportName());
+  }, [location.pathname, sportDataForMapping]);
 
   const navItems: NavItem[] = [
     { label: "TRANG CHỦ", url: "/" },
-    { label: "LỊCH THI ĐẤU", url: "/lich-thi-dau" },
-    { label: "KẾT QUẢ", url: "/ket-qua" },
-    { label: "XEM LẠI", url: "/xem-lai" },
+    {
+      label: "LỊCH THI ĐẤU",
+      url: `/lich-thi-dau/${
+        sportDataForMapping.find((s) => s.name === initialActiveSportName)
+          ?.slug || "esports"
+      }`,
+      nameForHighlight: initialActiveSportName,
+    },
+    {
+      label: "KẾT QUẢ",
+      url: `/ket-qua/${
+        sportDataForMapping.find((s) => s.name === initialActiveSportName)
+          ?.slug || "esports"
+      }`,
+      nameForHighlight: initialActiveSportName,
+    },
+    {
+      label: "XEM LẠI",
+      url: `/xem-lai/${
+        sportDataForMapping.find((s) => s.name === initialActiveSportName)
+          ?.slug || "esports"
+      }`,
+      nameForHighlight: initialActiveSportName,
+    },
     { label: "XOILAC.TV", url: "/xoi-lac-tv" },
   ];
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
+  const fallbackSlug = "esports";
   const handleClickTypeLogin = (type: string) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
@@ -76,12 +155,44 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
             <div
               key={item.label}
               onClick={() => {
-                navigate(item.url);
+                let targetSlug = "";
+                let targetNameForHighlight = item.nameForHighlight;
+                localStorage.setItem("selectedPage", item?.label);
+                if (
+                  item.label === "LỊCH THI ĐẤU" ||
+                  item.label === "KẾT QUẢ" ||
+                  item.label === "XEM LẠI"
+                ) {
+                  const activeSportName =
+                    selectedSportsNavbarPage || fallbackSlug;
+                  const sport = sportDataForMapping.find(
+                    (s) => s.name === activeSportName
+                  );
+                  targetSlug = sport ? sport.slug : "esports";
+                  targetNameForHighlight = activeSportName;
+                } else {
+                  targetSlug = "";
+                  targetNameForHighlight = "";
+                }
+
+                const finalUrl = item.url.includes(":slug")
+                  ? item.url.replace(":slug", targetSlug)
+                  : item.url;
+
+                navigate(finalUrl);
                 setSelectedPage(item.label);
-                setSelectedSportsNavbarPage("");
-                localStorage.setItem("selectedPage", item.label); // Save to localStorage
+                if (targetNameForHighlight) {
+                  setSelectedSportsNavbarPage(targetNameForHighlight);
+                  localStorage.setItem(
+                    "selectedSportsNavbarPage",
+                    targetNameForHighlight
+                  );
+                } else {
+                  setSelectedSportsNavbarPage("");
+                  localStorage.removeItem("selectedSportsNavbarPage");
+                }
               }}
-              className={`px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs lg:text-sm rounded transition-colors whitespace-nowrap font-medium cursor-pointer ${
+              className={`px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs lg:text-sm rounded transition-colors whitespace-nowrap font-bold cursor-pointer ${
                 selectedPage === item.label
                   ? "text-[#ff7f32]"
                   : "text-gray-300 hover:text-[#ff7f32]"
@@ -258,6 +369,8 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 
 // SportsNavbar: thanh menu thể thao ngang, ẩn trên mobile
 const SportsNavbar: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sportData, setSportData] = React.useState<Sport[]>([]);
   const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
@@ -270,45 +383,87 @@ const SportsNavbar: React.FC = () => {
       console.error("Error fetching sports data:", error);
     }
   };
-  React.useEffect(() => {
-    if (
-      location.pathname === "/lich-thi-dau" ||
-      location.pathname === "/ket-qua"
-    ) {
-      const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");
-      if (savedSportsPage) {
-        setSelectedSportsNavbarPage(savedSportsPage);
-      } else {
-        setSelectedSportsNavbarPage("eSports");
-        localStorage.setItem("selectedSportsNavbarPage", "eSports");
-      }
-    } else {
-      setSelectedSportsNavbarPage("");
-      localStorage.removeItem("selectedSportsNavbarPage"); // Clear when not on sports pages
-    }
-  }, [setSelectedSportsNavbarPage, location.pathname]);
+
   React.useEffect(() => {
     getAllSport();
   }, []);
 
-  // Chỉ hiển thị trên md trở lên
+  React.useEffect(() => {
+    if (sportData.length === 0) return;
+    const pathSegments = location.pathname.split("/");
+    const currentPathSlug = pathSegments[pathSegments.length - 1];
+    if (
+      location.pathname.startsWith("/lich-thi-dau/") ||
+      location.pathname.startsWith("/ket-qua/") ||
+      location.pathname.startsWith("/xem-lai/")
+    ) {
+      const sportFromUrl = sportData.find((s) => s.slug === currentPathSlug);
+      let initialSportName = "eSports";
+      if (sportFromUrl) {
+        initialSportName = sportFromUrl.name;
+      } else {
+        const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
+        if (
+          savedSportName &&
+          sportData.some((s) => s.name === savedSportName)
+        ) {
+          initialSportName = savedSportName;
+        }
+      }
+      setSelectedSportsNavbarPage(initialSportName);
+      localStorage.setItem("selectedSportsNavbarPage", initialSportName);
+    }
+    // else {
+    //   setSelectedSportsNavbarPage("");
+    //   localStorage.removeItem("selectedSportsNavbarPage");
+    // }
+  }, [setSelectedSportsNavbarPage, location.pathname, sportData]);
+
+  const handleSportClick = (category: Sport) => {
+    // Xác định tiền tố dựa trên trang hiện tại
+    const basePath =
+      location.pathname.startsWith("/lich-thi-dau/") ||
+      location.pathname.startsWith("/ket-qua/") ||
+      location.pathname.startsWith("/xem-lai/")
+        ? location.pathname.split("/")[1]
+        : ""; // Không thêm tiền tố nếu ở trang chủ hoặc các trang khác
+    const targetUrl = basePath
+      ? `/${basePath}/${category.slug}`
+      : `/${category.slug}`;
+    navigate(targetUrl);
+    setSelectedSportsNavbarPage(category.name);
+    localStorage.setItem("selectedSportsNavbarPage", category.name);
+  };
+
   return (
-    <div className="hidden md:flex bg-[#22252D] px-3 py-2 gap-12 overflow-x-auto shadow-xl">
-      {sportData.map((category) => (
+    <div className="hidden md:flex bg-[#22252D] px-3 py-4 gap-12 overflow-x-auto shadow-xl">
+      {sportData?.map((category) => (
         <div
           key={category._id}
-          onClick={() => {
-            setSelectedSportsNavbarPage(category.name);
-            localStorage.setItem("selectedSportsNavbarPage", category.name); // Save to localStorage
-          }}
-          className={`flex items-center gap-2 pb-2 pt-4 text-gray-200 text-sm font-medium cursor-pointer hover:text-white relative ${
+          onClick={() => handleSportClick(category)}
+          className={`group relative flex items-center gap-2 pb-2 pt-4 text-sm font-medium cursor-pointer
+          transition-all duration-300
+          ${
             selectedSportsNavbarPage === category.name
-              ? "text-[#ff7f32] border-b-2 border-[#ff7f32]"
-              : "hover:text-[#ff7f32]"
+              ? "text-[#ff7f32]"
+              : "text-gray-200 hover:text-white"
           }`}
         >
           <img src={category?.icon} className="w-4 h-4" alt={category?.name} />
           <span>{category.name}</span>
+
+          {/* Thanh border hiệu ứng dưới */}
+          <span
+            className={`
+            absolute bottom-0 left-1/2 h-[2px] bg-[#ff7f32] transition-all duration-300 ease-in-out
+            ${
+              selectedSportsNavbarPage === category.name
+                ? "w-full -translate-x-1/2"
+                : "w-0 group-hover:w-full group-hover:-translate-x-1/2"
+            }
+          `}
+          />
+
           {(category.name === "Cầu lông" ||
             category.name === "Bóng rổ" ||
             category.name === "Môn khác" ||
@@ -375,9 +530,8 @@ const DrawerMenu: React.FC<{
               key={item.label}
               onClick={() => {
                 navigate(item.url);
-                setSelectedPage(item.label); // Ensure context is updated
-                localStorage.setItem("selectedPage", item.label); // Save to localStorage
-
+                setSelectedPage(item.label);
+                localStorage.setItem("selectedPage", item.label);
                 onClose();
               }}
               className="py-2 text-sm font-semibold text-white hover:text-orange-400 cursor-pointer"
@@ -415,6 +569,7 @@ const DrawerMenu: React.FC<{
     </div>
   );
 };
+
 const Header: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const navItems: NavItem[] = [
@@ -476,12 +631,12 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { setSelectedPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
-  // Load initial values from localStorage on mount
+
   React.useEffect(() => {
     const savedPage = localStorage.getItem("selectedPage");
     const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");
-    if (savedPage) setSelectedPage(savedPage); // Update context with saved page
-    if (savedSportsPage) setSelectedSportsNavbarPage(savedSportsPage); // Update context with saved sports page
+    if (savedPage) setSelectedPage(savedPage);
+    if (savedSportsPage) setSelectedSportsNavbarPage(savedSportsPage);
   }, [setSelectedPage, setSelectedSportsNavbarPage]);
 
   return (

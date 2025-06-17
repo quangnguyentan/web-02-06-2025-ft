@@ -1,5 +1,5 @@
-import { DateTabInfo } from "@/types/index.types";
-import { SparklesIcon } from "./Icon"; // Assuming a live icon
+import { DateTabInfo } from "@/types/match.types";
+import { SparklesIcon } from "./Icon";
 import * as React from "react";
 
 interface DateSelectorProps {
@@ -17,10 +17,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 }) => {
   const getActiveClasses = () => {
     if (activeTabStyle === "results") {
-      // Style from the "Kết Quả" page screenshot: Orange-ish background, white text
-      return "bg-orange-600 text-white shadow-md scale-100"; // Slightly less scale than schedule
+      return "bg-orange-600 text-white shadow-md scale-100"; // Match the orange-ish background from the screenshot
     }
-    // Default for schedule page
     return "bg-orange-500 text-white shadow-md scale-105";
   };
 
@@ -43,11 +41,13 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                 selectedDateId === dateTab.id
                   ? getActiveClasses()
                   : getInactiveClasses()
-              }`}
+              } ${
+              activeTabStyle === "results" ? "min-w-[60px] text-center" : ""
+            }`}
             aria-pressed={selectedDateId === dateTab.id}
           >
             {dateTab.hasLive &&
-              activeTabStyle === "schedule" && ( // Only show live sparkles on schedule page
+              activeTabStyle === "schedule" && ( // Show live icon only on schedule page
                 <SparklesIcon
                   className={`w-4 h-4 mr-1.5 ${
                     selectedDateId === dateTab.id
@@ -56,6 +56,11 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                   }`}
                 />
               )}
+            {dateTab.id === "live" && dateTab.dateSuffix && (
+              <span className="ml-1 text-xs text-red-400">
+                {dateTab.dateSuffix}
+              </span>
+            )}
             <div className="flex flex-col items-center leading-tight">
               <span
                 className={`${
@@ -68,17 +73,19 @@ const DateSelector: React.FC<DateSelectorProps> = ({
               >
                 {dateTab.label}
               </span>
-              <span
-                className={`text-xs ${
-                  selectedDateId === dateTab.id
-                    ? activeTabStyle === "results"
-                      ? "text-orange-100"
-                      : "text-orange-100"
-                    : "text-gray-500 group-hover:text-gray-300"
-                }`}
-              >
-                {dateTab.dateSuffix}
-              </span>
+              {dateTab.id !== "live" && (
+                <span
+                  className={`text-xs ${
+                    selectedDateId === dateTab.id
+                      ? activeTabStyle === "results"
+                        ? "text-orange-100"
+                        : "text-orange-100"
+                      : "text-gray-500 group-hover:text-gray-300"
+                  }`}
+                >
+                  {dateTab.dateSuffix}
+                </span>
+              )}
             </div>
           </button>
         ))}

@@ -1,10 +1,21 @@
-import { Match } from "@/types/match.types";
+import { Match, MatchStatusType } from "@/types/match.types";
 import { UserIcon } from "./Icon"; // For streamer avatar fallback or details icon
 import * as React from "react";
 
 const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
+  const getStatusText = (status: MatchStatusType) => {
+    switch (status) {
+      case MatchStatusType.LIVE:
+        return "Live";
+      case MatchStatusType.FINISHED:
+        return "Kết thúc";
+      default:
+        return "";
+    }
+  };
+
   return (
-    <div className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0">
+    <div className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0 relative">
       <div className="w-[15%] sm:w-[12%] text-xs text-gray-400 pr-2">
         <div>
           {new Date(match?.startTime).toLocaleString("vi-VN", {
@@ -36,8 +47,16 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
           <span className="mx-1 sm:mx-1.5">-</span>
           <span>{match?.scores?.awayScore ?? "-"}</span>
         </div>
-        <div className="text-[10px] sm:text-xs text-red-500 font-semibold uppercase tracking-tight">
-          Kết thúc
+        <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-tight">
+          <span
+            className={
+              match?.status === MatchStatusType.LIVE
+                ? "text-red-500"
+                : "text-gray-500"
+            }
+          >
+            {getStatusText(match?.status)}
+          </span>
         </div>
       </div>
 
@@ -69,10 +88,18 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
             {match?.streamLinks?.[0]?.commentator}
           </span>
         )}
+
         {!match?.streamLinks?.[0]?.commentator && (
           <span className="text-gray-500 italic">N/A</span>
         )}
       </div>
+      {match.status === "LIVE" && (
+        <div className="w-full sm:w-1/12 flex justify-end mt-1 sm:mt-0 absolute top-0 right-0">
+          <span className="text-[11px] sm:text-xs bg-red-500 text-white px-1.5 py-0.5 rounded font-semibold animate-pulse">
+            LIVE
+          </span>
+        </div>
+      )}
     </div>
   );
 };

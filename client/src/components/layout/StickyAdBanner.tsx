@@ -20,7 +20,7 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
     flex items-center
     justify-between
     shadow-lg
-    w-full h-auto max-h-[90px]
+    w-full h-auto 
     
     sm:justify-center
     md:justify-between

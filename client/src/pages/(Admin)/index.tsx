@@ -1,40 +1,51 @@
 import NavigationBarAdmin from "@/components/navigation/navigation-bar-admin";
-import { Square2StackIcon, UserIcon } from "@heroicons/react/24/outline";
 import ModalProvider from "@/components/provider/modal-provider";
 import TableProvider from "@/components/provider/table-provider";
 import { SelectedPageProvider } from "@/components/navigation/navigation-provider";
 import HeaderAdmin from "@/components/header-admin";
+import {
+  ArrowPathIcon,
+  BanknotesIcon,
+  CalendarDateRangeIcon,
+  GlobeAsiaAustraliaIcon,
+  UserGroupIcon,
+  UsersIcon,
+} from "@heroicons/react/24/solid";
 
 const items = [
   {
     id: 1,
     name: "Users",
-    icon: <UserIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: <UsersIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
   },
   {
     id: 2,
     name: "Sports",
-    icon: <Square2StackIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: (
+      <GlobeAsiaAustraliaIcon className="stroke-white stroke-[1] min-w-5 w-5" />
+    ),
   },
   {
     id: 3,
     name: "Leagues",
-    icon: <Square2StackIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: (
+      <CalendarDateRangeIcon className="stroke-white stroke-[1] min-w-5 w-5" />
+    ),
   },
   {
     id: 4,
     name: "Teams",
-    icon: <Square2StackIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: <UserGroupIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
   },
   {
     id: 5,
     name: "Matches",
-    icon: <Square2StackIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: <BanknotesIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
   },
   {
     id: 6,
     name: "Replays",
-    icon: <Square2StackIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    icon: <ArrowPathIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
   },
 ];
 

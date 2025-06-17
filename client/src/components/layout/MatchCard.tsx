@@ -1,11 +1,17 @@
 import * as React from "react";
 import { FootballIcon } from "./Icon";
 import { Match } from "@/types/match.types";
+import { useNavigate } from "react-router-dom";
+import basketball from "@/assets/user/basketball-min.jpg";
+import tennis from "@/assets/user/tennis-min.jpg";
+import football from "@/assets/user/football-min.jpg";
+import volleyball from "@/assets/user/volleyball-min.jpg";
 
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
   small = false,
 }) => {
+  const navigate = useNavigate();
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -15,16 +21,27 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     hour12: false,
   });
   const isLive = match?.status === "LIVE";
-
+  const targetUrl = `/truc-tiep/${match.slug}`;
+  const imageSlug =
+    match?.sport?.name === "Bóng đá"
+      ? football
+      : match?.sport?.name === "Bóng rổ"
+      ? basketball
+      : match?.sport?.name === "Tennis"
+      ? tennis
+      : match?.sport?.name === "Bóng chuyền"
+      ? volleyball
+      : "";
   return (
     <div
+      onClick={() => navigate(targetUrl)}
       className={`bg-slate-800 rounded-xl shadow-md overflow-hidden mt-1 ml-1 ${
         small
           ? "w-[260px] sm:w-[320px] md:w-[390px]"
           : "w-72 sm:w-80 md:w-[420px] xl:w-[450px]"
       } flex-shrink-0 cursor-pointer relative`}
       style={{
-        backgroundImage: `url(https://b.thapcam73.life/images/bg/football-min.jpg)`,
+        backgroundImage: `url(${imageSlug})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
@@ -112,10 +129,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             </span>
           )}
         </div>
-        <a
-          href="#"
-          className="bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto"
-        >
+        <a className="bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto">
           Xem Ngay
         </a>
       </div>

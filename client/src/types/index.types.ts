@@ -52,6 +52,8 @@ export interface Replay {
 export interface NavItem {
   label: string;
   url: string;
+  slug?: string;
+  nameForHighlight?: string;
 }
 
 export interface ChatMessage {

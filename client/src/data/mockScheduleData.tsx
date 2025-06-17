@@ -1,4 +1,9 @@
-import { DateTabInfo, LeagueSchedule } from "@/types/match.types";
+import {
+  DateTabInfo,
+  LeagueSchedule,
+  Match,
+  MatchStatusType,
+} from "@/types/match.types";
 import {
   GlobeAltIcon,
   ShieldCheckIcon,
@@ -6,7 +11,6 @@ import {
   FootballIcon,
 } from "@/components/layout/Icon";
 import * as React from "react";
-import { Match, MatchStatusType } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Team } from "@/types/team.types";
 
@@ -37,38 +41,49 @@ const dayOfWeekLabel = (date: Date): string => {
   return days[dayIndex];
 };
 
-// Generate date tabs based on real data, starting from today
-export const generateDateTabs = (matches: Match[]): DateTabInfo[] => {
-  const uniqueDates = new Set(
-    matches
-      ?.filter((match) => {
-        const matchDate = new Date(match.startTime || today);
-        return !isNaN(matchDate.getTime()) && matchDate >= today;
-      })
-      .map((match) => formatDate(new Date(match.startTime || today)))
+// Generate fixed 7-day tabs for schedule, starting from today
+export const generateFixedDateTabsForSchedule = (
+  matches: Match[]
+): DateTabInfo[] => {
+  const tabs: DateTabInfo[] = [];
+  const liveMatches = matches.filter(
+    (match) => match.status === MatchStatusType.LIVE
   );
-  return Array.from(uniqueDates).map((dateId) => {
-    const date = new Date(dateId);
-    console.log(
-      "Date ID:",
-      dateId,
-      "Parsed Date:",
-      date,
-      "Label:",
-      dayOfWeekLabel(date)
-    ); // Debug
-    return {
+  const liveCount = liveMatches.length;
+
+  // Add "Live" tab
+  tabs.push({
+    id: "live",
+    label: "Live",
+    dateSuffix: liveCount > 0 ? `(${liveCount})` : "",
+    isToday: false,
+    hasLive: true,
+  });
+
+  // Add 7 days (today and 6 days forward)
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateId = formatDate(date);
+    const hasMatches = matches.some(
+      (match) =>
+        formatDate(new Date(match.startTime)) === dateId &&
+        match.status !== MatchStatusType.FINISHED
+    );
+    tabs.push({
       id: dateId,
       label: dayOfWeekLabel(date),
       dateSuffix: formatSuffix(date),
       isToday: date.toDateString() === today.toDateString(),
       hasLive: matches.some(
         (match) =>
-          formatDate(new Date(match.startTime || today)) === dateId &&
+          formatDate(new Date(match.startTime)) === dateId &&
           match.status === MatchStatusType.LIVE
       ),
-    };
-  });
+    });
+  }
+
+  return tabs;
 };
 
 const createTeam = (team?: Team): Team => ({
@@ -78,12 +93,13 @@ const createTeam = (team?: Team): Team => ({
 
 const transformMatchesToSchedule = (
   matches: Match[]
-): {
-  [dateId: string]: LeagueSchedule[];
-} => {
+): { [dateId: string]: LeagueSchedule[] } => {
   const scheduleByDate: { [dateId: string]: LeagueSchedule[] } = {};
 
   matches.forEach((match) => {
+    if (match.status === MatchStatusType.FINISHED) return; // Chỉ include non-finished matches
+
+    // Xác định dateId dựa trên startTime
     const dateId = formatDate(new Date(match.startTime || today));
     const leagueId =
       match.league?._id || match.league?.name || "unknown_league";
@@ -104,13 +120,7 @@ const transformMatchesToSchedule = (
     };
     const icon = iconMap[leagueName] || null;
 
-    if (!scheduleByDate[dateId]) {
-      scheduleByDate[dateId] = [];
-    }
-
-    const leagueSchedule = scheduleByDate[dateId].find(
-      (ls) => ls.id === leagueId
-    );
+    // Chuẩn bị dữ liệu match
     const matchData: Match = {
       _id: match._id || `m_${Date.now()}`,
       title: match.title || `${match.homeTeam.name} vs ${match.awayTeam.name}`,
@@ -136,6 +146,13 @@ const transformMatchesToSchedule = (
       secondaryCommentatorImage: match.secondaryCommentatorImage,
     };
 
+    // Thêm vào ngày tương ứng
+    if (!scheduleByDate[dateId]) {
+      scheduleByDate[dateId] = [];
+    }
+    const leagueSchedule = scheduleByDate[dateId].find(
+      (ls) => ls.id === leagueId
+    );
     if (leagueSchedule) {
       leagueSchedule.matches.push(matchData);
     } else {
@@ -145,6 +162,29 @@ const transformMatchesToSchedule = (
         icon,
         matches: [matchData],
       });
+    }
+
+    // Thêm vào tab "Live" nếu là trận live
+    if (match.status === MatchStatusType.LIVE) {
+      if (!scheduleByDate["live"]) {
+        scheduleByDate["live"] = [];
+      }
+      const liveLeagueSchedule = scheduleByDate["live"].find(
+        (ls) => ls.id === leagueId
+      );
+      const liveIcon = React.createElement(FootballIcon, {
+        className: "w-5 h-5 text-red-500",
+      });
+      if (liveLeagueSchedule) {
+        liveLeagueSchedule.matches.push(matchData);
+      } else {
+        scheduleByDate["live"].push({
+          id: leagueId,
+          name: leagueName,
+          icon: liveIcon,
+          matches: [matchData],
+        });
+      }
     }
   });
 
@@ -157,7 +197,7 @@ export const useScheduleData = (
   dateTabs: DateTabInfo[];
   scheduleData: { [dateId: string]: LeagueSchedule[] };
 } => {
-  const dateTabs = generateDateTabs(matches);
+  const dateTabs = generateFixedDateTabsForSchedule(matches);
   const scheduleData = transformMatchesToSchedule(matches);
   return { dateTabs, scheduleData };
 };

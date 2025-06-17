@@ -1,32 +1,32 @@
-// src/pages/Replay.tsx
 import ReplayHubPage from "@/components/layout/ReplayHubPage";
-import { apiGetAllReplays } from "@/services/replay.services";
-import { Replay } from "@/types/replay.types";
+import { useData } from "@/context/DataContext";
 import * as React from "react";
-import { FootballIcon } from "@/components/layout/Icon"; // Import FootballIcon for categorization
+import { FootballIcon } from "@/components/layout/Icon";
+import { Replay } from "@/types/replay.types";
+import { useParams } from "react-router-dom";
 
 const Replay: React.FC = () => {
-  const [replayItems, setReplayItems] = React.useState<Replay[]>([]);
+  const { replayData, fetchData, loading } = useData();
 
-  // Fetch real replay data
-  const fetchMatchRelatedData = async () => {
-    try {
-      const replayRes = await apiGetAllReplays();
-      const allReplay = replayRes.data ?? [];
-      setReplayItems(allReplay);
-    } catch (error) {
-      console.error("Error fetching replay data:", error);
-      setReplayItems([]); // Fallback to empty array on error
-    }
-  };
+  const [replaySuggestions, setReplaySuggestions] = React.useState<Replay[]>(
+    []
+  );
+  const { slug } = useParams();
 
   React.useEffect(() => {
-    fetchMatchRelatedData();
-  }, []);
+    const loadMatchData = async () => {
+      if (!replayData.length && !loading) {
+        await fetchData(); // Chỉ gọi nếu chưa có dữ liệu
+      }
 
-  // Transform replayItems into featured broadcasts
+      const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
+      setReplaySuggestions(replay);
+    };
+    loadMatchData();
+  }, [slug, replayData, fetchData, loading]);
+
   const featuredBroadcasts = React.useMemo(() => {
-    return replayItems.map((replay) => ({
+    return replaySuggestions.map((replay) => ({
       id: replay._id || "",
       playerImage: replay.match?.homeTeam?.logo || "",
       playerName: replay.match?.homeTeam?.name || "",
@@ -38,11 +38,10 @@ const Replay: React.FC = () => {
       opponentName: replay.match?.awayTeam?.name || "",
       commentator: replay.commentator || "",
     }));
-  }, [replayItems]);
+  }, [replaySuggestions]);
 
-  // Transform replayItems into highlighted event
   const highlightedEvent = React.useMemo(() => {
-    const replay = replayItems[0];
+    const replay = replaySuggestions[0];
     if (!replay) return null;
     return {
       playerImages: [
@@ -66,12 +65,11 @@ const Replay: React.FC = () => {
         }
       ),
     };
-  }, [replayItems]);
+  }, [replaySuggestions]);
 
-  // Transform replayItems into categorized replays
   const categorizedReplays = React.useMemo(() => {
     const categories: { [key: string]: Replay[] } = {};
-    replayItems.forEach((replay) => {
+    replaySuggestions.forEach((replay) => {
       const sportName = replay.sport?.name || "Uncategorized";
       if (!categories[sportName]) {
         categories[sportName] = [];
@@ -84,16 +82,17 @@ const Replay: React.FC = () => {
       title: title,
       icon: React.createElement(FootballIcon, {
         className: "w-5 h-5 text-green-400",
-      }), // Default icon, can be customized per sport
-      replays: replays, // Use raw Replay objects
+      }),
+      replays: replays,
       viewAllUrl: "#",
     }));
-  }, [replayItems]);
+  }, [replaySuggestions]);
 
-  // Use all replayItems for sidebar
   const sidebarReplays = React.useMemo(() => {
-    return replayItems; // Use raw Replay objects
-  }, [replayItems]);
+    return replaySuggestions;
+  }, [replaySuggestions]);
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <ReplayHubPage

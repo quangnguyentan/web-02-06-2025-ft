@@ -8,6 +8,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { Match } from "@/types/match.types";
 
 interface SportSectionProps {
+  isSportSection?;
   title: string;
   icon?: React.ReactNode;
   matches: Match[];
@@ -17,6 +18,7 @@ interface SportSectionProps {
 }
 
 const SportSection: React.FC<SportSectionProps> = ({
+  isSportSection,
   title,
   icon,
   matches,
@@ -33,7 +35,7 @@ const SportSection: React.FC<SportSectionProps> = ({
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 3.5,
+    slidesToShow: location?.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
     slidesToScroll: 1,
     arrows: true,
     responsive: [
@@ -65,7 +67,13 @@ const SportSection: React.FC<SportSectionProps> = ({
         )}
       </div>
       {isSpotlight ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+        <div
+          className={
+            isSportSection
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
+              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+          }
+        >
           {matches.map((match) => (
             <SpotlightMatchCard key={match._id} match={match} />
           ))}
@@ -84,7 +92,7 @@ const SportSection: React.FC<SportSectionProps> = ({
             <Slider {...sliderSettings} className="!text-left">
               {matches.map((match) => (
                 <div key={match._id} className="px-0 h-full flex">
-                  <div className="h-full flex">
+                  <div className="h-full flex ">
                     <MatchCard match={match} small />
                   </div>
                 </div>

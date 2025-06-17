@@ -2,7 +2,10 @@ import { UserIcon, LiveIcon } from "./Icon";
 import * as React from "react";
 import { Match } from "@/types/match.types";
 import { FootballIcon, TennisIcon, BasketballIcon } from "./Icon"; // Add sport-specific icons
-
+import basketball from "@/assets/user/basketball-min.jpg";
+import tennis from "@/assets/user/tennis-min.jpg";
+import football from "@/assets/user/football-min.jpg";
+import volleyball from "@/assets/user/volleyball-min.jpg";
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
   switch (sportId) {
@@ -26,11 +29,21 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
     hour12: false,
   });
 
+  const imageSlug =
+    match?.sport?.name === "Bóng đá"
+      ? football
+      : match?.sport?.name === "Bóng rổ"
+      ? basketball
+      : match?.sport?.name === "Tennis"
+      ? tennis
+      : match?.sport?.name === "Bóng chuyền"
+      ? volleyball
+      : "";
   return (
     <div
       className="bg-slate-800 shadow-lg overflow-hidden flex flex-col rounded-xl h-full relative"
       style={{
-        backgroundImage: `url(https://b.thapcam73.life/images/bg/football-min.jpg)`,
+        backgroundImage: `url(${imageSlug})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
@@ -81,7 +94,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             <img
               src={match.homeTeam?.logo || ""}
               alt={match.homeTeam?.name}
-              className="w-14 h-14 sm:w-20 sm:h-20 object-contain mb-1"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain mb-1"
             />
             <span className="text-xs sm:text-sm text-white font-medium truncate">
               {match.homeTeam?.name}
@@ -109,7 +122,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             <img
               src={match.awayTeam?.logo || ""}
               alt={match.awayTeam?.name}
-              className="w-14 h-14 sm:w-20 sm:h-20 object-contain mb-1"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain mb-1"
             />
             <span className="text-xs sm:text-sm text-white font-medium truncate">
               {match.awayTeam?.name}

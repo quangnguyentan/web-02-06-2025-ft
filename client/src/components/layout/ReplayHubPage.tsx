@@ -80,7 +80,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
             ))}
           </div>
 
-          {/* Right Sidebar: Replay Suggestions + Ad */}
           <div className="lg:w-1/3 flex-shrink-0">
             <div className="">
               {/* Adjust top based on header height */}

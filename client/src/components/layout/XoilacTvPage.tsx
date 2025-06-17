@@ -46,8 +46,11 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
   const titleText =
     "THAPCAM TV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online nhanh nhất - Thập Cẩm TV";
   return (
-    <main
-      className="lg:max-w-[1024px]
+    <>
+      <HeroSection />
+
+      <main
+        className="lg:max-w-[1024px]
     xl:max-w-[1200px]
     2xl:max-w-[1440px]
 
@@ -55,90 +58,90 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
     xl:translate-x-[calc((100vw-1200px)/2)]
    2xl:translate-x-[calc((100vw-1440px)/12)]
     3xl:translate-x-[calc((100vw-1440px)/2)]"
-    >
-      {/* Margin to avoid overlap with side ads */}
-      <XoilacTvBreadcrumbs />
-      <HeroSection />
-      <div className="px-4 rounded-lg shadow text-center space-y-4 mt-1">
-        <p className="text-sm sm:text-lg md:text-xl text-gray-200 font-semibold  mx-auto drop-shadow">
-          {titleText}
-        </p>
-        <p className="text-sm text-gray-300 leading-relaxed">{introText}</p>
-      </div>
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
+      >
+        {/* Margin to avoid overlap with side ads */}
+        <XoilacTvBreadcrumbs />
+        <div className="px-4 rounded-lg shadow text-center space-y-4 mt-1">
+          <p className="text-sm sm:text-lg md:text-xl text-gray-200 font-semibold  mx-auto drop-shadow">
+            {titleText}
+          </p>
+          <p className="text-sm text-gray-300 leading-relaxed">{introText}</p>
+        </div>
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+        <SportSection
+          title="TÂM ĐIỂM THỂ THAO"
+          icon={<StarIcon className="w-5 h-5 text-yellow-400" />}
+          matches={spotlightMatches}
+          isSpotlight={true}
+          titleClassName="text-lg md:text-xl font-bold text-yellow-400 uppercase"
         />
-      </div>
-      <SportSection
-        title="TÂM ĐIỂM THỂ THAO"
-        icon={<StarIcon className="w-5 h-5 text-yellow-400" />}
-        matches={spotlightMatches}
-        isSpotlight={true}
-        titleClassName="text-lg md:text-xl font-bold text-yellow-400 uppercase"
-      />
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+        <SportSection
+          title="BÓNG ĐÁ"
+          icon={<FootballIcon className="w-5 h-5 text-green-400" />}
+          matches={footballMatches}
+          viewAllUrl="#"
         />
-      </div>
-      <SportSection
-        title="BÓNG ĐÁ"
-        icon={<FootballIcon className="w-5 h-5 text-green-400" />}
-        matches={footballMatches}
-        viewAllUrl="#"
-      />
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+        <SportSection
+          title="TENNIS"
+          icon={<TennisIcon className="w-5 h-5 text-lime-400" />}
+          matches={tennisMatches}
+          viewAllUrl="#"
         />
-      </div>
-      <SportSection
-        title="TENNIS"
-        icon={<TennisIcon className="w-5 h-5 text-lime-400" />}
-        matches={tennisMatches}
-        viewAllUrl="#"
-      />
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+        <SportSection
+          title="BÓNG RỔ"
+          icon={<BasketballIcon className="w-5 h-5 text-orange-400" />}
+          matches={basketballMatches}
+          viewAllUrl="#"
         />
-      </div>
-      <SportSection
-        title="BÓNG RỔ"
-        icon={<BasketballIcon className="w-5 h-5 text-orange-400" />}
-        matches={basketballMatches}
-        viewAllUrl="#"
-      />
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+        <SportSection
+          title="BÓNG CHUYỀN"
+          icon={<VolleyballIcon className="w-5 h-5 text-sky-400" />}
+          matches={volleyballMatches}
+          viewAllUrl="#"
         />
-      </div>
-      <SportSection
-        title="BÓNG CHUYỀN"
-        icon={<VolleyballIcon className="w-5 h-5 text-sky-400" />}
-        matches={volleyballMatches}
-        viewAllUrl="#"
-      />
-      <div className="px-1 sm:px-4 md:px-6">
-        <img
-          src={belt_bottom_top}
-          alt="Ad Banner"
-          className="object-cover md:w-full "
-        />
-      </div>
-    </main>
+        <div className="px-1 sm:px-4 md:px-6">
+          <img
+            src={belt_bottom_top}
+            alt="Ad Banner"
+            className="object-cover md:w-full "
+          />
+        </div>
+      </main>
+    </>
   );
 };
 
