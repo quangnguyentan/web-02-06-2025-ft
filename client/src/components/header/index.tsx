@@ -133,6 +133,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 
                 navigate(finalUrl);
                 setSelectedPage(item.label);
+                localStorage.setItem("selectedPage", item.label);
                 if (item.nameForHighlight) {
                   setSelectedSportsNavbarPage(item.nameForHighlight);
                   localStorage.setItem(
@@ -579,6 +580,7 @@ const Header: React.FC = () => {
   ];
   React.useEffect(() => {
     const savedPage = localStorage.getItem("selectedPage");
+    console.log(savedPage);
     const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");
     if (savedPage) setSelectedPage(savedPage);
     if (savedSportsPage) setSelectedSportsNavbarPage(savedSportsPage);

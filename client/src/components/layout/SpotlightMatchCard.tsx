@@ -4,8 +4,12 @@ import { Match } from "@/types/match.types";
 import { FootballIcon, TennisIcon, BasketballIcon } from "./Icon"; // Add sport-specific icons
 import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
-import football from "@/assets/user/football-min.jpg";
+import football from "@/assets/user/football-min1.jpg";
 import volleyball from "@/assets/user/volleyball-min.jpg";
+import boxing from "@/assets/user/boxing-min.jpg";
+import race from "@/assets/user/race-min.jpg";
+import esport from "@/assets/user/esport-min.jpg";
+
 import { useNavigate } from "react-router-dom";
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
@@ -41,6 +45,12 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       ? tennis
       : match?.sport?.name === "Bóng chuyền"
       ? volleyball
+      : match?.sport?.name === "Đua xe"
+      ? race
+      : match?.sport?.name === "Võ thuật"
+      ? boxing
+      : match?.sport?.name === "eSports"
+      ? esport
       : "";
   return (
     <div
@@ -50,12 +60,17 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         backgroundImage: `url(${imageSlug})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+        boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
       }}
     >
       {/* Overlay to ensure readability */}
       {/* <div className="absolute inset-0 bg-black/50"></div> */}
-      <div className="absolute inset-0"></div>
+      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
+        <div
+          className="absolute inset-0 bg-black bg-opacity-85"
+          style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
+        ></div>
+      )}
 
       {/* Header: League Name & Live Status */}
       {/* <div
@@ -139,7 +154,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       <div
         className="p-2 border-t border-slate-700/50 relative z-10"
         style={{
-          boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+          boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
       >
         {/* <div className="p-2 brelative z-10"> */}

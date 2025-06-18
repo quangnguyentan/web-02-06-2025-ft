@@ -4,8 +4,11 @@ import { Match } from "@/types/match.types";
 import { useNavigate } from "react-router-dom";
 import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
-import football from "@/assets/user/football-min.jpg";
+import football from "@/assets/user/football-min1.jpg";
 import volleyball from "@/assets/user/volleyball-min.jpg";
+import boxing from "@/assets/user/boxing-min.jpg";
+import race from "@/assets/user/race-min.jpg";
+import esport from "@/assets/user/esport-min.jpg";
 
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
@@ -31,11 +34,17 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       ? tennis
       : match?.sport?.name === "Bóng chuyền"
       ? volleyball
+      : match?.sport?.name === "Đua xe"
+      ? race
+      : match?.sport?.name === "Võ thuật"
+      ? boxing
+      : match?.sport?.name === "eSports"
+      ? esport
       : "";
   return (
     <div
       onClick={() => navigate(targetUrl)}
-      className={`bg-slate-800 rounded-xl shadow-md overflow-hidden mt-1 ml-1 ${
+      className={`bg-slate-800 rounded-xl shadow-md overflow-hidden my-1 ml-1 ${
         small
           ? "w-[260px] sm:w-[320px] md:w-[390px]"
           : "w-72 sm:w-80 md:w-[420px] xl:w-[450px]"
@@ -44,11 +53,16 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         backgroundImage: `url(${imageSlug})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+        boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
       }}
     >
       {/* Overlay to ensure readability */}
-      <div className="absolute inset-0"></div>
+      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
+        <div
+          className="absolute inset-0 bg-black bg-opacity-85"
+          style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
+        ></div>
+      )}
 
       <div className="p-2 sm:p-3  relative z-10">
         <div className="flex justify-between items-center mb-2">
@@ -112,7 +126,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       <div
         className="p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-10"
         style={{
-          boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.3)",
+          boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
       >
         <div className="flex items-center space-x-2 w-full sm:w-auto">
