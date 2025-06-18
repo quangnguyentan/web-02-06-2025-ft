@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useState, useEffect } from "react";
-import { apiUpdateMatch } from "@/services/match.services"; // Đã đổi sang API update
+import { apiUpdateMatch } from "@/services/match.services";
 import { apiGetAllTeams } from "@/services/team.services";
 import { apiGetAllLeagues } from "@/services/league.services";
 import { apiGetAllSports } from "@/services/sport.services";
@@ -38,8 +38,15 @@ import { Match, MatchStatusType } from "@/types/match.types";
 import { Team } from "@/types/team.types";
 import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale, setDefaultLocale } from "react-datepicker";
+import { vi } from "date-fns/locale/vi";
 
-// Schema cho form (giữ nguyên vì cấu trúc dữ liệu không đổi)
+// Đăng ký và đặt locale mặc định là tiếng Việt
+registerLocale("vi", vi);
+setDefaultLocale("vi");
+
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   slug: z.string().min(1, { message: "Slug is required" }),
@@ -47,7 +54,7 @@ const formSchema = z.object({
   awayTeam: z.string().min(1, { message: "Away team is required" }),
   league: z.string().min(1, { message: "League is required" }),
   sport: z.string().min(1, { message: "Sport is required" }),
-  startTime: z.string().min(1, { message: "Start time is required" }),
+  startTime: z.date({ required_error: "Start time is required" }), // Changed to z.date
   status: z.enum(Object.values(MatchStatusType) as [string, ...string[]], {
     required_error: "Status is required",
   }),
@@ -94,7 +101,7 @@ export const EditMatchModal = () => {
       awayTeam: "",
       league: "",
       sport: "",
-      startTime: "",
+      startTime: null, // Default to null, will be set as Date object
       status: MatchStatusType.UPCOMING,
       scores: {
         homeScore: 0,
@@ -120,7 +127,6 @@ export const EditMatchModal = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  // Lấy dữ liệu teams, leagues, sports từ API và điền vào form khi modal mở và có dữ liệu trận đấu
   useEffect(() => {
     if (!isModalOpen) return;
 
@@ -134,8 +140,6 @@ export const EditMatchModal = () => {
         setTeams(teamsRes.data);
         setLeagues(leaguesRes.data);
         setSports(sportsRes.data);
-
-        // Điền dữ liệu vào form nếu có matchToEdit
       } catch (error) {
         toast.error("Lỗi khi tải dữ liệu");
         console.error(error);
@@ -143,7 +147,8 @@ export const EditMatchModal = () => {
     };
 
     fetchData();
-  }, [isModalOpen, matchToEdit, form]); // Thêm form vào dependency array
+  }, [isModalOpen, matchToEdit, form]);
+
   useEffect(() => {
     if (isModalOpen && matchToEdit) {
       form.reset({
@@ -153,7 +158,7 @@ export const EditMatchModal = () => {
         awayTeam: matchToEdit.awayTeam._id,
         league: matchToEdit.league._id,
         sport: matchToEdit.sport._id,
-        startTime: new Date(matchToEdit.startTime).toISOString().slice(0, 16),
+        startTime: new Date(matchToEdit.startTime), // Set as Date object
         status: matchToEdit.status,
         scores: {
           homeScore: matchToEdit.scores.homeScore,
@@ -170,7 +175,7 @@ export const EditMatchModal = () => {
         awayTeam: "",
         league: "",
         sport: "",
-        startTime: "",
+        startTime: null,
         status: MatchStatusType.UPCOMING,
         scores: { homeScore: 0, awayScore: 0 },
         streamLinks: [{ label: "", url: "", commentator: "", priority: 1 }],
@@ -178,37 +183,34 @@ export const EditMatchModal = () => {
       });
     }
   }, [isModalOpen, matchToEdit, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Tìm object Team, League, Sport dựa trên ID
       const homeTeam = teams.find((t) => t._id === values.homeTeam);
       const awayTeam = teams.find((t) => t._id === values.awayTeam);
       const league = leagues.find((l) => l._id === values.league);
       const sport = sports.find((s) => s._id === values.sport);
 
-      // Kiểm tra xem có tìm thấy các object không
       if (!homeTeam || !awayTeam || !league || !sport) {
         toast.error("Dữ liệu đội, giải đấu hoặc môn thể thao không hợp lệ");
         return;
       }
 
-      // Tạo payload cho việc cập nhật
       const payload: Match = {
         ...values,
         homeTeam,
         awayTeam,
         league,
         sport,
-        startTime: new Date(values.startTime),
+        startTime: values.startTime, // Already a Date object
         status: values.status as MatchStatusType,
-        _id: matchToEdit?._id, // Thêm _id của trận đấu cần cập nhật
+        _id: matchToEdit?._id,
       };
 
-      const res = await apiUpdateMatch(matchToEdit?._id, payload); // Gọi API cập nhật
+      const res = await apiUpdateMatch(matchToEdit?._id, payload);
       if (res?.data) {
         toast.success(`Đã cập nhật ${values.title} thành công`);
         onClose();
-        // Cập nhật trận đấu trong danh sách `matches` của context
         const updatedList = match?.map((item) =>
           item._id === res.data._id ? res.data : item
         );
@@ -238,7 +240,6 @@ export const EditMatchModal = () => {
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 px-6">
-              {/* Title */}
               <FormField
                 control={form.control}
                 name="title"
@@ -258,7 +259,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -278,7 +278,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Home Team */}
               <FormField
                 control={form.control}
                 name="homeTeam"
@@ -308,7 +307,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Away Team */}
               <FormField
                 control={form.control}
                 name="awayTeam"
@@ -338,7 +336,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* League */}
               <FormField
                 control={form.control}
                 name="league"
@@ -368,7 +365,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
@@ -398,18 +394,30 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Start Time */}
               <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        type="datetime-local"
-                        {...field}
+                      <Controller
+                        name="startTime"
+                        control={form.control}
+                        render={({ field: dateField }) => (
+                          <DatePicker
+                            selected={dateField.value}
+                            onChange={(date) => dateField.onChange(date)}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            dateFormat="dd/MM/yyyy HH:mm"
+                            locale="vi"
+                            disabled={isLoading}
+                            placeholderText="Chọn ngày và giờ"
+                            className="w-full p-2 border rounded placeholder:text-black"
+                          />
+                        )}
                       />
                     </FormControl>
                     <FormMessage />
@@ -417,7 +425,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Status */}
               <FormField
                 control={form.control}
                 name="status"
@@ -447,7 +454,6 @@ export const EditMatchModal = () => {
                 )}
               />
 
-              {/* Scores */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -487,7 +493,6 @@ export const EditMatchModal = () => {
                 />
               </div>
 
-              {/* Stream Links */}
               <div>
                 <FormLabel>Stream Links</FormLabel>
                 {fields.map((field, index) => (
@@ -586,7 +591,6 @@ export const EditMatchModal = () => {
                 </Button>
               </div>
 
-              {/* Is Hot */}
               <FormField
                 control={form.control}
                 name="isHot"

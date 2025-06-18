@@ -28,3 +28,15 @@ export const formatDate = (date: string | Date) =>
     day: "2-digit",
     month: "2-digit",
   });
+
+export const formatDateFull = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+export const adjustToVietnamTime = (date: Date): Date => {
+  const vietnamDate = new Date(date);
+  vietnamDate.setHours(vietnamDate.getHours()); // Điều chỉnh từ UTC sang UTC+07:00
+  return vietnamDate;
+};

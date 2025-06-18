@@ -20,35 +20,35 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
       </div>
 
       {/* Team A */}
-      <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 mb-1 sm:mb-0">
-        <img
-          src={team_1 || match?.homeTeam?.logo}
-          alt={match?.homeTeam?.name}
-          className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-        />
+      <div className="w-1/2 sm:w-2/5 flex items-center justify-end font-semibold space-x-1 sm:space-x-2 mb-1 sm:mb-0">
         <span className="text-xs sm:text-sm text-white truncate">
           {match?.homeTeam?.name}
         </span>
+        <img
+          src={team_1 || match?.homeTeam?.logo}
+          alt={match?.homeTeam?.name}
+          className="w-5 h-5 sm:w-10 sm:h-10 object-contain"
+        />
       </div>
 
       {/* VS */}
-      <div className="hidden sm:block w-1/12 text-center text-xs text-gray-400">
+      <div className="hidden sm:block w-1/12 text-center text-xs text-white font-bold">
         vs
       </div>
-      <div className="block sm:hidden w-full text-center text-xs text-gray-400 mb-1">
+      <div className="block sm:hidden w-full text-center text-xs text-white mb-1 font-bold">
         vs
       </div>
 
       {/* Team B */}
-      <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 justify-end mb-1 sm:mb-0">
-        <span className="text-xs sm:text-sm text-white text-right line-clamp-1 overflow-hidden break-words">
-          {match?.awayTeam?.name}
-        </span>
+      <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 justify-start mb-1 sm:mb-0 font-semibold ">
         <img
           src={team_2 || match?.awayTeam?.logo}
           alt={match?.homeTeam?.name}
-          className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
+          className="w-5 h-5 sm:w-10 sm:h-10 object-contain"
         />
+        <span className="text-xs sm:text-sm text-white text-right line-clamp-1 overflow-hidden break-words">
+          {match?.awayTeam?.name}
+        </span>
       </div>
 
       {/* Streamer */}

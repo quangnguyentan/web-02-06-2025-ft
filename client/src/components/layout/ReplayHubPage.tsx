@@ -31,6 +31,60 @@ const ReplayHubBreadcrumbs: React.FC = () => (
   </nav>
 );
 
+const Pagination: React.FC<{
+  currentPage: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalItems, onPageChange }) => {
+  const itemsPerPage = [8, 12, 12]; // Page 1: 8, Page 2+: 12
+  let cumulativeItems = 3; // Start from index 3
+  let totalPages = 1;
+
+  for (let i = 0; cumulativeItems < totalItems; i++) {
+    cumulativeItems += itemsPerPage[i] || itemsPerPage[itemsPerPage.length - 1];
+    totalPages = i + 2;
+  }
+
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex justify-center items-center space-x-2 my-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-3 py-1 bg-gray-700 text-white rounded disabled:opacity-50"
+        aria-label="Previous page"
+      >
+        &lt;
+      </button>
+      {pages.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-3 py-1 rounded ${
+            currentPage === page
+              ? "bg-yellow-400 text-black"
+              : "bg-gray-700 text-white"
+          }`}
+          aria-label={`Page ${page}`}
+        >
+          {page}
+        </button>
+      ))}
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1 bg-gray-700 text-white rounded disabled:opacity-50"
+        aria-label="Next page"
+      >
+        &gt;
+      </button>
+    </div>
+  );
+};
+
 const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
   featuredBroadcasts,
   highlightedEvent,
@@ -41,17 +95,53 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     "XEM LẠI NHỮNG TRẬN ĐẤU ĐỈNH CAO TRÊN THAPCAM TV MỚI NHẤT, CẬP NHẬT LIÊN TỤC";
   const pageDescription =
     "Trang Thapcam TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
-  return (
-    <div
-      className=" lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
+  const [currentPage, setCurrentPage] = React.useState(1);
 
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-   2xl:translate-x-[calc((100vw-1440px)/12)]
-    3xl:translate-x-[calc((100vw-1440px)/2)]"
-    >
+  // Flatten replays from all groups
+  const allReplays = React.useMemo(() => {
+    return (
+      categorizedReplays?.reduce(
+        (acc, group) => [...acc, ...group.replays],
+        [] as Replay[]
+      ) || []
+    );
+  }, [categorizedReplays]);
+
+  // Calculate start and end indices based on page
+  const getPageIndices = (page: number) => {
+    let startIndex = 4; // Start from index 3
+    if (page === 1) {
+      return { start: startIndex, end: startIndex + 8 }; // 8 items (indices 3 to 10)
+    }
+    for (let i = 2; i <= page; i++) {
+      startIndex += i === 2 ? 8 : 12; // Page 1: 8, Page 2+: 12
+    }
+    return { start: startIndex, end: startIndex + 12 };
+  };
+
+  const { start, end } = getPageIndices(currentPage);
+  const paginatedReplays = allReplays.slice(start, end);
+
+  // Group paginated replays back into categories
+  const paginatedGroups = React.useMemo(() => {
+    const grouped: CategorizedReplayGroup[] = [];
+    const paginatedReplayIds = new Set(
+      paginatedReplays.map((replay) => replay._id)
+    );
+
+    for (const group of categorizedReplays || []) {
+      const groupReplays = group.replays.filter((replay) =>
+        paginatedReplayIds.has(replay._id)
+      );
+      if (groupReplays.length > 0) {
+        grouped.push({ ...group, replays: groupReplays });
+      }
+    }
+    return grouped;
+  }, [categorizedReplays, paginatedReplays]);
+
+  return (
+    <div className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
       <main className="w-full pt-2">
         <ReplayHubBreadcrumbs />
         <FilterBarReplays />
@@ -63,33 +153,48 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
             {pageDescription}
           </p>
         </div>
-        <h2 className="text-lg font-bold uppercase text-gray-100/80 py-4">
-          Mới cập nhật
-        </h2>
-        <div className="flex flex-col lg:flex-row">
-          <div className="lg:w-2/3 flex-shrink-0 pr-2">
-            <div className="rounded-lg shadow-md mb-4">
-              <FeaturedBroadcastSection
-                items={featuredBroadcasts}
-                highlightedEvent={highlightedEvent}
-              />
-            </div>
 
-            {categorizedReplays.map((group) => (
-              <CategoryReplaySection key={group.id} group={group} />
-            ))}
-          </div>
-
-          <div className="lg:w-1/3 flex-shrink-0">
-            <div className="">
-              {/* Adjust top based on header height */}
-              <ReplaySuggestionsPanel
-                replays={sidebarReplays}
-                title="XEM LẠI BÓNG ĐÁ"
-              />
+        {currentPage === 1 ? (
+          <>
+            <h2 className="text-lg font-bold uppercase text-gray-100/80 py-4">
+              Mới cập nhật
+            </h2>
+            <div className="flex flex-col lg:flex-row">
+              <div className="lg:w-3/4 flex-shrink-0 pr-2">
+                <div className="rounded-lg shadow-md mb-4">
+                  <FeaturedBroadcastSection
+                    items={featuredBroadcasts}
+                    highlightedEvent={highlightedEvent}
+                  />
+                </div>
+                {paginatedGroups?.map((group) => (
+                  <CategoryReplaySection key={group.id} group={group} />
+                ))}
+              </div>
+              <div className="lg:w-1/4 flex-shrink-0">
+                <div>
+                  <ReplaySuggestionsPanel
+                    replays={sidebarReplays}
+                    title="XEM LẠI BÓNG ĐÁ"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col lg:flex-row">
+            <div className="lg:w-full flex-shrink-0 pr-2">
+              {paginatedGroups?.map((group) => (
+                <CategoryReplaySection key={group.id} group={group} />
+              ))}
             </div>
           </div>
-        </div>
+        )}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={allReplays.length}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
       </main>
     </div>
   );

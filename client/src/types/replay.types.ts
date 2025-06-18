@@ -14,6 +14,7 @@ export type Replay = {
   commentator?: string;
   sport?: Sport;
   publishDate?: Date;
+  isShown?: boolean;
 };
 
 export interface FeaturedBroadcastItem {

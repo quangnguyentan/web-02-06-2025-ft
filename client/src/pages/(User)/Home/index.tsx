@@ -9,6 +9,7 @@ import * as React from "react";
 import { DataProvider, useData } from "@/context/DataContext";
 import { MatchStatusType } from "@/types/match.types";
 import { Suspense } from "react";
+import { adjustToVietnamTime, formatDateFull } from "@/lib/helper";
 
 const HeroSection = React.lazy(() => import("@/components/layout/HeroSection"));
 const SportSection = React.lazy(
@@ -17,28 +18,20 @@ const SportSection = React.lazy(
 const ReplaySection = React.lazy(
   () => import("@/components/layout/ReplaySection")
 );
+
 const AppContent: React.FC = () => {
   const { matchData, replayData, loading } = useData();
   const today = new Date();
-  const formatDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  const vietnamToday = adjustToVietnamTime(today); // Ensure it's in Vietnam time
 
-  const adjustToVietnamTime = (date: Date): Date => {
-    const vietnamDate = new Date(date);
-    vietnamDate.setHours(vietnamDate.getHours() + 7); // Điều chỉnh từ UTC sang UTC+07:00
-    return vietnamDate;
-  };
+  const twoHoursLater = new Date(vietnamToday?.getTime() + 2 * 60 * 60 * 1000);
 
   const spotlightMatches = React.useMemo(() => {
     return matchData.filter((match) => {
       if (!match?.startTime) return false;
-      const matchDate = adjustToVietnamTime(new Date(match.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(today);
+      const matchDate = new Date(match.startTime); // Use raw startTime, no adjustment
+      const matchDay = formatDateFull(matchDate);
+      const todayDay = formatDateFull(vietnamToday);
       return (
         match?.isHot &&
         match?.status !== MatchStatusType.FINISHED &&
@@ -51,9 +44,9 @@ const AppContent: React.FC = () => {
   const footballMatches = React.useMemo(() => {
     return matchData.filter((match) => {
       if (!match?.startTime) return false;
-      const matchDate = adjustToVietnamTime(new Date(match.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(today);
+      const matchDate = new Date(match.startTime);
+      const matchDay = formatDateFull(matchDate);
+      const todayDay = formatDateFull(vietnamToday);
       return (
         match.sport.slug === "football" &&
         match?.status !== MatchStatusType.FINISHED &&
@@ -66,9 +59,9 @@ const AppContent: React.FC = () => {
   const tennisMatches = React.useMemo(() => {
     return matchData.filter((match) => {
       if (!match?.startTime) return false;
-      const matchDate = adjustToVietnamTime(new Date(match.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(today);
+      const matchDate = new Date(match.startTime);
+      const matchDay = formatDateFull(matchDate);
+      const todayDay = formatDateFull(vietnamToday);
       return (
         match.sport.slug === "tennis" &&
         match?.status !== MatchStatusType.FINISHED &&
@@ -81,9 +74,9 @@ const AppContent: React.FC = () => {
   const basketballMatches = React.useMemo(() => {
     return matchData.filter((match) => {
       if (!match?.startTime) return false;
-      const matchDate = adjustToVietnamTime(new Date(match.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(today);
+      const matchDate = new Date(match.startTime);
+      const matchDay = formatDateFull(matchDate);
+      const todayDay = formatDateFull(vietnamToday);
       return (
         match.sport.slug === "basketball" &&
         match?.status !== MatchStatusType.FINISHED &&
@@ -92,6 +85,10 @@ const AppContent: React.FC = () => {
       );
     });
   }, [matchData]);
+
+  const replayFilter = React.useMemo(() => {
+    return replayData?.filter((match) => match?.isShown);
+  }, [replayData]);
 
   if (loading) return <div>Loading...</div>;
   return (
@@ -131,7 +128,7 @@ const AppContent: React.FC = () => {
         />
         <ReplaySection
           title="XEM LẠI CÁC TRẬN ĐẤU"
-          replays={replayData}
+          replays={replayFilter}
           viewAllUrl="#"
         />
       </main>

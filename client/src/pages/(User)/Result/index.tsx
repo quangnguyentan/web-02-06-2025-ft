@@ -5,7 +5,6 @@ import * as React from "react";
 import {
   mockDateTabsForResults,
   mockResultsData,
-  mockPastMatches,
 } from "@/data/mockResultsData";
 import { Match, MatchStatusType } from "@/types/match.types";
 import { useParams } from "react-router-dom";
@@ -36,9 +35,7 @@ const Result: React.FC = () => {
             match.status === MatchStatusType.LIVE)
         );
       });
-      setLocalMatchData(
-        filteredMatches.length > 0 ? filteredMatches : mockPastMatches
-      );
+      setLocalMatchData(filteredMatches);
       setReplaySuggestions(replay);
     };
     loadMatchData();

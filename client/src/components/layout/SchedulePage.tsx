@@ -69,20 +69,20 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
    2xl:translate-x-[calc((100vw-1440px)/12)]
     3xl:translate-x-[calc((100vw-1440px)/2)]"
     >
-      <main className="w-full">
+      <main className="w-full py-2">
         {isHideBreadcrumbs ? null : <ScheduleBreadcrumbs />}
-        <div className="bg-slate-800 p-3 sm:p-4 rounded-lg shadow-xl mb-4">
-          <h1 className="text-lg sm:text-xl font-bold text-yellow-400 mb-1">
-            {capitalizeFirstLetter(pageTitle)}
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-            {capitalizeFirstLetter(pageDescription)}
-          </p>
-        </div>
 
         <div className="flex flex-col lg:flex-row">
           {/* Left Column: Date Selector + Match List */}
-          <div className="w-full lg:w-2/3 pr-2 flex-shrink-0">
+          <div className="w-full lg:w-3/4 pr-2 flex-shrink-0">
+            <div className="p-3 sm:p-4 rounded-lg mb-4">
+              <h1 className="text-lg sm:text-xl font-bold text-blue-400 mb-1">
+                {capitalizeFirstLetter(pageTitle)}
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                {capitalizeFirstLetter(pageDescription)}
+              </p>
+            </div>
             <DateSelector
               dates={availableDates}
               selectedDateId={selectedDateId}
@@ -95,11 +95,12 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
           </div>
 
           {/* Right Column: Replay Suggestions */}
-          <div className="w-full lg:w-1/3 flex-shrink-0 mt-4 lg:mt-0">
+          <div className="w-full lg:w-1/4 flex-shrink-0 mt-4 lg:mt-0">
             <div>
               <ReplaySuggestionsPanel
                 replays={replayItems}
-                title="XEM LẠI BÓNG ĐÁ"
+                title={`XEM LẠI ${replayItems[0]?.sport?.name?.toUpperCase()}`}
+                titleHidden
               />
             </div>
           </div>

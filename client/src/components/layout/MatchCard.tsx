@@ -21,7 +21,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     hour12: false,
   });
   const isLive = match?.status === "LIVE";
-  const targetUrl = `/truc-tiep/${match.slug}`;
+  const targetUrl = `/truc-tiep/${match.slug}/${match?.sport?.slug}`;
   const imageSlug =
     match?.sport?.name === "Bóng đá"
       ? football

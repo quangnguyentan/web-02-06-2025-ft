@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form"; // Added Controller
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -35,8 +36,15 @@ import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 import { apiGetAllSports } from "@/services/sport.services";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale, setDefaultLocale } from "react-datepicker";
+import { vi } from "date-fns/locale/vi";
 
-// Schema based on Replay type for editing
+// Đăng ký và đặt locale mặc định là tiếng Việt
+registerLocale("vi", vi);
+setDefaultLocale("vi");
+
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   slug: z.string().min(1, { message: "Slug is required" }),
@@ -51,7 +59,8 @@ const formSchema = z.object({
     .optional(),
   views: z.coerce.number().min(0, { message: "Views must be non-negative" }),
   commentator: z.string().optional(),
-  publishDate: z.string().min(1, { message: "Start time is required" }),
+  publishDate: z.date({ required_error: "Publish date is required" }), // Changed to z.date
+  isShown: z.boolean(),
 });
 
 export const EditReplayModal = () => {
@@ -74,7 +83,8 @@ export const EditReplayModal = () => {
       duration: undefined,
       views: 0,
       commentator: "",
-      publishDate: "",
+      publishDate: null, // Default to null, will be set as Date object
+      isShown: false, // Default value for isShown
     },
   });
 
@@ -113,10 +123,9 @@ export const EditReplayModal = () => {
         duration: data.replay.duration,
         views: data.replay.views,
         commentator: data.replay.commentator || "",
-        publishDate: new Date(data.replay.publishDate)
-          .toISOString()
-          .slice(0, 16),
+        publishDate: new Date(data.replay.publishDate), // Set as Date object
         sport: data.replay.sport._id,
+        isShown: data.replay.isShown || false, // Ensure isShown is set
       });
     } else if (!isModalOpen) {
       form.reset({
@@ -129,8 +138,9 @@ export const EditReplayModal = () => {
         duration: 0,
         views: 0,
         commentator: "",
-        publishDate: "",
+        publishDate: null,
         sport: "",
+        isShown: false, // Reset isShown when modal is closed
       });
     }
   }, [isModalOpen, data?.replay, form]);
@@ -159,7 +169,7 @@ export const EditReplayModal = () => {
         toast.error("Trận đấu không hợp lệ");
         return;
       }
-
+      console.log(values?.isShown);
       const payload: Partial<Replay> = {
         title: values.title,
         slug: values.slug,
@@ -170,8 +180,9 @@ export const EditReplayModal = () => {
         duration: values.duration,
         views: values.views,
         commentator: values.commentator,
-        publishDate: new Date(values.publishDate),
+        publishDate: values.publishDate, // Already a Date object
         sport: selectedSport,
+        isShown: values.isShown,
       };
 
       if (!data?.replay?._id) {
@@ -403,13 +414,27 @@ export const EditReplayModal = () => {
                 control={form.control}
                 name="publishDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Publish Date</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        type="datetime-local"
-                        {...field}
+                      <Controller
+                        name="publishDate"
+                        control={form.control}
+                        render={({ field: dateField }) => (
+                          <DatePicker
+                            selected={dateField.value}
+                            onChange={(date) => dateField.onChange(date)}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            dateFormat="dd/MM/yyyy HH:mm"
+                            locale="vi"
+                            disabled={isLoading}
+                            placeholderText="Chọn ngày và giờ"
+                            className="w-full p-2 border rounded placeholder:text-black"
+                            minDate={new Date()} // Prevent selecting past dates (today is 02:25 PM +07, June 18, 2025)
+                          />
+                        )}
                       />
                     </FormControl>
                     <FormMessage />
@@ -456,6 +481,24 @@ export const EditReplayModal = () => {
                         type="text"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isShown"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormLabel>Hiển thị trên trang chủ</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}

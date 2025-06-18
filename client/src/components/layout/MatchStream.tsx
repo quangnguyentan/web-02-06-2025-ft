@@ -1,4 +1,3 @@
-import VerticalAdBanner from "@/components/layout/VerticalAdBanner";
 import VideoPlayer from "@/components/layout/VideoPlayer";
 import MatchInfoBar from "@/components/layout/MatchInfoBar";
 import ChatPanel from "@/components/layout/ChatPanel";

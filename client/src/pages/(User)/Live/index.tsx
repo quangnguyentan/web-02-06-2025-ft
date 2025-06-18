@@ -1,43 +1,69 @@
-import MatchStreamPage from "@/components/layout/MatchStream";
-import VerticalAdBanner from "@/components/layout/VerticalAdBanner";
-import belt from "@/assets/user/160t1800.gif";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Match } from "@/types/match.types";
-import { Replay } from "@/types/replay.types";
+import { Match, MatchStatusType } from "@/types/match.types";
 import { useData } from "@/context/DataContext";
+import belt from "@/assets/user/160t1800.gif";
+import * as React from "react";
+import { formatDateFull } from "@/lib/helper";
+
+// Lazy load components
+const MatchStreamPage = React.lazy(
+  () => import("@/components/layout/MatchStream")
+);
+const VerticalAdBanner = React.lazy(
+  () => import("@/components/layout/VerticalAdBanner")
+);
 
 const Live: React.FC = () => {
-  const { slug } = useParams();
-  const { matchData, replayData, fetchData } = useData();
-  const [currentMatch, setCurrentMatch] = useState<Match>({});
-  const [relatedMatches, setRelatedMatches] = useState<Match[]>([]);
-  const [replaySuggestions, setReplaySuggestions] = useState<Replay[]>([]);
-
+  const { slug, slugSport } = useParams<{ slug: string; slugSport: string }>(); // Type the params
+  const { matchData, replayData, fetchData, loading } = useData();
+  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const today = useMemo(() => new Date(), []);
+  // Memoize related matches and replay suggestions
+  const relatedMatches = useMemo(
+    () =>
+      matchData?.filter((m) => {
+        if (!m?.startTime) return false;
+        const matchDate = new Date(m?.startTime);
+        const matchDay = formatDateFull(matchDate);
+        const todayDay = formatDateFull(today);
+        return (
+          m?.sport?.slug === slugSport &&
+          m?.slug !== slug &&
+          m?.status !== MatchStatusType.FINISHED &&
+          m?.status !== MatchStatusType.CANCELLED &&
+          matchDay === todayDay
+        );
+      }),
+    [matchData, slugSport, slug]
+  );
+  const replaySuggestions = useMemo(
+    () => replayData?.filter((replay) => replay?.sport?.slug === slugSport),
+    [replayData, slugSport]
+  );
   useEffect(() => {
     const loadMatchData = async () => {
-      console.log(matchData);
-      if (!matchData.length || !replayData.length) {
-        await fetchData(); // Chỉ gọi nếu chưa có dữ liệu
+      if (!matchData.length && !loading) {
+        await fetchData(); // Fetch only if no data and not loading
       }
-      const match = matchData.find((m) => m.slug === slug) || {};
+      const match = matchData.find((m) => m?.sport?.slug === slugSport) || null;
       setCurrentMatch(match);
-      setRelatedMatches(matchData);
-      setReplaySuggestions(replayData);
     };
     loadMatchData();
-  }, [slug, matchData, replayData, fetchData]);
+  }, [slugSport, matchData, fetchData, loading]);
 
   return (
-    <div>
-      <VerticalAdBanner position="left" imageUrl={belt} />
-      <VerticalAdBanner position="right" imageUrl={belt} />
-      <MatchStreamPage
-        match={currentMatch}
-        relatedMatches={relatedMatches}
-        replaySuggestions={replaySuggestions}
-      />
-    </div>
+    <React.Suspense fallback={<div>Loading page...</div>}>
+      <div className="flex">
+        <VerticalAdBanner position="left" imageUrl={belt} />
+        <MatchStreamPage
+          match={currentMatch}
+          relatedMatches={relatedMatches}
+          replaySuggestions={replaySuggestions}
+        />
+        <VerticalAdBanner position="right" imageUrl={belt} />
+      </div>
+    </React.Suspense>
   );
 };
 

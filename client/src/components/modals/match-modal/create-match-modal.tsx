@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form"; // Added Controller
 import {
   Dialog,
   DialogContent,
@@ -38,8 +38,15 @@ import { Match, MatchStatusType } from "@/types/match.types";
 import { Team } from "@/types/team.types";
 import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale, setDefaultLocale } from "react-datepicker";
+import { vi } from "date-fns/locale/vi";
 
-// Schema cho form
+// Đăng ký và đặt locale mặc định là tiếng Việt
+registerLocale("vi", vi);
+setDefaultLocale("vi");
+
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   slug: z.string().min(1, { message: "Slug is required" }),
@@ -47,7 +54,7 @@ const formSchema = z.object({
   awayTeam: z.string().min(1, { message: "Away team is required" }),
   league: z.string().min(1, { message: "League is required" }),
   sport: z.string().min(1, { message: "Sport is required" }),
-  startTime: z.string().min(1, { message: "Start time is required" }),
+  startTime: z.date({ required_error: "Start time is required" }), // Changed to z.date
   status: z.enum(Object.values(MatchStatusType) as [string, ...string[]], {
     required_error: "Status is required",
   }),
@@ -96,7 +103,7 @@ export const CreateMatchModal = () => {
       awayTeam: "",
       league: "",
       sport: "",
-      startTime: "",
+      startTime: null, // Default to null, will be set as Date object
       status: MatchStatusType.UPCOMING,
       scores: {
         homeScore: 0,
@@ -126,7 +133,6 @@ export const CreateMatchModal = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  // Lấy dữ liệu teams, leagues, sports từ API
   useEffect(() => {
     if (!isModalOpen) return;
 
@@ -151,13 +157,11 @@ export const CreateMatchModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Tìm object Team, League, Sport dựa trên ID
       const homeTeam = teams.find((t) => t._id === values.homeTeam);
       const awayTeam = teams.find((t) => t._id === values.awayTeam);
       const league = leagues.find((l) => l._id === values.league);
       const sport = sports.find((s) => s._id === values.sport);
 
-      // Kiểm tra xem có tìm thấy các object không
       if (!homeTeam || !awayTeam || !league || !sport) {
         toast.error("Dữ liệu đội, giải đấu hoặc môn thể thao không hợp lệ");
         return;
@@ -169,8 +173,8 @@ export const CreateMatchModal = () => {
         awayTeam,
         league,
         sport,
-        startTime: new Date(values.startTime),
-        status: values.status as MatchStatusType, // Ép kiểu status thành MatchStatusType
+        startTime: values.startTime, // Already a Date object
+        status: values.status as MatchStatusType,
       };
 
       const res = await apiCreateMatch(payload);
@@ -203,7 +207,6 @@ export const CreateMatchModal = () => {
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 px-6">
-              {/* Title */}
               <FormField
                 control={form.control}
                 name="title"
@@ -223,7 +226,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -243,7 +245,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Home Team */}
               <FormField
                 control={form.control}
                 name="homeTeam"
@@ -273,7 +274,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Away Team */}
               <FormField
                 control={form.control}
                 name="awayTeam"
@@ -303,7 +303,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* League */}
               <FormField
                 control={form.control}
                 name="league"
@@ -333,7 +332,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
@@ -363,18 +361,31 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Start Time */}
               <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        type="datetime-local"
-                        {...field}
+                      <Controller
+                        name="startTime"
+                        control={form.control}
+                        render={({ field: dateField }) => (
+                          <DatePicker
+                            selected={dateField.value}
+                            onChange={(date) => dateField.onChange(date)}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            dateFormat="dd/MM/yyyy HH:mm"
+                            locale="vi"
+                            disabled={isLoading}
+                            placeholderText="Chọn ngày và giờ"
+                            className="w-full p-2 border rounded placeholder:text-black"
+                            minDate={new Date()} // Prevent selecting past dates
+                          />
+                        )}
                       />
                     </FormControl>
                     <FormMessage />
@@ -382,7 +393,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Status */}
               <FormField
                 control={form.control}
                 name="status"
@@ -412,7 +422,6 @@ export const CreateMatchModal = () => {
                 )}
               />
 
-              {/* Scores */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -452,7 +461,6 @@ export const CreateMatchModal = () => {
                 />
               </div>
 
-              {/* Stream Links */}
               <div>
                 <FormLabel>Stream Links</FormLabel>
                 {fields.map((field, index) => (
@@ -551,7 +559,6 @@ export const CreateMatchModal = () => {
                 </Button>
               </div>
 
-              {/* Is Hot */}
               <FormField
                 control={form.control}
                 name="isHot"

@@ -1,9 +1,13 @@
+import * as React from "react";
 import { lazy, Suspense } from "react";
 import { RouteObject } from "react-router-dom";
 import PublicPageWrapper from "./wrapper";
+import { useParams } from "react-router-dom";
+import { useData } from "@/context/DataContext";
+
+// Lazy-loaded components
 const HomePage = lazy(() => import("../Home/index"));
 const SportProviderPage = lazy(() => import("../SportProvider/index"));
-
 const LivePage = lazy(() => import("../Live/index"));
 const SchedulePageIndex = lazy(() => import("../Schedule/index"));
 const ResultPage = lazy(() => import("../Result/index"));
@@ -12,6 +16,33 @@ const XoiLacTVPage = lazy(() => import("../XoiLacTV/index"));
 const ReplayStreamPage = lazy(() => import("../ReplayStream/index"));
 
 import "./index.css";
+
+// Wrapper component to decide between ReplayPage and ReplayStreamPage
+const ReplayRouteHandler: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const { sportData } = useData(); // Assuming sportData is available in DataContext
+
+  // Check if the slug matches a sport category
+  const isSportSlug = sportData?.some((sport) => sport.slug === slug);
+
+  return (
+    <Suspense
+      fallback={
+        <div id="load">
+          <div>G</div>
+          <div>N</div>
+          <div>I</div>
+          <div>D</div>
+          <div>A</div>
+          <div>O</div>
+          <div>L</div>
+        </div>
+      }
+    >
+      {isSportSlug ? <ReplayPage /> : <ReplayStreamPage />}
+    </Suspense>
+  );
+};
 
 const publicRoutes: (RouteObject & { role?: string[] })[] = [
   {
@@ -23,17 +54,15 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <HomePage />
@@ -46,161 +75,104 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <SportProviderPage />
           </Suspense>
         ),
-        index: true,
       },
       {
-        path: "/truc-tiep/:slug",
+        path: "/truc-tiep/:slug/:slugSport",
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <LivePage />
           </Suspense>
         ),
-        index: true,
       },
       {
         path: "/lich-thi-dau/:slug",
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <SchedulePageIndex />
           </Suspense>
         ),
-        index: true,
       },
       {
         path: "/ket-qua/:slug",
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <ResultPage />
           </Suspense>
         ),
-        index: true,
       },
       {
         path: "/xem-lai/:slug",
-        element: (
-          <Suspense
-            fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
-            }
-          >
-            <ReplayPage />
-          </Suspense>
-        ),
-        index: true,
+        element: <ReplayRouteHandler />,
       },
       {
         path: "/xoi-lac-tv",
         element: (
           <Suspense
             fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
+              <div id="load">
+                <div>G</div>
+                <div>N</div>
+                <div>I</div>
+                <div>D</div>
+                <div>A</div>
+                <div>O</div>
+                <div>L</div>
+              </div>
             }
           >
             <XoiLacTVPage />
           </Suspense>
         ),
-        index: true,
-      },
-      {
-        path: "/replay/:slug",
-        element: (
-          <Suspense
-            fallback={
-              <>
-                <div id="load">
-                  <div>G</div>
-                  <div>N</div>
-                  <div>I</div>
-                  <div>D</div>
-                  <div>A</div>
-                  <div>O</div>
-                  <div>L</div>
-                </div>
-              </>
-            }
-          >
-            <ReplayStreamPage />
-          </Suspense>
-        ),
-        index: true,
       },
     ],
     // role: ["USER"],

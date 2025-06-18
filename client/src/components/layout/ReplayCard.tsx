@@ -15,7 +15,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
 }) => {
   const navigate = useNavigate();
   // const targetUrl = replay.url || "/replay";
-  const targetUrl = `/replay/${replay?.slug}`;
+  const targetUrl = `/xem-lai/${replay?.title}`;
   const [isVisible, setIsVisible] = React.useState(false);
   const cardRef = React.useRef<HTMLDivElement>(null);
 

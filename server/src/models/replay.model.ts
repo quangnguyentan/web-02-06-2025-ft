@@ -14,6 +14,7 @@ export interface IReplay extends Document {
   views: number;
   duration?: number; // Thời lượng (giây)
   publishDate: Date; // Ngày đăng video
+  isShown?: boolean;
 }
 
 const replaySchema = new Schema<IReplay>(
@@ -29,6 +30,7 @@ const replaySchema = new Schema<IReplay>(
     commentator: { type: String },
     sport: { type: Schema.Types.ObjectId, ref: "Sport", required: true },
     publishDate: { type: Date, default: Date.now, index: true },
+    isShown: { type: Boolean, default: false },
   },
   {
     timestamps: true,

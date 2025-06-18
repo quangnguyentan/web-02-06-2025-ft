@@ -24,9 +24,9 @@ import Typography from "@mui/material/Typography";
 import Input from "@mui/material/Input";
 import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { Button } from "@mui/material";
-import { apiGetAllSports } from "@/services/sport.services";
 import { Sport } from "@/types/sport.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { useData } from "@/context/DataContext";
 
 const style = {
   position: "absolute",
@@ -40,7 +40,6 @@ const style = {
   p: 4,
 };
 
-// MainNavbar nhận prop onOpenMenu để mở drawer trên mobile
 const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -53,32 +52,16 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     setSelectedSportsNavbarPage,
     selectedSportsNavbarPage,
   } = useSelectedPageContext();
-
+  const { sportData } = useData();
   const location = useLocation();
-
-  const [sportDataForMapping, setSportDataForMapping] = React.useState<Sport[]>(
-    []
-  );
-
-  React.useEffect(() => {
-    const fetchSports = async () => {
-      try {
-        const response = await apiGetAllSports();
-        setSportDataForMapping(response?.data);
-      } catch (error) {
-        console.error("Error fetching sports data for mapping:", error);
-      }
-    };
-    fetchSports();
-  }, []);
+  const navigate = useNavigate();
 
   const getSportNameFromSlug = (slug: string) => {
-    const sport = sportDataForMapping.find((s) => s.slug === slug);
+    const sport = sportData.find((s) => s.slug === slug);
     return sport ? sport.name : null;
   };
 
-  const getInitialActiveSportName = () => {
-    // Kiểm tra các đường dẫn đặc biệt
+  const getInitialActiveSportName = React.useCallback(() => {
     if (
       location.pathname.startsWith("/lich-thi-dau/") ||
       location.pathname.startsWith("/ket-qua/") ||
@@ -88,56 +71,38 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
       const urlSlug = parts[parts.length - 1];
       return getSportNameFromSlug(urlSlug) || "eSports";
     }
-    // Trường hợp khác, giữ logic cũ
     const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
-    if (
-      savedSportName &&
-      sportDataForMapping.some((s) => s.name === savedSportName)
-    ) {
+    if (savedSportName && sportData.some((s) => s.name === savedSportName)) {
       return savedSportName;
     }
-    return "eSports"; // Giá trị mặc định nếu không có gì khác
-  };
+    return "eSports";
+  }, [location.pathname, sportData]);
 
-  const [initialActiveSportName, setInitialActiveSportName] = React.useState(
-    getInitialActiveSportName()
-  );
+  const navItems: NavItem[] = React.useMemo(() => {
+    const activeSportName = getInitialActiveSportName();
+    const sport = sportData.find((s) => s.name === activeSportName);
+    const slug = sport ? sport.slug : "esports";
+    return [
+      { label: "TRANG CHỦ", url: "/" },
+      {
+        label: "LỊCH THI ĐẤU",
+        url: `/lich-thi-dau/${slug}`,
+        nameForHighlight: activeSportName,
+      },
+      {
+        label: "KẾT QUẢ",
+        url: `/ket-qua/${slug}`,
+        nameForHighlight: activeSportName,
+      },
+      {
+        label: "XEM LẠI",
+        url: `/xem-lai/${slug}`,
+        nameForHighlight: activeSportName,
+      },
+      // { label: "XOILAC.TV", url: "/xoi-lac-tv" },
+    ];
+  }, [getInitialActiveSportName, sportData]);
 
-  React.useEffect(() => {
-    setInitialActiveSportName(getInitialActiveSportName());
-  }, [location.pathname, sportDataForMapping]);
-
-  const navItems: NavItem[] = [
-    { label: "TRANG CHỦ", url: "/" },
-    {
-      label: "LỊCH THI ĐẤU",
-      url: `/lich-thi-dau/${
-        sportDataForMapping.find((s) => s.name === initialActiveSportName)
-          ?.slug || "esports"
-      }`,
-      nameForHighlight: initialActiveSportName,
-    },
-    {
-      label: "KẾT QUẢ",
-      url: `/ket-qua/${
-        sportDataForMapping.find((s) => s.name === initialActiveSportName)
-          ?.slug || "esports"
-      }`,
-      nameForHighlight: initialActiveSportName,
-    },
-    {
-      label: "XEM LẠI",
-      url: `/xem-lai/${
-        sportDataForMapping.find((s) => s.name === initialActiveSportName)
-          ?.slug || "esports"
-      }`,
-      nameForHighlight: initialActiveSportName,
-    },
-    { label: "XOILAC.TV", url: "/xoi-lac-tv" },
-  ];
-
-  const navigate = useNavigate();
-  const fallbackSlug = "esports";
   const handleClickTypeLogin = (type: string) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
@@ -155,37 +120,24 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
             <div
               key={item.label}
               onClick={() => {
-                let targetSlug = "";
-                let targetNameForHighlight = item.nameForHighlight;
-                localStorage.setItem("selectedPage", item?.label);
-                if (
-                  item.label === "LỊCH THI ĐẤU" ||
-                  item.label === "KẾT QUẢ" ||
-                  item.label === "XEM LẠI"
-                ) {
-                  const activeSportName =
-                    selectedSportsNavbarPage || fallbackSlug;
-                  const sport = sportDataForMapping.find(
-                    (s) => s.name === activeSportName
-                  );
-                  targetSlug = sport ? sport.slug : "esports";
-                  targetNameForHighlight = activeSportName;
-                } else {
-                  targetSlug = "";
-                  targetNameForHighlight = "";
-                }
-
-                const finalUrl = item.url.includes(":slug")
-                  ? item.url.replace(":slug", targetSlug)
-                  : item.url;
+                const activeSportName =
+                  selectedSportsNavbarPage || getInitialActiveSportName();
+                const sport = sportData.find((s) => s.name === activeSportName);
+                const targetSlug = sport ? sport.slug : "esports";
+                const finalUrl =
+                  item.url.includes(":slug") || item.url.includes(":title")
+                    ? item.url
+                        .replace(":slug", targetSlug)
+                        .replace(":title", targetSlug)
+                    : item.url;
 
                 navigate(finalUrl);
                 setSelectedPage(item.label);
-                if (targetNameForHighlight) {
-                  setSelectedSportsNavbarPage(targetNameForHighlight);
+                if (item.nameForHighlight) {
+                  setSelectedSportsNavbarPage(item.nameForHighlight);
                   localStorage.setItem(
                     "selectedSportsNavbarPage",
-                    targetNameForHighlight
+                    item.nameForHighlight
                   );
                 } else {
                   setSelectedSportsNavbarPage("");
@@ -367,26 +319,12 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   );
 };
 
-// SportsNavbar: thanh menu thể thao ngang, ẩn trên mobile
 const SportsNavbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [sportData, setSportData] = React.useState<Sport[]>([]);
+  const { sportData } = useData();
   const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
-
-  const getAllSport = async () => {
-    try {
-      const response = await apiGetAllSports();
-      setSportData(response?.data);
-    } catch (error) {
-      console.error("Error fetching sports data:", error);
-    }
-  };
-
-  React.useEffect(() => {
-    getAllSport();
-  }, []);
 
   React.useEffect(() => {
     if (sportData.length === 0) return;
@@ -413,23 +351,22 @@ const SportsNavbar: React.FC = () => {
       setSelectedSportsNavbarPage(initialSportName);
       localStorage.setItem("selectedSportsNavbarPage", initialSportName);
     }
-    // else {
-    //   setSelectedSportsNavbarPage("");
-    //   localStorage.removeItem("selectedSportsNavbarPage");
-    // }
   }, [setSelectedSportsNavbarPage, location.pathname, sportData]);
 
   const handleSportClick = (category: Sport) => {
-    // Xác định tiền tố dựa trên trang hiện tại
-    const basePath =
+    let targetUrl = "";
+    if (
       location.pathname.startsWith("/lich-thi-dau/") ||
       location.pathname.startsWith("/ket-qua/") ||
       location.pathname.startsWith("/xem-lai/")
-        ? location.pathname.split("/")[1]
-        : ""; // Không thêm tiền tố nếu ở trang chủ hoặc các trang khác
-    const targetUrl = basePath
-      ? `/${basePath}/${category.slug}`
-      : `/${category.slug}`;
+    ) {
+      // Maintain the current section (lich-thi-dau, ket-qua, or xem-lai)
+      const basePath = location.pathname.split("/")[1]; // Extract the section
+      targetUrl = `/${basePath}/${category.slug}`;
+    } else {
+      // On homepage or other paths, navigate directly to /:slug
+      targetUrl = `/${category.slug}`;
+    }
     navigate(targetUrl);
     setSelectedSportsNavbarPage(category.name);
     localStorage.setItem("selectedSportsNavbarPage", category.name);
@@ -451,8 +388,6 @@ const SportsNavbar: React.FC = () => {
         >
           <img src={category?.icon} className="w-4 h-4" alt={category?.name} />
           <span>{category.name}</span>
-
-          {/* Thanh border hiệu ứng dưới */}
           <span
             className={`
             absolute bottom-0 left-1/2 h-[2px] bg-[#ff7f32] transition-all duration-300 ease-in-out
@@ -463,7 +398,6 @@ const SportsNavbar: React.FC = () => {
             }
           `}
           />
-
           {(category.name === "Cầu lông" ||
             category.name === "Bóng rổ" ||
             category.name === "Môn khác" ||
@@ -479,8 +413,6 @@ const SportsNavbar: React.FC = () => {
     </div>
   );
 };
-
-// DrawerMenu: menu trượt trái cho mobile
 const DrawerMenu: React.FC<{
   open: boolean;
   onClose: () => void;
@@ -488,7 +420,19 @@ const DrawerMenu: React.FC<{
   sportCategories: SportCategory[];
   navigate: (url: string) => void;
 }> = ({ open, onClose, navItems, sportCategories, navigate }) => {
-  const { setSelectedPage } = useSelectedPageContext();
+  const { setSelectedPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
+  const { sportData } = useData();
+
+  const handleSportClick = (category: SportCategory) => {
+    const sport = sportData.find((s) => s.name === category.name);
+    const targetUrl = sport ? `/xem-lai/${sport.slug}` : "/xem-lai/esports";
+    navigate(targetUrl);
+    setSelectedSportsNavbarPage(category.name);
+    localStorage.setItem("selectedSportsNavbarPage", category.name);
+    onClose();
+  };
+
   return (
     <div
       className={`fixed inset-0 z-50 transition-all duration-300 ${
@@ -547,7 +491,8 @@ const DrawerMenu: React.FC<{
             {sportCategories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center gap-2 py-1 text-gray-200 text-sm"
+                onClick={() => handleSportClick(category)}
+                className="flex items-center gap-2 py-1 text-gray-200 text-sm cursor-pointer hover:text-orange-400"
               >
                 {category.icon}
                 <span>{category.name}</span>
@@ -572,11 +517,15 @@ const DrawerMenu: React.FC<{
 
 const Header: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const { setSelectedPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
+
   const navItems: NavItem[] = [
     { label: "TRANG CHỦ", url: "/" },
-    { label: "LỊCH THI ĐẤU", url: "/lich-thi-dau" },
-    { label: "KẾT QUẢ", url: "/ket-qua" },
-    { label: "XEM LẠI", url: "/xem-lai" },
+    { label: "LỊCH THI ĐẤU", url: "/lich-thi-dau/esports" },
+    { label: "KẾT QUẢ", url: "/ket-qua/esports" },
+    { label: "XEM LẠI", url: "/xem-lai/esports" },
     { label: "XOILAC.TV", url: "/xoi-lac-tv" },
   ];
   const sportCategories: SportCategory[] = [
@@ -628,10 +577,6 @@ const Header: React.FC = () => {
       icon: <BilliardsIcon className="w-4 h-4" />,
     },
   ];
-  const navigate = useNavigate();
-  const { setSelectedPage, setSelectedSportsNavbarPage } =
-    useSelectedPageContext();
-
   React.useEffect(() => {
     const savedPage = localStorage.getItem("selectedPage");
     const savedSportsPage = localStorage.getItem("selectedSportsNavbarPage");

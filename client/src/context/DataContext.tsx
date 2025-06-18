@@ -2,6 +2,8 @@ import useSWR, { mutate } from "swr";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
+import { Sport } from "@/types/sport.types";
+import { apiGetAllSports } from "@/services/sport.services";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -12,17 +14,20 @@ const fetcher = async (url: string) => {
     const fullUrl = `${BASE_URL}${url}`;
     const res = await fetch(fullUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
-    if (!res.ok) throw new Error("Không thể lấy dữ liệu");
-    return res.json();
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
+    const data = await res.json();
+    console.log(`Fetched data for ${url}:`, data); // Debug log
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
-    throw error;
+    throw error instanceof Error ? error : new Error("Unknown fetch error");
   }
 };
 
 interface DataContextType {
   matchData: Match[];
   replayData: Replay[];
+  sportData: Sport[];
   loading: boolean;
   fetchData: () => Promise<void>;
   isDataLoaded: boolean;
@@ -34,10 +39,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const {
-    data: matches,
+    data: matches = [],
     error: matchError,
     isLoading: matchLoading,
-  } = useSWR("/api/matches", fetcher, {
+  } = useSWR<Match[]>("/api/matches", fetcher, {
     revalidateOnMount: true,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -45,46 +50,74 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const {
-    data: replays,
+    data: replays = [],
     error: replayError,
     isLoading: replayLoading,
-  } = useSWR("/api/replays", fetcher, {
+  } = useSWR<Replay[]>("/api/replays", fetcher, {
     revalidateOnMount: true,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
   });
 
+  const {
+    data: sports = [],
+    error: sportError,
+    isLoading: sportLoading,
+  } = useSWR<Sport[]>(
+    "/api/sports",
+    async () => {
+      const response = await apiGetAllSports();
+      return response?.data || [];
+    },
+    {
+      revalidateOnMount: true,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000,
+    }
+  );
+
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const loading = matchLoading || replayLoading;
+  const loading = matchLoading || replayLoading || sportLoading;
 
   const fetchData = async () => {
     try {
       await Promise.all([
         mutate("/api/matches", undefined, { revalidate: true }),
         mutate("/api/replays", undefined, { revalidate: true }),
+        mutate("/api/sports", undefined, { revalidate: true }),
       ]);
       setIsDataLoaded(true);
     } catch (error) {
-      console.error("Lỗi khi làm mới dữ liệu:", error);
+      console.error("Error refreshing data:", error);
       setIsDataLoaded(true);
     }
   };
 
   useEffect(() => {
-    if (!isDataLoaded && !loading && matches && replays) {
+    if (
+      !loading &&
+      (matches.length ||
+        replays.length ||
+        sports.length ||
+        matchError ||
+        replayError ||
+        sportError)
+    ) {
       setIsDataLoaded(true);
     }
-    if (matchError || replayError) {
-      console.error("Lỗi từ API:", matchError || replayError);
+    if (matchError || replayError || sportError) {
+      console.error("API error:", matchError || replayError || sportError);
     }
-  }, [isDataLoaded, loading, matches, replays, matchError, replayError]);
+  }, [loading, matches, replays, sports, matchError, replayError, sportError]);
 
   return (
     <DataContext.Provider
       value={{
-        matchData: matches || [],
-        replayData: replays || [],
+        matchData: matches,
+        replayData: replays,
+        sportData: sports,
         loading,
         fetchData,
         isDataLoaded,

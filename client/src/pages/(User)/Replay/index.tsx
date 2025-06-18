@@ -17,7 +17,6 @@ const Replay: React.FC = () => {
       if (!replayData.length && !loading) {
         await fetchData();
       }
-
       const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
       setReplaySuggestions(replay);
     };
@@ -49,7 +48,7 @@ const Replay: React.FC = () => {
         replay.thumbnail || "",
       ],
       replay: replay,
-      description: `${replay.match?.title}`,
+      description: `${replay?.title}`,
       commentatorInfo: `${replay.commentator} | ${new Date(
         replay.publishDate || ""
       ).toLocaleDateString("en-GB", {
@@ -92,7 +91,6 @@ const Replay: React.FC = () => {
   }, [replaySuggestions]);
 
   if (loading) return <div>Loading...</div>;
-
   return (
     <ReplayHubPage
       featuredBroadcasts={featuredBroadcasts}

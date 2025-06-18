@@ -6,6 +6,7 @@ import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
 import football from "@/assets/user/football-min.jpg";
 import volleyball from "@/assets/user/volleyball-min.jpg";
+import { useNavigate } from "react-router-dom";
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
   switch (sportId) {
@@ -19,6 +20,7 @@ const getSportIcon = (sportId: string | undefined) => {
 };
 
 const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
+  const navigate = useNavigate();
   const isLive = match.status === "LIVE";
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
@@ -28,6 +30,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
     year: "2-digit",
     hour12: false,
   });
+  const targetUrl = `/truc-tiep/${match.slug}/${match?.sport?.slug}`;
 
   const imageSlug =
     match?.sport?.name === "Bóng đá"
@@ -41,7 +44,8 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       : "";
   return (
     <div
-      className="bg-slate-800 shadow-lg overflow-hidden flex flex-col rounded-xl h-full relative"
+      onClick={() => navigate(targetUrl)}
+      className="bg-slate-800 shadow-lg overflow-hidden flex flex-col rounded-xl h-full relative cursor-pointer"
       style={{
         backgroundImage: `url(${imageSlug})`,
         backgroundSize: "cover",

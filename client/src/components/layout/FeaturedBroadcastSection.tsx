@@ -22,7 +22,7 @@ const FeaturedBroadcastSection: React.FC<FeaturedBroadcastSectionProps> = ({
             w-full 
             h-[320px] 
             sm:h-[420px] 
-            lg:h-[620px] 
+            lg:h-[700px] 
             object-cover 
             transition-all duration-300
           "

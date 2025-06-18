@@ -14,12 +14,16 @@ interface VideoPlayerProps {
   videoTitle?: string;
   videoUrl?: string;
   posterUrl?: string;
+  isYouTubeStream?: boolean;
+  mimeType?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoTitle = "Live Stream",
   videoUrl,
   posterUrl,
+  isYouTubeStream = false,
+  mimeType,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -34,11 +38,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  // Detect YouTube URL
+  const isYouTubeUrl = videoUrl?.match(
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([a-zA-Z0-9_-]{11})/
+  );
+  const youTubeVideoId = isYouTubeUrl ? isYouTubeUrl[1] : null;
+
   useEffect(() => {
-    if (!videoRef.current || !videoUrl) return;
+    if (!videoRef.current || !videoUrl || youTubeVideoId) return;
 
     const video = videoRef.current;
-    const isM3u8 = videoUrl.endsWith(".m3u8");
+    const isM3u8 = videoUrl.endsWith(".m3u8") && !isYouTubeStream;
     const isHlsSupported = Hls.isSupported();
     const isNativeHlsSupported = video.canPlayType(
       "application/vnd.apple.mpegurl"
@@ -47,13 +57,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setError(null);
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
-      // Use native HLS support (e.g., Safari)
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
       });
     } else if (isM3u8 && isHlsSupported) {
-      // Use hls.js for HLS
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -88,7 +96,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       });
     } else {
-      // Non-HLS video or fallback
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -96,6 +103,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
+        if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
+          video.style.backgroundColor = "black";
+        }
+      });
+      video.addEventListener("error", () => {
+        setError("Failed to load media. Please check the stream URL.");
       });
     }
 
@@ -106,16 +119,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
       if (videoRef.current) {
         videoRef.current.src = "";
+        videoRef.current.removeEventListener("loadedmetadata", () => {});
+        videoRef.current.removeEventListener("error", () => {});
       }
     };
-  }, [videoUrl]);
+  }, [videoUrl, isYouTubeStream, youTubeVideoId]);
 
   useEffect(() => {
-    if (videoRef.current) {
+    if (videoRef.current && !youTubeVideoId) {
       videoRef.current.volume = volume;
       videoRef.current.muted = isMuted;
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, youTubeVideoId]);
 
   const formatTime = (timeInSeconds: number) => {
     if (isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
@@ -127,7 +142,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const togglePlay = () => {
-    if (videoRef.current) {
+    if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
         videoRef.current.play().catch(() => {
           setError("Playback was blocked. Please try again.");
@@ -166,7 +181,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (videoRef.current && !isLive) {
+    if (videoRef.current && !isLive && !youTubeVideoId) {
       const newTime = parseFloat(e.target.value);
       videoRef.current.currentTime = newTime;
       setCurrentTime(newTime);
@@ -190,19 +205,52 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleMouseEnter = () => {
-    setShowControls(true);
-    if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
+    if (!youTubeVideoId) {
+      setShowControls(true);
+      if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
+    }
   };
 
   const handleMouseLeave = () => {
-    if (isPlaying) {
+    if (isPlaying && !youTubeVideoId) {
       controlsTimeout.current = setTimeout(() => setShowControls(false), 2000);
     }
   };
 
   useEffect(() => {
-    setShowControls(!isPlaying || !videoRef.current?.played.length);
-  }, [isPlaying]);
+    if (!youTubeVideoId) {
+      setShowControls(!isPlaying || !videoRef.current?.played.length);
+    }
+  }, [isPlaying, youTubeVideoId]);
+
+  if (!videoUrl) {
+    return (
+      <div className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl flex items-center justify-center">
+        <p>No video URL provided</p>
+      </div>
+    );
+  }
+
+  if (youTubeVideoId) {
+    return (
+      <div
+        ref={playerRef}
+        className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden"
+      >
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=0&controls=1&rel=0`}
+          title={videoTitle}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+        <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+          <h2 className="text-sm font-semibold">{videoTitle}</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -227,30 +275,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           }
         }}
       >
-        {/* Fallback for browsers without HLS support */}
-        {videoUrl &&
-          !Hls.isSupported() &&
-          !videoRef.current?.canPlayType("application/vnd.apple.mpegurl") && (
-            <source
-              src={videoUrl}
-              type={
-                videoUrl.endsWith(".m3u8")
-                  ? "application/x-mpegURL"
-                  : "video/mp4"
-              }
-            />
-          )}
+        {videoUrl && (
+          <source
+            src={videoUrl}
+            type={
+              mimeType ||
+              (videoUrl.endsWith(".m3u8")
+                ? "application/x-mpegURL"
+                : videoUrl.endsWith(".mp3")
+                ? "audio/mpeg"
+                : "video/mp4")
+            }
+          />
+        )}
         Your browser does not support the video tag.
       </video>
 
-      {/* Error Overlay */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-red-500 text-center p-4">
           <p>{error}</p>
         </div>
       )}
 
-      {/* Big Play Button Overlay */}
       {!isPlaying && posterUrl && !error && (
         <button
           onClick={togglePlay}
@@ -261,13 +307,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      {/* Custom Controls Overlay */}
       <div
         className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Progress Bar (disabled for live streams) */}
         {!isLive && (
           <input
             type="range"
@@ -281,7 +325,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
 
         <div className="flex items-center justify-between">
-          {/* Left Controls */}
           <div className="flex items-center space-x-3">
             <button
               onClick={togglePlay}
@@ -324,7 +367,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </span>
           </div>
 
-          {/* Right Controls */}
           <div className="flex items-center space-x-3">
             <button
               onClick={handleSettings}
@@ -344,7 +386,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      {/* Video Title Overlay */}
       <div
         className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"

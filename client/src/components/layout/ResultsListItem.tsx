@@ -30,14 +30,14 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         </div>
       </div>
 
-      <div className="w-[28%] sm:w-[30%] flex items-center justify-end space-x-2 pr-2 sm:pr-3 text-right">
+      <div className="w-[28%] sm:w-[30%] flex items-center justify-end space-x-2 pr-2 sm:pr-3 text-right font-semibold">
         <span className="text-sm text-white truncate">
           {match?.homeTeam?.name}
         </span>
         <img
           src={match?.homeTeam?.logo}
           alt={match?.homeTeam?.name}
-          className="w-5 h-5 sm:w-6 sm:h-6 object-contain flex-shrink-0"
+          className="w-5 h-5 sm:w-10 sm:h-10 object-contain flex-shrink-0"
         />
       </div>
 
@@ -60,11 +60,11 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         </div>
       </div>
 
-      <div className="w-[28%] sm:w-[30%] flex items-center space-x-2 pl-2 sm:pl-3 text-left">
+      <div className="w-[28%] sm:w-[30%] flex items-center space-x-2 pl-2 sm:pl-3 text-left font-semibold">
         <img
           src={match?.awayTeam?.logo}
           alt={match?.awayTeam?.name}
-          className="w-5 h-5 sm:w-6 sm:h-6 object-contain flex-shrink-0"
+          className="w-5 h-5 sm:w-10 sm:h-10 object-contain flex-shrink-0"
         />
         <span className="text-sm text-white truncate">
           {match?.awayTeam?.name}

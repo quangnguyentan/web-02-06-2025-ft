@@ -144,6 +144,16 @@ export const getColumns = (
     },
   },
   {
+    accessorKey: "isShown",
+    header: "Hiển thị trang chủ",
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {row.getValue("isShown") === true ? "Có" : "Không"}
+      </div>
+    ),
+  },
+
+  {
     accessorKey: "duration",
     header: "Duration (s)", // Thêm đơn vị nếu cần
     cell: ({ row }) => (
