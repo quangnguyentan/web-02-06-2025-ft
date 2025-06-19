@@ -60,7 +60,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
           {/* Left Column: Video + Match Info + Related */}
           <div className="lg:w-2/3 flex-shrink-0 pr-2">
             <VideoPlayer
-              videoUrl="https://stream-akamai.castr.com/5b9352dbda7b8c769937e459/live_2361c920455111ea85db6911fe397b9e/index.fmp4.m3u8"
+              videoUrl={`${match?.streamLinks?.[0]?.url}`}
               videoTitle={`${match?.homeTeam?.name} vs ${match?.awayTeam?.name}`}
               posterUrl="https://picsum.photos/seed/baseballgame/1280/720" // Placeholder poster
             />

@@ -11,6 +11,7 @@ import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
 
 import { useNavigate } from "react-router-dom";
+import { useSelectedPageContext } from "@/hooks/use-context";
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
   switch (sportId) {
@@ -25,6 +26,7 @@ const getSportIcon = (sportId: string | undefined) => {
 
 const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
   const navigate = useNavigate();
+  const { setSelectedSportsNavbarPage } = useSelectedPageContext();
   const isLive = match.status === "LIVE";
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
@@ -54,7 +56,11 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       : "";
   return (
     <div
-      onClick={() => navigate(targetUrl)}
+      onClick={() => {
+        navigate(targetUrl);
+        setSelectedSportsNavbarPage(match?.sport?.name);
+        localStorage.setItem("selectedSportsNavbarPage", match?.sport?.name);
+      }}
       className="bg-slate-800 shadow-lg overflow-hidden flex flex-col rounded-xl h-full relative cursor-pointer"
       style={{
         backgroundImage: `url(${imageSlug})`,
@@ -67,7 +73,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       {/* <div className="absolute inset-0 bg-black/50"></div> */}
       {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
         <div
-          className="absolute inset-0 bg-black bg-opacity-85"
+          className="absolute inset-0 bg-black bg-opacity-90"
           style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
         ></div>
       )}
@@ -175,10 +181,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <a
-            href="#"
-            className="flex-1 bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center"
-          >
+          <a className="flex-1 bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center">
             Xem Ngay
           </a>
           <a

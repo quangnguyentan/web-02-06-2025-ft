@@ -3,26 +3,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .slick-track {
   margin-left: 0 !important;
 }
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: #1e293b; /* slate-800 */
 }
+
 ::-webkit-scrollbar-thumb {
   background: #475569; /* slate-600 */
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b; /* slate-500 */
 }
+
 /* For Firefox */
-/* Note: Firefox scrollbar styling is less customizable via CSS only */
 html {
   scrollbar-width: thin;
   scrollbar-color: #c0c0c0 transparent;
+}
+
+.custom-next-arrow {
+  display: none;
+}
+
+.slick-slider:hover .custom-next-arrow {
+  display: flex;
+}
+
+.custom-next-arrow:hover {
+  background: linear-gradient(90deg, rgba(60, 30, 30, 0.4), rgba(200, 80, 30, 0.4)); /* Adjusted to match image */
+  width: 60px;
+  height: 210px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.slick-slider {
+  position: relative;
+}
+
+.slick-slider:hover {
+  overflow: visible;
+}
+
+.slick-slide {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.slick-slide:hover {
+  transform: scale(1.05);
+  border-radius: 8px;
+}
+
+.slick-slide:hover .match-card-content {
+  color: #fff;
+}
+
+.slick-slide:hover .flag {
+  transform: scale(1.1);
 }

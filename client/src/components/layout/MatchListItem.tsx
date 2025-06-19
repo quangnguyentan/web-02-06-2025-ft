@@ -3,9 +3,16 @@ import * as React from "react";
 import team_1 from "@/assets/user/team-1.png";
 import team_2 from "@/assets/user/team-2.png";
 import { Match } from "@/types/match.types";
+import { useNavigate } from "react-router-dom";
 const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
+  const navigate = useNavigate();
   return (
-    <div className="relative flex flex-wrap sm:flex-nowrap items-center justify-between p-2 sm:p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0">
+    <div
+      onClick={() => {
+        navigate(`/truc-tiep/${match?.slug}/${match?.sport?.slug}`);
+      }}
+      className="relative flex flex-wrap sm:flex-nowrap items-center justify-between cursor-pointer p-2 sm:p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0"
+    >
       {/* Time */}
       <div className="w-1/3 sm:w-1/6 text-xs sm:text-xs text-gray-300 font-medium mb-1 sm:mb-0">
         {new Date(match?.startTime).toLocaleString("vi-VN", {
@@ -25,7 +32,7 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
           {match?.homeTeam?.name}
         </span>
         <img
-          src={team_1 || match?.homeTeam?.logo}
+          src={match?.homeTeam?.logo}
           alt={match?.homeTeam?.name}
           className="w-5 h-5 sm:w-10 sm:h-10 object-contain"
         />
@@ -42,7 +49,7 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
       {/* Team B */}
       <div className="w-1/2 sm:w-2/5 flex items-center space-x-1 sm:space-x-2 justify-start mb-1 sm:mb-0 font-semibold ">
         <img
-          src={team_2 || match?.awayTeam?.logo}
+          src={match?.awayTeam?.logo}
           alt={match?.homeTeam?.name}
           className="w-5 h-5 sm:w-10 sm:h-10 object-contain"
         />

@@ -37,7 +37,9 @@ const SportSection: React.FC<SportSectionProps> = ({
     speed: 500,
     slidesToShow: location?.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: true, // Enable arrows to show both default prev and custom next
+    nextArrow: <NextArrow />, // Custom next arrow
+    // Remove prevArrow override to use default
     lazyLoad: "ondemand",
     responsive: [
       {
@@ -90,10 +92,10 @@ const SportSection: React.FC<SportSectionProps> = ({
             </div>
           </div>
           <div className="hidden lg:block">
-            <Slider {...sliderSettings} className="!text-left">
+            <Slider {...sliderSettings} className="group !text-left relative">
               {matches.map((match) => (
                 <div key={match._id} className="px-0 h-full flex">
-                  <div className="h-full flex ">
+                  <div className="h-full flex match-card-content">
                     <MatchCard match={match} small />
                   </div>
                 </div>
@@ -103,6 +105,22 @@ const SportSection: React.FC<SportSectionProps> = ({
         </div>
       )}
     </section>
+  );
+};
+
+const NextArrow = (props) => {
+  const { onClick } = props;
+  return (
+    <div
+      className="custom-next-arrow absolute top-1/2 right-0 transform  -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
+      onClick={onClick}
+    >
+      {ChevronRightIcon ? (
+        <ChevronRightIcon className="w-8 h-8 text-white" />
+      ) : (
+        <div className="text-white">Icon Missing</div>
+      )}
+    </div>
   );
 };
 

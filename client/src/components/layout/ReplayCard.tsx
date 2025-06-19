@@ -3,6 +3,7 @@ import { PlayCircleIconSolid as DefaultPlayIcon } from "./Icon";
 import { useNavigate } from "react-router-dom";
 import { Replay } from "@/types/replay.types";
 import { formatDuration } from "@/lib/helper";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 interface ReplayCardProps {
   replay: Replay;
@@ -13,6 +14,8 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   replay,
   variant = "default",
 }) => {
+  const { setSelectedSportsNavbarPage, setSelectedPage } =
+    useSelectedPageContext();
   const navigate = useNavigate();
   // const targetUrl = replay.url || "/replay";
   const targetUrl = `/xem-lai/${replay?.title}`;
@@ -38,7 +41,14 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   if (variant === "compact") {
     return (
       <div
-        onClick={() => navigate(targetUrl)}
+        onClick={() => {
+          navigate(targetUrl);
+          localStorage.setItem("selectedPage", "XEM LẠI"); // Set selected page
+          setSelectedPage("XEM LẠI");
+          setSelectedSportsNavbarPage(replay?.sport?.name);
+          localStorage.setItem("selectedSportsNavbarPage", replay?.sport?.name);
+          localStorage.setItem("setByReplayCard", "true"); // Set flag
+        }}
         className="flex items-center space-x-3 group p-1.5  rounded-md transition-colors duration-150 cursor-pointer"
       >
         <div className="flex-grow overflow-hidden">
@@ -91,8 +101,15 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
   // Default variant
   return (
     <div
-      onClick={() => navigate(targetUrl)}
-      className="block rounded-lg shadow-md overflow-hidden group cursor-pointer"
+      onClick={() => {
+        navigate(targetUrl);
+        localStorage.setItem("selectedPage", "XEM LẠI"); // Set selected page
+        setSelectedPage("XEM LẠI");
+        setSelectedSportsNavbarPage(replay?.sport?.name);
+        localStorage.setItem("selectedSportsNavbarPage", replay?.sport?.name);
+        localStorage.setItem("setByReplayCard", "true"); // Set flag
+      }}
+      className="block rounded-lg shadow-2xl overflow-hidden group cursor-pointer"
       ref={cardRef}
     >
       <div className="relative">

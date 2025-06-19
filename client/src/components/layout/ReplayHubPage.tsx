@@ -167,9 +167,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
                     highlightedEvent={highlightedEvent}
                   />
                 </div>
-                {paginatedGroups?.map((group) => (
-                  <CategoryReplaySection key={group.id} group={group} />
-                ))}
               </div>
               <div className="lg:w-1/4 flex-shrink-0">
                 <div>
@@ -190,6 +187,9 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
             </div>
           </div>
         )}
+        {paginatedGroups?.map((group) => (
+          <CategoryReplaySection key={group.id} group={group} />
+        ))}
         <Pagination
           currentPage={currentPage}
           totalItems={allReplays.length}

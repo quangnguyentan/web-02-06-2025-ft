@@ -44,9 +44,8 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
   suggestedReplays,
   categorizedReplays,
 }) => {
-  console.log(categorizedReplays);
   const filteredCategorizedReplays = categorizedReplays
-    ? categorizedReplays.filter((_, index) => index === 0 || index >= 4)
+    ? categorizedReplays?.filter((_, index) => index === 0 || index >= 4)
     : [];
   return (
     <div

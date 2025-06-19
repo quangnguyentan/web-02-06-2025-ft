@@ -4,6 +4,7 @@ import { Team } from "./team.types";
 interface IStreamLink {
   label?: string;
   url?: string;
+  image?: string; // Hình ảnh đại diện cho link stream
   commentator?: string;
   commentatorImage?: string;
   priority?: number;

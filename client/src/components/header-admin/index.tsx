@@ -6,16 +6,22 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 const HeaderAdmin = () => {
   const { userData } = useSelector((state: RootState) => state.user);
-
+  const { setSelectedPage, setSelectedSportsNavbarPage } =
+    useSelectedPageContext();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const wrapperRef = useRef(null);
 
   const handleLogout = () => {
+    setSelectedPage("TRANG CHỦ");
+    localStorage.setItem("selectedPage", "TRANG CHỦ");
+    setSelectedSportsNavbarPage("");
+    localStorage.removeItem("selectedSportsNavbarPage");
     dispatch(logout());
     navigate("/");
   };

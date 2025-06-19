@@ -27,6 +27,12 @@ import { Button } from "@mui/material";
 import { Sport } from "@/types/sport.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useData } from "@/context/DataContext";
+import { LogOut, Settings } from "lucide-react";
+import { useAppDispatch } from "@/hooks/use-dispatch";
+import { logout } from "@/stores/actions/authAction";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { motion, AnimatePresence } from "framer-motion";
 
 const style = {
   position: "absolute",
@@ -55,6 +61,8 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const { sportData } = useData();
   const location = useLocation();
   const navigate = useNavigate();
+  const { userData } = useSelector((state: RootState) => state.user);
+  const { isLoggedIn, token } = useSelector((state: RootState) => state.auth);
 
   const getSportNameFromSlug = (slug: string) => {
     const sport = sportData.find((s) => s.slug === slug);
@@ -106,6 +114,35 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const handleClickTypeLogin = (type: string) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
+  const dispatch = useAppDispatch();
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const wrapperRef = React.useRef(null);
+
+  const handleLogout = () => {
+    setSelectedPage("TRANG CHỦ");
+    localStorage.setItem("selectedPage", "TRANG CHỦ");
+    setSelectedSportsNavbarPage("");
+    localStorage.removeItem("selectedSportsNavbarPage");
+    dispatch(logout());
+    navigate("/");
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 relative">
@@ -165,12 +202,61 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
           Cược Uy Tín
         </button>
         <div>
-          <button
-            onClick={handleOpen}
-            className="bg-slate-700 hover:bg-slate-600 p-1.5 sm:p-2 rounded-full"
-          >
-            <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </button>
+          {isLoggedIn && token && userData?.avatar ? (
+            <div className="relative" ref={wrapperRef}>
+              <button
+                onClick={toggleDropdown}
+                className="flex items-center gap-2 focus:outline-none"
+              >
+                <img
+                  src={userData?.avatar} // Replace with actual avatar path
+                  alt="User Avatar"
+                  className="w-6 h-6 rounded-full"
+                />
+                <span className="font-bold text-xs">
+                  {userData?.username ?? "anonymous"}
+                </span>
+              </button>
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg z-10"
+                  >
+                    <ul className="py-1">
+                      <li>
+                        <button
+                          onClick={() => alert("Settings clicked")}
+                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                        >
+                          <Settings size={16} className="mr-2" />
+                          Cài đặt
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                        >
+                          <LogOut size={16} className="mr-2" />
+                          Đăng xuất
+                        </button>
+                      </li>
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button
+              onClick={handleOpen}
+              className="bg-slate-700 hover:bg-slate-600 p-1.5 sm:p-2 rounded-full"
+            >
+              <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+          )}
           <Modal
             aria-labelledby="signin-modal-title"
             aria-describedby="signin-modal-description"
@@ -326,11 +412,41 @@ const SportsNavbar: React.FC = () => {
   const { sportData } = useData();
   const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
-
   React.useEffect(() => {
     if (sportData.length === 0) return;
+
+    // Check if set by ReplayCard
+    const setByReplayCard = localStorage.getItem("setByReplayCard") === "true";
+    if (setByReplayCard) {
+      localStorage.removeItem("setByReplayCard"); // Clear flag after use
+      return; // Skip useEffect logic
+    }
+
     const pathSegments = location.pathname.split("/");
     const currentPathSlug = pathSegments[pathSegments.length - 1];
+    const currentSection = pathSegments[1] || "home";
+
+    const previousSection = localStorage.getItem("previousSection") || "";
+
+    if (location.pathname === "/") {
+      setSelectedSportsNavbarPage("");
+      localStorage.setItem("selectedSportsNavbarPage", "");
+      localStorage.setItem("previousSection", currentSection);
+      return;
+    }
+
+    if (
+      (location.pathname.startsWith("/lich-thi-dau/") ||
+        location.pathname.startsWith("/ket-qua/") ||
+        location.pathname.startsWith("/xem-lai/")) &&
+      currentSection !== previousSection
+    ) {
+      setSelectedSportsNavbarPage("eSports");
+      localStorage.setItem("selectedSportsNavbarPage", "eSports");
+      localStorage.setItem("previousSection", currentSection);
+      return;
+    }
+
     if (
       location.pathname.startsWith("/lich-thi-dau/") ||
       location.pathname.startsWith("/ket-qua/") ||
@@ -353,7 +469,6 @@ const SportsNavbar: React.FC = () => {
       localStorage.setItem("selectedSportsNavbarPage", initialSportName);
     }
   }, [setSelectedSportsNavbarPage, location.pathname, sportData]);
-
   const handleSportClick = (category: Sport) => {
     let targetUrl = "";
     if (

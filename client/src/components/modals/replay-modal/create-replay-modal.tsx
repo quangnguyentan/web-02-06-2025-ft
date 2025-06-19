@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form"; // Added Controller
+import { useForm, Controller } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -29,19 +29,19 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiCreateReplay } from "@/services/replay.services";
 import { apiGetAllMatches } from "@/services/match.services";
+import { apiGetAllSports } from "@/services/sport.services";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
-import { apiGetAllSports } from "@/services/sport.services";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import { vi } from "date-fns/locale/vi";
+import { useDropzone } from "react-dropzone";
 
-// Đăng ký và đặt locale mặc định là tiếng Việt
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
@@ -49,17 +49,21 @@ const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   slug: z.string().min(1, { message: "Slug is required" }),
   description: z.string().optional(),
-  videoUrl: z.string().url({ message: "Invalid video URL" }),
-  thumbnail: z.string().url({ message: "Invalid thumbnail URL" }).optional(),
-  match: z.string().min(1, { message: "Match is required" }), // ID của trận đấu
-  sport: z.string().min(1, { message: "Sport is required" }), // ID của môn thể thao
+  videoUrl: z
+    .union([z.instanceof(File), z.string().min(1)])
+    .refine((val) => val !== undefined, { message: "Video file is required" }),
+  thumbnail: z
+    .union([z.instanceof(File), z.string(), z.literal("")])
+    .optional(),
+  match: z.string().min(1, { message: "Match is required" }),
+  sport: z.string().min(1, { message: "Sport is required" }),
   duration: z.coerce
     .number()
     .min(0, { message: "Duration must be non-negative" })
     .optional(),
   views: z.coerce.number().min(0, { message: "Views must be non-negative" }),
   commentator: z.string().optional(),
-  publishDate: z.date({ required_error: "Publish date is required" }), // Changed to z.date
+  publishDate: z.date({ required_error: "Publish date is required" }),
   isShown: z.boolean(),
 });
 
@@ -76,19 +80,63 @@ export const CreateReplayModal = () => {
       title: "",
       slug: "",
       description: "",
-      videoUrl: "",
+      videoUrl: undefined,
       thumbnail: "",
       match: "",
       sport: "",
       duration: undefined,
       views: 0,
       commentator: "",
-      publishDate: null, // Default to null, will be set as Date object
+      publishDate: new Date(),
       isShown: false,
     },
   });
 
   const isLoading = form.formState.isSubmitting;
+
+  // Define useCallback and useDropzone for videoUrl at top level
+  const onDropVideo = useCallback(
+    (acceptedFiles: File[]) => {
+      form.setValue("videoUrl", acceptedFiles[0], { shouldValidate: true });
+    },
+    [form]
+  );
+
+  const {
+    getRootProps: getVideoRootProps,
+    getInputProps: getVideoInputProps,
+    isDragActive: isVideoDragActive,
+  } = useDropzone({
+    onDrop: onDropVideo,
+    accept: { "video/*": [".mp4", ".mov", ".avi"] },
+    maxFiles: 1,
+    maxSize: 100 * 1024 * 1024, // 100MB
+    onDropRejected: () => {
+      toast.error("File too large or invalid format");
+    },
+  });
+
+  // Define useCallback and useDropzone for thumbnail at top level
+  const onDropThumbnail = useCallback(
+    (acceptedFiles: File[]) => {
+      form.setValue("thumbnail", acceptedFiles[0], { shouldValidate: true });
+    },
+    [form]
+  );
+
+  const {
+    getRootProps: getThumbnailRootProps,
+    getInputProps: getThumbnailInputProps,
+    isDragActive: isThumbnailDragActive,
+  } = useDropzone({
+    onDrop: onDropThumbnail,
+    accept: { "image/*": [".jpg", ".jpeg", ".png"] },
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB for images
+    onDropRejected: () => {
+      toast.error("File too large or invalid format");
+    },
+  });
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -117,26 +165,46 @@ export const CreateReplayModal = () => {
         toast.error("Trận đấu không hợp lệ");
         return;
       }
-      const sport = sports.find((m) => m._id === values.sport);
+      const sport = sports.find((s) => s._id === values.sport);
       if (!sport) {
-        toast.error("Trận đấu không hợp lệ");
+        toast.error("Môn thể thao không hợp lệ");
         return;
       }
-      const payload: Replay = {
-        ...values,
-        match,
-        sport,
-        publishDate: values.publishDate, // Already a Date object
-      };
 
-      const res = await apiCreateReplay(payload);
+      // Prepare FormData for file uploads
+      const formData = new FormData();
+      formData.append("title", values.title);
+      formData.append("slug", values.slug);
+      if (values.description)
+        formData.append("description", values.description);
+      if (values.videoUrl instanceof File) {
+        formData.append("videoUrl", values.videoUrl);
+      } else if (typeof values.videoUrl === "string") {
+        formData.append("videoUrl", values.videoUrl);
+      }
+      if (values.thumbnail instanceof File) {
+        formData.append("thumbnail", values.thumbnail);
+      } else if (typeof values.thumbnail === "string") {
+        formData.append("thumbnail", values.thumbnail);
+      }
+      formData.append("match", values.match);
+      formData.append("sport", values.sport);
+      if (values.duration !== undefined)
+        formData.append("duration", values.duration.toString());
+      formData.append("views", values.views.toString());
+      if (values.commentator)
+        formData.append("commentator", values.commentator);
+      formData.append("publishDate", values.publishDate.toISOString());
+      formData.append("isShown", values.isShown.toString());
+
+      const res = await apiCreateReplay(formData);
       if (res?.data) {
         toast.success(`Đã tạo ${values.title} thành công`);
         onClose();
         addReplay(res.data);
         setSelectedPage("Replays");
+        form.reset();
       }
-      form.reset();
     } catch (error) {
       toast.error("Lỗi khi tạo replay");
       console.error(error);
@@ -178,7 +246,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Slug */}
               <FormField
                 control={form.control}
@@ -198,7 +265,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Description */}
               <FormField
                 control={form.control}
@@ -218,47 +284,66 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Video URL */}
+              {/* Video Upload */}
               <FormField
                 control={form.control}
                 name="videoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Video URL</FormLabel>
+                    <FormLabel>Video File</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder="Enter video URL"
-                        {...field}
-                        type="url"
-                      />
+                      <div
+                        {...getVideoRootProps()}
+                        className={`border-2 border-dashed p-4 text-center ${
+                          isVideoDragActive
+                            ? "border-blue-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <input {...getVideoInputProps()} />
+                        {field.value instanceof File ? (
+                          <p>{field.value.name}</p>
+                        ) : (
+                          <p>
+                            Drag & drop a video file here, or click to select
+                          </p>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {/* Thumbnail */}
+              {/* Thumbnail Upload */}
               <FormField
                 control={form.control}
                 name="thumbnail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thumbnail URL (Optional)</FormLabel>
+                    <FormLabel>Thumbnail (Optional)</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder="Enter thumbnail URL"
-                        {...field}
-                        type="url"
-                      />
+                      <div
+                        {...getThumbnailRootProps()}
+                        className={`border-2 border-dashed p-4 text-center ${
+                          isThumbnailDragActive
+                            ? "border-blue-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <input {...getThumbnailInputProps()} />
+                        {field.value instanceof File ? (
+                          <p>{field.value.name}</p>
+                        ) : (
+                          <p>
+                            Drag & drop an image file here, or click to select
+                          </p>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               {/* Match */}
               <FormField
                 control={form.control}
@@ -288,7 +373,7 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
+              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
@@ -317,7 +402,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Duration */}
               <FormField
                 control={form.control}
@@ -338,7 +422,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Publish Date */}
               <FormField
                 control={form.control}
@@ -362,7 +445,7 @@ export const CreateReplayModal = () => {
                             disabled={isLoading}
                             placeholderText="Chọn ngày và giờ"
                             className="w-full p-2 border rounded placeholder:text-black"
-                            minDate={new Date()} // Prevent selecting past dates (today is 02:24 PM +07, June 18, 2025)
+                            minDate={new Date()}
                           />
                         )}
                       />
@@ -371,7 +454,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Views */}
               <FormField
                 control={form.control}
@@ -393,7 +475,6 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
               {/* Commentator */}
               <FormField
                 control={form.control}
@@ -413,7 +494,7 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-
+              {/* Is Shown */}
               <FormField
                 control={form.control}
                 name="isShown"

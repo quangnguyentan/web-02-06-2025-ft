@@ -46,12 +46,12 @@ const Live: React.FC = () => {
       if (!matchData.length && !loading) {
         await fetchData(); // Fetch only if no data and not loading
       }
-      const match = matchData.find((m) => m?.sport?.slug === slugSport) || null;
+      const match = matchData.find((m) => m?.slug === slug) || null;
       setCurrentMatch(match);
     };
     loadMatchData();
   }, [slugSport, matchData, fetchData, loading]);
-
+  console.log(currentMatch);
   return (
     <React.Suspense fallback={<div>Loading page...</div>}>
       <div className="flex">

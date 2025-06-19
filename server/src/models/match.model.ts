@@ -16,6 +16,7 @@ export enum MatchStatus {
 interface IStreamLink {
   label: string;
   url: string;
+  image?: string;
   commentator?: string;
   commentatorImage?: string;
   priority: number;
@@ -65,6 +66,7 @@ const matchSchema = new Schema<IMatch>(
       {
         label: { type: String, required: true },
         url: { type: String, required: true },
+        image: { type: String },
         commentator: { type: String },
         commentatorImage: { type: String },
         priority: { type: Number, default: 1 },

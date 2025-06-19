@@ -56,7 +56,7 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
             />
           )}
           <span>
-            Bình luận viên:
+            Bình luận viên: {""}
             <span className="text-sky-400 font-medium">
               {match?.streamLinks?.[0]?.commentator}
             </span>

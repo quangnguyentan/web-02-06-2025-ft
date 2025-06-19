@@ -9,12 +9,14 @@ import volleyball from "@/assets/user/volleyball-min.jpg";
 import boxing from "@/assets/user/boxing-min.jpg";
 import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
   small = false,
 }) => {
   const navigate = useNavigate();
+  const { setSelectedSportsNavbarPage } = useSelectedPageContext();
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -43,7 +45,11 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       : "";
   return (
     <div
-      onClick={() => navigate(targetUrl)}
+      onClick={() => {
+        navigate(targetUrl);
+        setSelectedSportsNavbarPage(match?.sport?.name);
+        localStorage.setItem("selectedSportsNavbarPage", match?.sport?.name);
+      }}
       className={`bg-slate-800 rounded-xl shadow-md overflow-hidden my-1 ml-1 ${
         small
           ? "w-[260px] sm:w-[320px] md:w-[390px]"
@@ -59,7 +65,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       {/* Overlay to ensure readability */}
       {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
         <div
-          className="absolute inset-0 bg-black bg-opacity-85"
+          className="absolute inset-0 bg-black bg-opacity-90"
           style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
         ></div>
       )}

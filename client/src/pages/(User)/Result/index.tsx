@@ -13,42 +13,74 @@ import { Replay } from "@/types/replay.types";
 const today = new Date();
 
 const Result: React.FC = () => {
-  const { matchData, replayData, fetchData, loading } = useData();
-  const [localMatchData, setLocalMatchData] = React.useState<Match[]>([]);
-  const [replaySuggestions, setReplaySuggestions] = React.useState<Replay[]>(
-    []
-  );
+  // Loại bỏ fetchData ở đây vì nó không còn được gọi trực tiếp trong component này.
+  const { matchData, replayData, loading, error } = useData();
   const { slug } = useParams();
 
-  React.useEffect(() => {
-    const loadMatchData = async () => {
-      if ((!matchData.length && !loading) || (!replayData.length && !loading)) {
-        await fetchData(); // Chỉ gọi nếu chưa có dữ liệu
-      }
-      const match = matchData?.filter((m) => m.sport?.slug === slug) || [];
-      const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
-      const filteredMatches = match?.filter((match) => {
-        const matchDate = new Date(match.startTime);
-        return (
-          !isNaN(matchDate.getTime()) &&
-          (match.status === MatchStatusType.FINISHED ||
-            match.status === MatchStatusType.LIVE)
-        );
-      });
-      setLocalMatchData(filteredMatches);
-      setReplaySuggestions(replay);
-    };
-    loadMatchData();
-  }, [slug, matchData, replayData, fetchData, loading]);
+  // Dữ liệu giả lập cho kết quả (nếu có trong mockResultsData)
+  // Giả sử useScheduleDataForResults([]) trả về một cấu trúc tương tự mockResultsData cho trường hợp không có dữ liệu
+  const { scheduleData: mockScheduleDataForResults } =
+    useScheduleDataForResults([]);
+  const mockReplayData: Replay[] = React.useMemo(() => [], []); // Dữ liệu giả lập cho replay, memoize rỗng
 
-  const { dateTabs, scheduleData } = useScheduleDataForResults(localMatchData);
+  // Lọc dữ liệu trận đấu dựa trên slug và trạng thái, sử dụng useMemo
+  const currentMatchResults = React.useMemo(() => {
+    let matchesToFilter: Match[] = [];
 
-  const initialDateId =
-    dateTabs.find((tab) => tab.isToday)?.id ||
-    dateTabs.find((tab) => tab.id !== "live")?.id ||
-    formatDate(today);
+    if (!matchData.length || error) {
+      matchesToFilter = Array.isArray(mockResultsData)
+        ? (mockResultsData as Match[])
+        : []; // Fallback to empty array if not directly usable
+    } else {
+      matchesToFilter = matchData;
+    }
 
-  if (loading) return <div>Loading...</div>;
+    // Lọc trận đấu theo slug và trạng thái hoàn thành/đang trực tiếp
+    return matchesToFilter.filter((m) => {
+      const matchDate = new Date(m.startTime);
+      return (
+        m.sport?.slug === slug &&
+        !isNaN(matchDate.getTime()) &&
+        (m.status === MatchStatusType.FINISHED ||
+          m.status === MatchStatusType.LIVE)
+      );
+    });
+  }, [matchData, error, slug]); // Dependencies: chỉ tính lại khi các giá trị này thay đổi
+
+  // Tính toán replaySuggestions bằng useMemo
+  const replaySuggestions = React.useMemo(() => {
+    // Nếu không có dữ liệu thực hoặc có lỗi, dùng dữ liệu giả lập
+    if (!replayData.length || error) {
+      return mockReplayData;
+    } else {
+      // Ngược lại, dùng dữ liệu thực
+      return replayData.filter((r) => r.sport?.slug === slug) || [];
+    }
+  }, [replayData, error, mockReplayData, slug]); // Dependencies: chỉ tính lại khi các giá trị này thay đổi
+
+  // Gọi useScheduleDataForResults trực tiếp ở cấp cao nhất của component.
+  // Hook này sẽ tự động re-run khi `currentMatchResults` thay đổi.
+  const { dateTabs, scheduleData } =
+    useScheduleDataForResults(currentMatchResults);
+
+  // Tính toán initialDateId
+  const initialDateId = React.useMemo(() => {
+    return (
+      dateTabs.find((tab) => tab.isToday)?.id ||
+      dateTabs.find((tab) => tab.id !== "live")?.id ||
+      formatDate(today)
+    );
+  }, [dateTabs]); // Chỉ tính toán lại khi dateTabs thay đổi
+
+  // Hiển thị thông báo lỗi nếu có
+  if (error) {
+    return <div>Error loading data. Displaying mock data.</div>;
+  }
+
+  // Chỉ hiển thị loading khi đang fetch lần đầu và chưa có dữ liệu
+  if (loading && !matchData.length && !replayData.length) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <ResultsPage

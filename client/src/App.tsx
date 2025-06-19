@@ -43,13 +43,22 @@ function App() {
     if (!route.role) return true;
     return route.role.includes(current as string);
   });
-  // if (status === "loading") {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen">
-  //       <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-blue-500"></div>
-  //     </div>
-  //   );
-  // }
+  // useEffect(() => {
+  //   const handleBeforeUnload = (event) => {
+  //     // Hiển thị thông báo hoặc thực hiện hành động trước khi reload
+  //     console.log("Trang đang được reload hoặc đóng");
+  //     // Nếu muốn hiển thị xác nhận trước khi reload
+  //     event.preventDefault();
+  //     event.returnValue = ""; // Hiển thị hộp thoại xác nhận (tùy trình duyệt)
+  //   };
+
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  //   // Cleanup listener khi component unmount
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, []);
 
   return (
     <Suspense

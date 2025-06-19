@@ -31,6 +31,7 @@ interface DataContextType {
   loading: boolean;
   fetchData: () => Promise<void>;
   isDataLoaded: boolean;
+  error: Error | null; // Thêm error vào context
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -47,6 +48,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
+    shouldRetryOnError: false, // Không thử lại khi lỗi
   });
 
   const {
@@ -58,6 +60,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
+    shouldRetryOnError: false,
   });
 
   const {
@@ -75,11 +78,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       dedupingInterval: 60000,
+      shouldRetryOnError: false,
     }
   );
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const loading = matchLoading || replayLoading || sportLoading;
+  // Chỉ coi là loading khi lần đầu tải dữ liệu
+  const loading =
+    !isDataLoaded && (matchLoading || replayLoading || sportLoading);
+  // Gộp lỗi từ các API
+  const error = matchError || replayError || sportError;
 
   const fetchData = async () => {
     try {
@@ -89,15 +97,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
         mutate("/api/sports", undefined, { revalidate: true }),
       ]);
       setIsDataLoaded(true);
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-      setIsDataLoaded(true);
+    } catch (err) {
+      console.error("Error refreshing data:", err);
+      setIsDataLoaded(true); // Đặt isDataLoaded để thoát trạng thái loading
     }
   };
 
   useEffect(() => {
     if (
-      !loading &&
+      !matchLoading &&
+      !replayLoading &&
+      !sportLoading &&
       (matches.length ||
         replays.length ||
         sports.length ||
@@ -107,10 +117,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     ) {
       setIsDataLoaded(true);
     }
-    if (matchError || replayError || sportError) {
-      console.error("API error:", matchError || replayError || sportError);
+    if (error) {
+      console.error("API error:", error);
     }
-  }, [loading, matches, replays, sports, matchError, replayError, sportError]);
+  }, [
+    matchLoading,
+    replayLoading,
+    sportLoading,
+    matches,
+    replays,
+    sports,
+    matchError,
+    replayError,
+    sportError,
+    error,
+  ]);
 
   return (
     <DataContext.Provider
@@ -121,6 +142,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         fetchData,
         isDataLoaded,
+        error, // Cung cấp error cho context
       }}
     >
       {children}
