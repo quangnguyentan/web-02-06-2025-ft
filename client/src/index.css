@@ -41,14 +41,37 @@ html {
 }
 
 .custom-next-arrow:hover {
-  background: linear-gradient(90deg, rgba(60, 30, 30, 0.4), rgba(200, 80, 30, 0.4)); /* Adjusted to match image */
+  background: linear-gradient(
+    90deg,
+    rgba(60, 30, 30, 0.4),
+    rgba(200, 80, 30, 0.4)
+  ); /* Adjusted to match image */
   width: 60px;
   height: 210px;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
 }
+.custom-preview-arrow {
+  display: none;
+}
 
+.slick-slider:hover .custom-preview-arrow {
+  display: flex;
+}
+
+.custom-preview-arrow:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(60, 30, 30, 0.4),
+    rgba(200, 80, 30, 0.4)
+  ); /* Adjusted to match image */
+  width: 60px;
+  height: 210px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
 .slick-slider {
   position: relative;
 }

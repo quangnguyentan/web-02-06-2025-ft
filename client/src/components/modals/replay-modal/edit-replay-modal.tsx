@@ -45,24 +45,38 @@ import { useDropzone } from "react-dropzone";
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
-// Updated schema to allow File objects or strings for videoUrl and thumbnail
 const formSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
-  slug: z.string().min(1, { message: "Slug is required" }),
+  title: z.string().min(1, { message: "Tiêu đề là bắt buộc" }),
+  slug: z.string().min(1, { message: "Slug là bắt buộc" }),
   description: z.string().optional(),
-  videoUrl: z.union([z.instanceof(File), z.string().min(1)]),
+  videoUrl: z.union([
+    z
+      .instanceof(File)
+      .refine((file) => file && /video\/(mp4|mov|avi)/.test(file.type), {
+        message: "Vui lòng chọn file video hợp lệ (.mp4, .mov, .avi)",
+      }),
+    z.string().min(1, { message: "URL video hiện tại không hợp lệ" }),
+  ]),
   thumbnail: z
-    .union([z.instanceof(File), z.string(), z.literal("")])
+    .union([
+      z
+        .instanceof(File)
+        .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
+          message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
+        }),
+      z.string(),
+      z.literal(""),
+    ])
     .optional(),
-  match: z.string().min(1, { message: "Match is required" }),
-  sport: z.string().min(1, { message: "Sport is required" }),
+  match: z.string().min(1, { message: "Trận đấu là bắt buộc" }),
+  sport: z.string().min(1, { message: "Môn thể thao là bắt buộc" }),
   duration: z.coerce
     .number()
-    .min(0, { message: "Duration must be non-negative" })
+    .min(0, { message: "Thời lượng phải là số không âm" })
     .optional(),
-  views: z.coerce.number().min(0, { message: "Views must be non-negative" }),
+  views: z.coerce.number().min(0, { message: "Lượt xem phải là số không âm" }),
   commentator: z.string().optional(),
-  publishDate: z.date({ required_error: "Publish date is required" }),
+  publishDate: z.date({ required_error: "Ngày phát hành là bắt buộc" }),
   isShown: z.boolean(),
 });
 
@@ -93,10 +107,11 @@ export const EditReplayModal = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  // Define useCallback and useDropzone for videoUrl at top level
   const onDropVideo = useCallback(
     (acceptedFiles: File[]) => {
-      form.setValue("videoUrl", acceptedFiles[0], { shouldValidate: true });
+      if (acceptedFiles[0]) {
+        form.setValue("videoUrl", acceptedFiles[0], { shouldValidate: true });
+      }
     },
     [form]
   );
@@ -107,18 +122,25 @@ export const EditReplayModal = () => {
     isDragActive: isVideoDragActive,
   } = useDropzone({
     onDrop: onDropVideo,
-    accept: { "video/*": [".mp4", ".mov", ".avi"] },
+    accept: {
+      "video/mp4": [".mp4"],
+      "video/mov": [".mov"],
+      "video/avi": [".avi"],
+    },
     maxFiles: 1,
-    maxSize: 100 * 1024 * 1024, // 100MB
-    onDropRejected: () => {
-      toast.error("File too large or invalid format");
+    maxSize: 100 * 1024 * 1024,
+    onDropRejected: (fileRejections) => {
+      const error =
+        fileRejections[0]?.errors[0]?.message || "File video không hợp lệ";
+      toast.error(error);
     },
   });
 
-  // Define useCallback and useDropzone for thumbnail at top level
   const onDropThumbnail = useCallback(
     (acceptedFiles: File[]) => {
-      form.setValue("thumbnail", acceptedFiles[0], { shouldValidate: true });
+      if (acceptedFiles[0]) {
+        form.setValue("thumbnail", acceptedFiles[0], { shouldValidate: true });
+      }
     },
     [form]
   );
@@ -129,11 +151,13 @@ export const EditReplayModal = () => {
     isDragActive: isThumbnailDragActive,
   } = useDropzone({
     onDrop: onDropThumbnail,
-    accept: { "image/*": [".jpg", ".jpeg", ".png"] },
+    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB
-    onDropRejected: () => {
-      toast.error("File too large or invalid format");
+    maxSize: 10 * 1024 * 1024,
+    onDropRejected: (fileRejections) => {
+      const error =
+        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
+      toast.error(error);
     },
   });
 
@@ -149,7 +173,7 @@ export const EditReplayModal = () => {
         setMatches(matchRes.data);
         setSports(sportsRes.data);
       } catch (error) {
-        toast.error("Lỗi khi tải dữ liệu");
+        toast.error("Lỗi khi tải dữ liệu trận đấu hoặc môn thể thao");
         console.error(error);
       }
     };
@@ -157,7 +181,6 @@ export const EditReplayModal = () => {
     fetchData();
   }, [isModalOpen]);
 
-  // Populate form with existing replay data
   useEffect(() => {
     if (data?.replay && isModalOpen) {
       form.reset({
@@ -177,24 +200,10 @@ export const EditReplayModal = () => {
         isShown: data.replay.isShown || false,
       });
     } else if (!isModalOpen) {
-      form.reset({
-        title: "",
-        slug: "",
-        description: "",
-        videoUrl: "",
-        thumbnail: "",
-        match: "",
-        sport: "",
-        duration: undefined,
-        views: 0,
-        commentator: "",
-        publishDate: new Date(),
-        isShown: false,
-      });
+      form.reset();
     }
   }, [isModalOpen, data?.replay, form]);
 
-  // Watch title and update slug dynamically
   const watchTitle = form.watch("title");
   useEffect(() => {
     if (watchTitle) {
@@ -219,7 +228,6 @@ export const EditReplayModal = () => {
         return;
       }
 
-      // Prepare FormData for file uploads
       const formData = new FormData();
       formData.append("title", values.title);
       formData.append("slug", values.slug);
@@ -227,13 +235,13 @@ export const EditReplayModal = () => {
         formData.append("description", values.description);
       if (values.videoUrl instanceof File) {
         formData.append("videoUrl", values.videoUrl);
-      } else if (typeof values.videoUrl === "string") {
+      } else {
         formData.append("videoUrl", values.videoUrl);
       }
       if (values.thumbnail instanceof File) {
         formData.append("thumbnail", values.thumbnail);
-      } else if (typeof values.thumbnail === "string") {
-        formData.append("thumbnail", values.thumbnail);
+      } else {
+        formData.append("thumbnail", values.thumbnail || "");
       }
       formData.append("match", values.match);
       formData.append("sport", values.sport);
@@ -246,7 +254,7 @@ export const EditReplayModal = () => {
       formData.append("isShown", values.isShown.toString());
 
       if (!data?.replay?._id) {
-        toast.error("Không tìm thấy ID replay để cập nhật.");
+        toast.error("Không tìm thấy ID replay để cập nhật");
         return;
       }
 
@@ -261,8 +269,10 @@ export const EditReplayModal = () => {
         setSelectedPage("Replays");
         form.reset();
       }
-    } catch (error) {
-      toast.error("Lỗi khi cập nhật replay");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Lỗi khi cập nhật nội dung phát lại";
+      toast.error(errorMessage);
       console.error(error);
     }
   };
@@ -283,18 +293,16 @@ export const EditReplayModal = () => {
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 px-6">
-              {/* Title */}
               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Tiêu đề</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter title"
+                        placeholder="Nhập tiêu đề"
                         {...field}
                         type="text"
                       />
@@ -303,7 +311,6 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -313,8 +320,7 @@ export const EditReplayModal = () => {
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter slug"
+                        placeholder="Nhập slug"
                         {...field}
                         type="text"
                       />
@@ -323,18 +329,16 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Description */}
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>Mô tả (Không bắt buộc)</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter description"
+                        placeholder="Nhập mô tả"
                         {...field}
                         type="text"
                       />
@@ -343,40 +347,43 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Video Upload */}
               <FormField
                 control={form.control}
                 name="videoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Video File</FormLabel>
+                    <FormLabel>File Video</FormLabel>
                     <FormControl>
                       <div>
-                        {field.value && typeof field.value === "string" ? (
+                        {typeof field.value === "string" && field.value ? (
                           <div className="mb-2">
                             <p>
-                              Current video:{" "}
+                              Video hiện tại:{" "}
                               <a
                                 href={field.value}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-500"
+                                className="text-blue-600 underline"
                               >
-                                View
+                                Xem
                               </a>
                             </p>
                             <Button
                               type="button"
-                              onClick={() => field.onChange("")}
-                              className="text-red-500 text-sm bg-transparent hover:bg-transparent"
+                              onClick={() =>
+                                form.setValue("videoUrl", "", {
+                                  shouldValidate: true,
+                                })
+                              }
+                              className="text-red-600 text-sm bg-transparent hover:bg-transparent"
                             >
-                              Replace Video
+                              Thay thế Video
                             </Button>
                           </div>
                         ) : (
                           <div
                             {...getVideoRootProps()}
-                            className={`border-2 border-dashed p-4 text-center ${
+                            className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
                               isVideoDragActive
                                 ? "border-blue-500"
                                 : "border-gray-300"
@@ -384,11 +391,12 @@ export const EditReplayModal = () => {
                           >
                             <input {...getVideoInputProps()} />
                             {field.value instanceof File ? (
-                              <p>{field.value.name}</p>
+                              <p className="text-blue-600">
+                                {field.value.name}
+                              </p>
                             ) : (
                               <p>
-                                Drag & drop a video file here, or click to
-                                select
+                                Kéo và thả file video tại đây (.mp4, .mov, .avi)
                               </p>
                             )}
                           </div>
@@ -399,34 +407,37 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Thumbnail Upload */}
               <FormField
                 control={form.control}
                 name="thumbnail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thumbnail (Optional)</FormLabel>
+                    <FormLabel>Ảnh đại diện (Không bắt buộc)</FormLabel>
                     <FormControl>
                       <div>
-                        {field.value && typeof field.value === "string" ? (
-                          <div className="mb-2">
+                        {typeof field.value === "string" && field.value ? (
+                          <div className="mb-2 flex flex-col gap-2">
                             <img
                               src={field.value}
-                              alt="Current thumbnail"
-                              className="w-32 h-16 object-cover"
+                              alt="Thumbnail hiện tại"
+                              className="w-42 h-16 object-cover rounded"
                             />
                             <Button
                               type="button"
-                              onClick={() => field.onChange("")}
-                              className="text-red-500 text-sm bg-transparent hover:bg-transparent"
+                              onClick={() =>
+                                form.setValue("thumbnail", "", {
+                                  shouldValidate: true,
+                                })
+                              }
+                              className="text-red-600 text-sm bg-transparent hover:bg-transparent"
                             >
-                              Replace Thumbnail
+                              Thay thế Ảnh
                             </Button>
                           </div>
                         ) : (
                           <div
                             {...getThumbnailRootProps()}
-                            className={`border-2 border-dashed p-4 text-center ${
+                            className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
                               isThumbnailDragActive
                                 ? "border-blue-500"
                                 : "border-gray-300"
@@ -434,12 +445,11 @@ export const EditReplayModal = () => {
                           >
                             <input {...getThumbnailInputProps()} />
                             {field.value instanceof File ? (
-                              <p>{field.value.name}</p>
-                            ) : (
-                              <p>
-                                Drag & drop an image file here, or click to
-                                select
+                              <p className="text-blue-600">
+                                {field.value.name}
                               </p>
+                            ) : (
+                              <p>Kéo và thả file ảnh tại đây (.jpg, .png)</p>
                             )}
                           </div>
                         )}
@@ -449,13 +459,12 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Match */}
               <FormField
                 control={form.control}
                 name="match"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Match</FormLabel>
+                    <FormLabel>Trận đấu</FormLabel>
                     <Select
                       disabled={isLoading}
                       onValueChange={field.onChange}
@@ -463,7 +472,7 @@ export const EditReplayModal = () => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select match" />
+                          <SelectValue placeholder="Chọn trận đấu" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -478,13 +487,12 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sport</FormLabel>
+                    <FormLabel>Môn thể thao</FormLabel>
                     <Select
                       disabled={isLoading}
                       onValueChange={field.onChange}
@@ -492,7 +500,7 @@ export const EditReplayModal = () => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select sport" />
+                          <SelectValue placeholder="Chọn môn thể thao" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -507,18 +515,16 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Duration */}
               <FormField
                 control={form.control}
                 name="duration"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Duration (minutes, Optional)</FormLabel>
+                    <FormLabel>Thời lượng (phút, Không bắt buộc)</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter duration"
+                        placeholder="Nhập thời lượng"
                         {...field}
                         type="number"
                         min={0}
@@ -528,13 +534,12 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Publish Date */}
               <FormField
                 control={form.control}
                 name="publishDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Publish Date</FormLabel>
+                    <FormLabel>Ngày phát hành</FormLabel>
                     <FormControl>
                       <Controller
                         name="publishDate"
@@ -550,7 +555,7 @@ export const EditReplayModal = () => {
                             locale="vi"
                             disabled={isLoading}
                             placeholderText="Chọn ngày và giờ"
-                            className="w-full p-2 border rounded placeholder:text-black"
+                            className="w-full p-2 border rounded placeholder:text-gray-500"
                             minDate={new Date()}
                           />
                         )}
@@ -560,18 +565,16 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Views */}
               <FormField
                 control={form.control}
                 name="views"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Views</FormLabel>
+                    <FormLabel>Lượt xem</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter views"
+                        placeholder="Nhập số lượt xem"
                         {...field}
                         type="number"
                         min={0}
@@ -582,18 +585,16 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Commentator */}
               <FormField
                 control={form.control}
                 name="commentator"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Commentator (Optional)</FormLabel>
+                    <FormLabel>Bình luận viên (Không bắt buộc)</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter commentator"
+                        placeholder="Nhập tên bình luận viên"
                         {...field}
                         type="text"
                       />
@@ -602,7 +603,6 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              {/* Is Shown */}
               <FormField
                 control={form.control}
                 name="isShown"
@@ -624,15 +624,11 @@ export const EditReplayModal = () => {
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button
                 onClick={handleClose}
-                className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
+                className="text-black rounded-[4px]"
               >
                 Đóng
               </Button>
-              <Button
-                disabled={isLoading}
-                type="submit"
-                className="bg-blue-600 text-white hover:bg-blue-700 rounded-[4px]"
-              >
+              <Button disabled={isLoading} type="submit">
                 Cập nhật
               </Button>
             </DialogFooter>

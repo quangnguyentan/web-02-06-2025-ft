@@ -1,5 +1,5 @@
 import MatchCard from "./MatchCard";
-import { ChevronRightIcon } from "./Icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "./Icon";
 import * as React from "react";
 import SpotlightMatchCard from "./SpotlightMatchCard";
 import Slider from "react-slick";
@@ -37,9 +37,9 @@ const SportSection: React.FC<SportSectionProps> = ({
     speed: 500,
     slidesToShow: location?.pathname.startsWith("/truc-tiep") ? 2.3 : 3.5,
     slidesToScroll: 1,
-    arrows: true, // Enable arrows to show both default prev and custom next
-    nextArrow: <NextArrow />, // Custom next arrow
-    // Remove prevArrow override to use default
+    arrows: true,
+    nextArrow: <NextArrow />,
+    prevArrow: <PreviewArrow />,
     lazyLoad: "ondemand",
     responsive: [
       {
@@ -123,5 +123,19 @@ const NextArrow = (props) => {
     </div>
   );
 };
-
+const PreviewArrow = (props) => {
+  const { onClick } = props;
+  return (
+    <div
+      className="custom-preview-arrow absolute top-1/2 left-0 transform  -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
+      onClick={onClick}
+    >
+      {ChevronLeftIcon ? (
+        <ChevronLeftIcon className="w-8 h-8 text-white" />
+      ) : (
+        <div className="text-white">Icon Missing</div>
+      )}
+    </div>
+  );
+};
 export default SportSection;

@@ -1,24 +1,29 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import Replay, { IReplay } from "../models/replay.model";
 import Match from "../models/match.model";
-import multer from "multer";
-import { v4 as uuidv4 } from "uuid";
-import cloudinary from "../configs/cloudinary";
+import { upload } from "../middlewares/multer";
+import fs from "fs/promises";
+import path from "path";
 
-// Configure multer for file storage in memory
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|mp4|mov|avi/;
-    const mimetype = filetypes.test(file.mimetype);
-    if (mimetype) {
-      return cb(null, true);
-    }
-    cb(new Error("File type not supported"));
-  },
-});
+// REMEMBER: Your global type definition in src/types/express.d.ts is crucial for this to work.
+// Ensure it contains:
+/*
+declare namespace Express {
+  interface Request {
+    files?: {
+      videoUrl?: Multer.File[];
+      thumbnail?: Multer.File[];
+      // ... ensure all other fields from match.controller are also here if applicable
+      // Example:
+      // streamLinkImages?: Multer.File[];
+      // streamLinkVideos?: Multer.File[];
+      // streamLinkCommentatorImages?: Multer.File[];
+      // mainCommentatorImage?: Multer.File[];
+      // secondaryCommentatorImage?: Multer.File[];
+    };
+  }
+}
+*/
 
 // Middleware to handle file uploads
 export const uploadFiles = upload.fields([
@@ -28,75 +33,67 @@ export const uploadFiles = upload.fields([
 
 // @desc    Create a new replay video
 // @route   POST /api/replays
-export const createReplay = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { match } = req.body;
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+export const createReplay: RequestHandler[] = [
+  uploadFiles,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const body = req.body;
+      // *** FIX: Type assertion for files ***
+      const files = req.files as
+        | {
+          videoUrl?: Express.Multer.File[];
+          thumbnail?: Express.Multer.File[];
+        }
+        | undefined;
 
-    // Validate match
-    const matchExists = await Match.findById(match);
-    if (!matchExists) {
-      res.status(400).json({ message: "Invalid match ID" });
-      return;
+      // Validate match
+      const matchExists = await Match.findById(body.match);
+      if (!matchExists) {
+        res.status(400).json({ message: "ID trận đấu không hợp lệ" });
+        return;
+      }
+
+      // Validate video file
+      // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
+      if (!files?.videoUrl?.[0]) {
+        res.status(400).json({ message: "File video là bắt buộc" });
+        return;
+      }
+
+      // Handle video file
+      // Accessing files.videoUrl[0] is now safe because of the check above
+      const videoUrl = `http://localhost:8080/static/${path.basename(files.videoUrl[0].path)}`;
+
+      // Handle thumbnail file (optional)
+      const thumbnailUrl = files?.thumbnail?.[0]
+        ? `http://localhost:8080/static/${path.basename(files.thumbnail[0].path)}`
+        : undefined;
+
+      // Prepare replay data
+      const replayData: Partial<IReplay> = {
+        title: body.title,
+        slug: body.slug,
+        description: body.description,
+        videoUrl,
+        thumbnail: thumbnailUrl,
+        match: body.match,
+        sport: body.sport,
+        duration: body.duration ? Number(body.duration) : undefined,
+        views: body.views ? Number(body.views) : 0,
+        commentator: body.commentator,
+        publishDate: body.publishDate || new Date().toISOString(),
+        isShown: body.isShown === "true" ? true : false,
+      };
+
+      const newReplay = new Replay(replayData);
+      await newReplay.save();
+      res.status(201).json(newReplay);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ message: "Lỗi server", error: error.message });
     }
-
-    // Upload video to Cloudinary
-    let videoUrl = "";
-    if (files.videoUrl && files.videoUrl[0]) {
-      const videoUpload = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: "video",
-            folder: "replays/videos",
-            public_id: `video_${uuidv4()}`,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(files.videoUrl[0].buffer);
-      });
-      videoUrl = (videoUpload as any).secure_url; // Fixed here
-    }
-
-    // Upload thumbnail to Cloudinary (optional)
-    let thumbnailUrl = "";
-    if (files.thumbnail && files.thumbnail[0]) {
-      const thumbnailUpload = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: "image",
-            folder: "replays/thumbnails",
-            public_id: `thumbnail_${uuidv4()}`,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(files.thumbnail[0].buffer);
-      });
-      thumbnailUrl = (thumbnailUpload as any).secure_url;
-    }
-
-    // Create new replay
-    const newReplay: IReplay = new Replay({
-      ...req.body,
-      videoUrl,
-      thumbnail: thumbnailUrl || undefined,
-    });
-
-    await newReplay.save();
-    res.status(201).json(newReplay);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error", error });
-  }
-};
+  },
+];
 
 // @desc    Lấy tất cả video xem lại
 // @route   GET /api/replays
@@ -151,6 +148,7 @@ export const getReplayById = async (
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
+
 export const getReplayBySlug = async (
   req: Request,
   res: Response
@@ -169,147 +167,124 @@ export const getReplayBySlug = async (
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
+
 // @desc    Update a replay video
 // @route   PUT /api/replays/:id
-export const updateReplay = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { match } = req.body;
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+export const updateReplay: RequestHandler[] = [
+  uploadFiles,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const body = req.body;
+      // *** FIX: Type assertion for files ***
+      const files = req.files as
+        | {
+          videoUrl?: Express.Multer.File[];
+          thumbnail?: Express.Multer.File[];
+        }
+        | undefined;
 
-    // Validate match if provided
-    if (match) {
-      const matchExists = await Match.findById(match);
-      if (!matchExists) {
-        res.status(400).json({ message: "Invalid match ID" });
+      // Validate match if provided
+      if (body.match) {
+        const matchExists = await Match.findById(body.match);
+        if (!matchExists) {
+          res.status(400).json({ message: "ID trận đấu không hợp lệ" });
+          return;
+        }
+      }
+
+      // Find existing replay
+      const existingReplay = await Replay.findById(req.params.id);
+      if (!existingReplay) {
+        res.status(404).json({ message: "Không tìm thấy video" });
         return;
       }
-    }
 
-    // Find existing replay
-    const existingReplay = await Replay.findById(req.params.id);
-    if (!existingReplay) {
-      res.status(404).json({ message: "Replay not found" });
-      return;
-    }
+      // Collect old file paths for deletion
+      const oldFiles: string[] = [];
 
-    // Initialize update data
-    let updateData: Partial<IReplay> = { ...req.body };
+      // Initialize update data
+      const updateData: Partial<IReplay> = {
+        title: body.title || existingReplay.title,
+        slug: body.slug || existingReplay.slug,
+        description: body.description !== undefined ? body.description : existingReplay.description,
+        match: body.match || existingReplay.match,
+        sport: body.sport || existingReplay.sport,
+        duration: body.duration ? Number(body.duration) : existingReplay.duration,
+        views: body.views ? Number(body.views) : existingReplay.views,
+        commentator: body.commentator !== undefined ? body.commentator : existingReplay.commentator,
+        publishDate: body.publishDate || existingReplay.publishDate,
+        isShown:
+          body.isShown === "true" ? true : body.isShown === "false" ? false : existingReplay.isShown,
+      };
 
-    // Handle video upload
-    if (files?.videoUrl?.[0]) {
-      // Upload new video to Cloudinary
-      const videoUpload = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: "video",
-            folder: "replays/videos",
-            public_id: `video_${uuidv4()}`,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(files.videoUrl[0].buffer);
+      // Handle video upload
+      // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
+      if (files?.videoUrl?.[0]) {
+        updateData.videoUrl = `http://localhost:8080/static/${path.basename(files.videoUrl[0].path)}`;
+        if (existingReplay.videoUrl?.startsWith("http://localhost:8080/static/")) {
+          const filename = path.basename(existingReplay.videoUrl);
+          oldFiles.push(path.join(__dirname, "../../assets/images", filename));
+        }
+      } else if (body.videoUrl) {
+        updateData.videoUrl = body.videoUrl;
+      } else {
+        updateData.videoUrl = existingReplay.videoUrl;
+      }
+
+      // Handle thumbnail upload
+      // Now 'files' is correctly typed, so 'files?.thumbnail' is valid
+      if (files?.thumbnail?.[0]) {
+        updateData.thumbnail = `http://localhost:8080/static/${path.basename(files.thumbnail[0].path)}`;
+        if (existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
+          const filename = path.basename(existingReplay.thumbnail);
+          oldFiles.push(path.join(__dirname, "../../assets/images", filename));
+        }
+      } else if (body.thumbnail === "") {
+        updateData.thumbnail = undefined;
+        if (existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
+          const filename = path.basename(existingReplay.thumbnail);
+          oldFiles.push(path.join(__dirname, "../../assets/images", filename));
+        }
+      } else if (body.thumbnail) {
+        updateData.thumbnail = body.thumbnail;
+      } else {
+        updateData.thumbnail = existingReplay.thumbnail;
+      }
+
+      // Validate videoUrl
+      if (!updateData.videoUrl) {
+        res.status(400).json({ message: "URL video là bắt buộc" });
+        return;
+      }
+
+      // Update replay
+      const updatedReplay = await Replay.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+        runValidators: true,
       });
-      updateData.videoUrl = (videoUpload as any).secure_url;
 
-      // Delete old video from Cloudinary if it exists
-      if (existingReplay.videoUrl) {
-        const publicId = extractPublicId(existingReplay.videoUrl, "video");
-        if (publicId) {
-          await cloudinary.uploader.destroy(publicId, {
-            resource_type: "video",
-          });
+      if (!updatedReplay) {
+        res.status(404).json({ message: "Không tìm thấy video" });
+        return;
+      }
+
+      // Delete old files
+      for (const filePath of oldFiles) {
+        try {
+          await fs.access(filePath); // Check if file exists before trying to unlink
+          await fs.unlink(filePath);
+        } catch (err) {
+          console.error(`Lỗi khi xóa file cũ: ${filePath}`, err);
         }
       }
-    } else if (req.body.videoUrl && typeof req.body.videoUrl === "string") {
-      // Keep existing video URL if no new file is uploaded
-      updateData.videoUrl = req.body.videoUrl;
+
+      res.status(200).json(updatedReplay);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ message: "Lỗi server", error: error.message });
     }
-
-    // Handle thumbnail upload
-    if (files?.thumbnail?.[0]) {
-      // Upload new thumbnail to Cloudinary
-      const thumbnailUpload = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: "image",
-            folder: "replays/thumbnails",
-            public_id: `thumbnail_${uuidv4()}`,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(files.thumbnail[0].buffer);
-      });
-      updateData.thumbnail = (thumbnailUpload as any).secure_url;
-
-      // Delete old thumbnail from Cloudinary if it exists
-      if (existingReplay.thumbnail) {
-        const publicId = extractPublicId(existingReplay.thumbnail, "image");
-        if (publicId) {
-          await cloudinary.uploader.destroy(publicId, {
-            resource_type: "image",
-          });
-        }
-      }
-    } else if (req.body.thumbnail && typeof req.body.thumbnail === "string") {
-      // Keep existing thumbnail URL if no new file is uploaded
-      updateData.thumbnail = req.body.thumbnail;
-    } else if (req.body.thumbnail === "") {
-      // Remove thumbnail if explicitly cleared
-      updateData.thumbnail = undefined;
-      if (existingReplay.thumbnail) {
-        const publicId = extractPublicId(existingReplay.thumbnail, "image");
-        if (publicId) {
-          await cloudinary.uploader.destroy(publicId, {
-            resource_type: "image",
-          });
-        }
-      }
-    }
-
-    // Update replay
-    const updatedReplay = await Replay.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedReplay) {
-      res.status(404).json({ message: "Replay not found" });
-      return;
-    }
-
-    res.status(200).json(updatedReplay);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-// Helper function to extract public ID from Cloudinary URL
-const extractPublicId = (
-  url: string,
-  resourceType: "video" | "image"
-): string | null => {
-  try {
-    const parts = url.split("/");
-    const uploadIndex = parts.indexOf("upload");
-    if (uploadIndex === -1) return null;
-    const publicIdParts = parts.slice(uploadIndex + 2); // Skip "upload/v<version>"
-    const publicId = publicIdParts.join("/").split(".")[0]; // Remove file extension
-    return publicId;
-  } catch {
-    return null;
-  }
-};
+  },
+];
 
 // @desc    Xóa một video xem lại
 // @route   DELETE /api/replays/:id
@@ -318,13 +293,37 @@ export const deleteReplay = async (
   res: Response
 ): Promise<void> => {
   try {
-    const deletedReplay = await Replay.findByIdAndDelete(req.params.id);
+    const deletedReplay = await Replay.findById(req.params.id);
     if (!deletedReplay) {
       res.status(404).json({ message: "Không tìm thấy video" });
       return;
     }
+
+    // Delete video file if it exists
+    if (deletedReplay.videoUrl?.startsWith("http://localhost:8080/static/")) {
+      const videoPath = path.join(__dirname, "../../assets/images", path.basename(deletedReplay.videoUrl));
+      try {
+        await fs.access(videoPath); // Check if file exists before trying to unlink
+        await fs.unlink(videoPath);
+      } catch (err) {
+        console.error(`Lỗi khi xóa file video: ${videoPath}`, err);
+      }
+    }
+
+    // Delete thumbnail file if it exists
+    if (deletedReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
+      const thumbnailPath = path.join(__dirname, "../../assets/images", path.basename(deletedReplay.thumbnail));
+      try {
+        await fs.access(thumbnailPath); // Check if file exists before trying to unlink
+        await fs.unlink(thumbnailPath);
+      } catch (err) {
+        console.error(`Lỗi khi xóa file thumbnail: ${thumbnailPath}`, err);
+      }
+    }
+
+    await Replay.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Đã xóa video thành công" });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+  } catch (error: any) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
