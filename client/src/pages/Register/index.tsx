@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 import { apiRegister } from "@/services/auth.services";
 import { authActionProps } from "@/stores/actions/authAction";
 import icon_auth from "@/assets/user/icon-auth.jpeg";
+import "./index.css";
+
 type registerProps = {
   onLogin?: () => void;
   onShowPassword?: boolean;
@@ -32,7 +34,7 @@ const Register = ({
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState<authActionProps>({
     username: "",
-    email: "",
+    phone: "",
     password: "",
   });
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -45,14 +47,14 @@ const Register = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      if (!input.email || !input.password) {
+      if (!input.phone || !input.password) {
         toast.error("Please fill in all fields");
         return;
       }
       setLoading(true);
       const response = await apiRegister({
         ...input,
-        typeLogin: "email",
+        typeLogin: "phone",
       });
       if (response.data.err == 0) {
         toast.error(response.data.msg);
@@ -60,60 +62,62 @@ const Register = ({
       if (response.data.success) {
         toast.success("Register successful!");
         onLogin?.();
-        setInput({ email: "", password: "" });
+        setInput({ phone: "", password: "" });
       }
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
-  const handleShowIndicator = () => {
-    setShowIndicator(true);
-  };
+  // const handleShowIndicator = () => {
+  //   setShowIndicator(true);
+  // };
 
-  useEffect(() => {
-    // check Lower and Uppercase
-    if (input.password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) {
-      setPassLetter(true);
-    } else {
-      setPassLetter(false);
-    }
+  // useEffect(() => {
+  //   // check Lower and Uppercase
+  //   if (input.password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) {
+  //     setPassLetter(true);
+  //   } else {
+  //     setPassLetter(false);
+  //   }
 
-    // Check For Numbers
-    if (input.password.match(/([0-9])/)) {
-      setPassNumber(true);
-    } else {
-      setPassNumber(false);
-    }
+  //   // Check For Numbers
+  //   if (input.password.match(/([0-9])/)) {
+  //     setPassNumber(true);
+  //   } else {
+  //     setPassNumber(false);
+  //   }
 
-    // Check For Special char
+  //   // Check For Special char
 
-    if (input.password.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) {
-      setPassChar(true);
-    } else {
-      setPassChar(false);
-    }
+  //   if (input.password.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) {
+  //     setPassChar(true);
+  //   } else {
+  //     setPassChar(false);
+  //   }
 
-    if (input.password.length > 7) {
-      setPassLength(true);
-    } else {
-      setPassLength(false);
-    }
+  //   if (input.password.length > 7) {
+  //     setPassLength(true);
+  //   } else {
+  //     setPassLength(false);
+  //   }
 
-    if (passLetter && passNumber && passChar && passLength) {
-      setPassComplete(true);
-    } else {
-      setPassComplete(false);
-    }
-  }, [input.password, passLetter, passNumber, passChar, passLength]);
+  //   if (passLetter && passNumber && passChar && passLength) {
+  //     setPassComplete(true);
+  //   } else {
+  //     setPassComplete(false);
+  //   }
+  // }, [input.password, passLetter, passNumber, passChar, passLength]);
 
   return (
     <>
       <div className="main-container --flex-center">
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="--form-control">
-            <h2 className="--color-dark --text-center font-bold">Register</h2>
+        <div className="form-container ">
+          <form onSubmit={handleSubmit} className="--form-control ">
+            <h2 className="--color-dark --text-center font-bold text-4xl">
+              Đăng ký
+            </h2>
             <span className="font-normal text-gray-500/80 text-[18px] flex items-center justify-center">
-              Welcome to Speak-Up!
+              Chào mừng đến với HOIQUANTV
             </span>
             {/* <input type="text" className="--width-100" placeholder="Username" /> */}
             <input
@@ -121,14 +125,14 @@ const Register = ({
               name="username"
               type="text"
               className="--width-100 !rounded-xl"
-              placeholder="Fullname"
+              placeholder="Họ và tên"
             />
             <input
               onChange={handleInput}
-              name="email"
-              type="email"
-              className="--width-100 !rounded-xl"
-              placeholder="Email"
+              name="phone"
+              type="number"
+              className="no-arrows --width-100 !rounded-xl"
+              placeholder="Số điện thoại"
             />
             {/* PASSWORD FIELD */}
             <div className="password">
@@ -136,8 +140,7 @@ const Register = ({
                 type={onShowPassword ? "text" : "password"}
                 className="--width-100 !rounded-xl"
                 name="password"
-                placeholder="Password"
-                onFocus={handleShowIndicator}
+                placeholder="Mật khẩu"
                 value={input.password}
                 onChange={handleInput}
               />
@@ -150,24 +153,29 @@ const Register = ({
               </span>
             </div>
             {/* PASSWORD FIELD */}
-            <button
+            {/* <button
               disabled={!passComplete}
               className={
                 passComplete
                   ? "--btn --btn-dark hover:bg-black/90 hover:text-gray-300/90 --btn-block"
                   : "--btn --btn-dark hover:bg-black/90 hover:text-gray-300/90 --btn-block btn-disabled"
               }
+            > */}
+            <button
+              className={
+                "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block"
+              }
             >
-              Register
+              Đăng ký tài khoản
             </button>
 
             <span className="--text-sm --block">
-              Have an account?
+              Đã có tài khoản?
               <a className="--text-sm cursor-pointer" onClick={onLogin}>
-                Login
+                Đăng nhập
               </a>
             </span>
-            <div className="flex items-center justify-center gap-4 pt-4">
+            {/* <div className="flex items-center justify-center gap-4 pt-4">
               <img
                 className="h-14 w-14 object-cover cursor-pointer"
                 src={facebook}
@@ -180,9 +188,9 @@ const Register = ({
                 alt="google"
                 onClick={() => onClickTypeLogin("google")}
               />
-            </div>
+            </div> */}
             {/* Pass Strength Indicator */}
-            <div
+            {/* <div
               className={showIndicator ? "show-indicator" : "hide-indicator"}
             >
               <ul className="--list-style-none --card --bg-grey --text-sm --p">
@@ -212,7 +220,7 @@ const Register = ({
                   </span>
                 </li>
               </ul>
-            </div>
+            </div> */}
             {/* Pass Strength Indicator */}
           </form>
         </div>

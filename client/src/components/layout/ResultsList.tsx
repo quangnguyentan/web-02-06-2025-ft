@@ -39,12 +39,14 @@ const ResultsList: React.FC<ResultsListProps> = ({
         ))
       ) : (
         <div className="bg-slate-800 p-6 rounded-b-md text-center text-gray-400 shadow-inner">
-          <CalendarDaysIcon className="w-16 h-16 mx-auto text-slate-700 mb-4" />
-          <p className="text-lg font-semibold">{noMatchesMessage}</p>
-          <p className="text-sm">
+          <CalendarDaysIcon className="w-16 h-16 mx-auto !text-slate-700 mb-4" />
+          <p className="text-lg font-semibold !text-slate-700">
+            {noMatchesMessage}
+          </p>
+          <p className="text-sm !text-slate-700">
             Không có kết quả trận đấu nào cho {selectedDateLabel}.
           </p>
-          <p className="text-sm">Vui lòng chọn ngày khác.</p>
+          <p className="text-sm !text-slate-700">Vui lòng chọn ngày khác.</p>
         </div>
       )}
     </div>

@@ -44,10 +44,10 @@ export const updateUser = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
-  const { email, role, firstname, lastname, level, password } = req.body;
-  console.log(email, role, firstname, lastname, level);
+  const { phone, role, firstname, lastname, level, password } = req.body;
+  console.log(phone, role, firstname, lastname, level);
   if (!id) throw new Error("Missing exercise id");
-  if (!email || !role || !firstname || !lastname || !level || !password) {
+  if (!phone || !role || !firstname || !lastname || !level || !password) {
     res.status(400).json({
       success: false,
       rs: "Missing inputs",
@@ -184,7 +184,7 @@ export const updateProfileOrPassword = async (
     address,
     gender,
     password,
-    phoneNumber,
+    phone,
     currentPassword,
   } = req.body;
   const files = req?.files as
@@ -225,7 +225,7 @@ export const updateProfileOrPassword = async (
     user.lastname = lastname ?? user.lastname;
     user.address = address ?? user.address;
     user.gender = gender ?? user.gender;
-    user.phoneNumber = phoneNumber ?? user.phoneNumber;
+    user.phone = phone ?? user.phone;
     user.username =
       firstname && lastname
         ? `${firstname} ${lastname}`
@@ -281,7 +281,7 @@ export const createUser = async (
 ): Promise<void> => {
   try {
     const {
-      email,
+      phone,
       password,
       username,
       firstname,
@@ -293,7 +293,6 @@ export const createUser = async (
       address,
       gender,
       enrolledCoursesCount,
-      phoneNumber,
       avatar,
       id,
       tokenLogin,
@@ -301,7 +300,6 @@ export const createUser = async (
 
     // Kiểm tra các trường bắt buộc
     if (
-      !email ||
       !password ||
       !username ||
       !firstname ||
@@ -320,18 +318,8 @@ export const createUser = async (
       return;
     }
 
-    // Validate định dạng email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid email format",
-      });
-      return;
-    }
-
     // Validate typeLogin
-    if (!["email", "google", "facebook"].includes(typeLogin)) {
+    if (!["phone", "google", "facebook"].includes(typeLogin)) {
       res.status(400).json({
         success: false,
         message: "Invalid login type",
@@ -358,7 +346,7 @@ export const createUser = async (
     }
 
     // Validate phoneNumber nếu có
-    if (phoneNumber && !/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
+    if (phone && !/^\+?[1-9]\d{1,14}$/.test(phone)) {
       res.status(400).json({
         success: false,
         message: "Invalid phone number format",
@@ -367,11 +355,11 @@ export const createUser = async (
     }
 
     // Kiểm tra email đã tồn tại
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ phone });
     if (existingEmail) {
       res.status(409).json({
         success: false,
-        message: "Email already exists",
+        message: "Phone already exists",
       });
       return;
     }
@@ -389,8 +377,8 @@ export const createUser = async (
     // Tạo user mới
     const newUser: Partial<IUser> = {
       id: id ?? uuidv4(), // Sử dụng id từ client hoặc tạo mới
-      tokenLogin: tokenLogin || uuidv4(), // Sử dụng tokenLogin từ client hoặc tạo mới
-      email,
+      tokenLogin: tokenLogin ?? uuidv4(), // Sử dụng tokenLogin từ client hoặc tạo mới
+      phone,
       password, // Sẽ được hash trong pre-save hook
       username,
       firstname,
@@ -402,7 +390,6 @@ export const createUser = async (
       address: address ?? "",
       gender,
       enrolledCoursesCount: Number(enrolledCoursesCount) || 0,
-      phoneNumber: phoneNumber ?? "",
       avatar: avatar ?? "",
       refreshToken: "", // Default
     };
@@ -425,7 +412,7 @@ export const createUser = async (
       address: user.address,
       gender: user.gender,
       enrolledCoursesCount: user.enrolledCoursesCount,
-      phoneNumber: user.phoneNumber,
+      phone: user.phone,
       avatar: user.avatar,
     };
 

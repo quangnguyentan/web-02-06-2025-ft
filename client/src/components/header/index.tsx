@@ -20,10 +20,6 @@ import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
-import Typography from "@mui/material/Typography";
-import Input from "@mui/material/Input";
-import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/solid";
-import { Button } from "@mui/material";
 import { Sport } from "@/types/sport.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useData } from "@/context/DataContext";
@@ -33,16 +29,15 @@ import { logout } from "@/stores/actions/authAction";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
-
+import Auth from "@/pages/Auth";
+import avatar from "@/assets/user/avatar.webp";
 const style = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 700,
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
+  width: 900,
+  height: 700,
   p: 4,
 };
 
@@ -50,8 +45,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const [passwordShown, setPasswordShown] = React.useState(false);
-  const togglePasswordVisiblity = () => setPasswordShown((cur) => !cur);
   const {
     selectedPage,
     setSelectedPage,
@@ -63,6 +56,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const navigate = useNavigate();
   const { userData } = useSelector((state: RootState) => state.user);
   const { isLoggedIn, token } = useSelector((state: RootState) => state.auth);
+  console.log(userData);
 
   const getSportNameFromSlug = (slug: string) => {
     const sport = sportData.find((s) => s.slug === slug);
@@ -111,9 +105,6 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     ];
   }, [getInitialActiveSportName, sportData]);
 
-  const handleClickTypeLogin = (type: string) => {
-    window.open(`http://localhost:8080/api/auth/${type}`, "_self");
-  };
   const dispatch = useAppDispatch();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const wrapperRef = React.useRef(null);
@@ -148,7 +139,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 relative">
       <img
         src="https://via.placeholder.com/120x32/FFFFFF/1A202C?text=THAPCAM"
-        alt="ThapCam TV Logo"
+        alt="HoiQuanTV Logo"
         className="h-8 sm:h-10 mr-2 md:mr-6"
       />
       <div>
@@ -196,20 +187,20 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
       <div className="flex items-center space-x-1.5 sm:space-x-3">
         <button className="hidden sm:flex items-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
           <TVIcon className="w-5 h-5 mr-1" />
-          ThapCam TV
+          HoiQuanTV
         </button>
         <button className="hidden sm:flex items-center bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-semibold px-3 py-2 rounded text-sm">
           Cược Uy Tín
         </button>
         <div>
-          {isLoggedIn && token && userData?.avatar ? (
+          {isLoggedIn && token ? (
             <div className="relative" ref={wrapperRef}>
               <button
                 onClick={toggleDropdown}
                 className="flex items-center gap-2 focus:outline-none"
               >
                 <img
-                  src={userData?.avatar} // Replace with actual avatar path
+                  src={userData?.avatar ? userData?.avatar : avatar} // Replace with actual avatar path
                   alt="User Avatar"
                   className="w-6 h-6 rounded-full"
                 />
@@ -223,18 +214,9 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg z-10"
+                    className="absolute right-0 mt-4 w-48 bg-white text-gray-800 rounded-md shadow-lg z-10"
                   >
                     <ul className="py-1">
-                      <li>
-                        <button
-                          onClick={() => alert("Settings clicked")}
-                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                        >
-                          <Settings size={16} className="mr-2" />
-                          Cài đặt
-                        </button>
-                      </li>
                       <li>
                         <button
                           onClick={handleLogout}
@@ -268,116 +250,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
           >
             <Fade in={open}>
               <Box sx={style}>
-                <section className="text-center px-6 py-4">
-                  <Typography
-                    id="signin-modal-title"
-                    variant="h4"
-                    sx={{ fontWeight: 600, mb: 1 }}
-                  >
-                    Sign In
-                  </Typography>
-                  <Typography
-                    id="signin-modal-description"
-                    variant="body1"
-                    color="text.secondary"
-                    sx={{ mb: 4 }}
-                  >
-                    Enter your email and password to sign in
-                  </Typography>
-                  <form className="mx-auto max-w-md text-left space-y-4">
-                    <div>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ mb: 1, color: "text.primary", fontWeight: 500 }}
-                      >
-                        Email Address
-                      </Typography>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        fullWidth
-                        placeholder="name@mail.com"
-                        size="medium"
-                      />
-                    </div>
-                    <div>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ mb: 1, color: "text.primary", fontWeight: 500 }}
-                      >
-                        Password
-                      </Typography>
-                      <Input
-                        id="password"
-                        name="password"
-                        type={passwordShown ? "text" : "password"}
-                        fullWidth
-                        placeholder="********"
-                        size="medium"
-                        endAdornment={
-                          <i
-                            onClick={togglePasswordVisiblity}
-                            className="cursor-pointer"
-                          >
-                            {passwordShown ? (
-                              <EyeIcon className="h-5 w-5 text-gray-500" />
-                            ) : (
-                              <EyeSlashIcon className="h-5 w-5 text-gray-500" />
-                            )}
-                          </i>
-                        }
-                      />
-                    </div>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                      fullWidth
-                      sx={{ mt: 2 }}
-                    >
-                      Sign In
-                    </Button>
-                    <Typography
-                      variant="body2"
-                      align="right"
-                      sx={{ mt: 1, color: "text.secondary" }}
-                    >
-                      <a href="#" className="hover:underline text-sm">
-                        Forgot password?
-                      </a>
-                    </Typography>
-                    <Button
-                      onClick={() => handleClickTypeLogin("google")}
-                      variant="outlined"
-                      size="large"
-                      fullWidth
-                      startIcon={
-                        <img
-                          src="https://www.material-tailwind.com/logos/logo-google.png"
-                          alt="Google"
-                          className="h-5 w-5"
-                        />
-                      }
-                      sx={{ mt: 2 }}
-                    >
-                      Sign in with Google
-                    </Button>
-                    <Typography
-                      variant="body2"
-                      align="center"
-                      sx={{ mt: 3, color: "text.secondary" }}
-                    >
-                      Not registered?{" "}
-                      <a
-                        href="#"
-                        className="font-medium text-primary hover:underline"
-                      >
-                        Create account
-                      </a>
-                    </Typography>
-                  </form>
-                </section>
+                <Auth handleClose={handleClose} />
               </Box>
             </Fade>
           </Modal>

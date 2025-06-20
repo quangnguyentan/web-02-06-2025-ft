@@ -125,7 +125,9 @@ const ChatPanel: React.FC = () => {
                   {msg.timestamp}
                 </span>
               </div>
-              <p className="text-gray-300 leading-snug">{msg.message}</p>
+              <p className="text-gray-300 leading-snug text-xs">
+                {msg.message}
+              </p>
             </div>
           </div>
         ))}
@@ -135,7 +137,7 @@ const ChatPanel: React.FC = () => {
       {/* Input Area */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2 border-t border-slate-700 flex items-center space-x-2"
+        className="p-2 border-t border-slate-700 flex items-center space-x-2 w-full"
       >
         <input
           type="text"

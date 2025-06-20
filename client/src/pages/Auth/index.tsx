@@ -4,7 +4,7 @@ import Login from "../Login";
 import Register from "../Register";
 import Reset from "../Reset";
 
-const Auth = () => {
+const Auth = ({ handleClose }) => {
   const [auth, setAuth] = useState({
     login: true,
     register: false,
@@ -32,10 +32,11 @@ const Auth = () => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
   return (
-    <section className="--flex-center --100vh bg-white">
+    <section className="--flex-center bg-white">
       <div className="container box">
         {auth.login && (
           <Login
+            onClose={handleClose}
             onRegister={handleRegister}
             onReset={handleReset}
             onShowPassword={showPassword}

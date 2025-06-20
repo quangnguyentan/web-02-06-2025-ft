@@ -8,12 +8,15 @@ import { authActionProps, loginAction } from "@/stores/actions/authAction";
 import { useAppDispatch } from "@/hooks/use-dispatch";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import "./index.css";
+
 type loginProps = {
   onRegister?: () => void;
   onReset?: () => void;
   onTogglePassword?: () => void;
   onShowPassword?: boolean;
   onClickTypeLogin: (type: string) => void;
+  onClose?: () => void;
 };
 const Login = ({
   onRegister,
@@ -21,12 +24,13 @@ const Login = ({
   onTogglePassword,
   onShowPassword,
   onClickTypeLogin,
+  onClose,
 }: loginProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState<authActionProps>({
-    email: "",
+    phone: "",
     password: "",
   });
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +44,7 @@ const Login = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      if (!input.email || !input.password) {
+      if (!input.phone || !input.password) {
         toast.error("Please fill in all fields");
         return;
       }
@@ -54,11 +58,11 @@ const Login = ({
         dispatch(loginAction(input))
           .then(() => {
             toast.success("Login successful!");
-            navigate("/");
+            onClose();
           })
           .catch(() => {
             toast.error("Login failed. Please try again.");
-            setInput({ email: "", password: "" });
+            setInput({ phone: "", password: "" });
           })
           .finally(() => {
             setLoading(false);
@@ -90,23 +94,25 @@ const Login = ({
           </div>
           <div className="form-container">
             <form onSubmit={handleSubmit} className="--form-control">
-              <h2 className="--color-dark --text-center font-bold">Login</h2>
+              <h2 className="--color-dark --text-center font-bold text-4xl">
+                Đăng nhập
+              </h2>
               <span className="font-normal text-gray-500/80 text-[18px] flex items-center justify-center">
-                Welcome to Speak-Up!
+                Chào mừng đến với HOIQUANTV!
               </span>
               <input
                 onChange={handleInput}
-                name="email"
+                name="phone"
                 type="text"
                 className="--width-100 !rounded-xl"
-                placeholder="Email"
+                placeholder="Số điện thoại"
               />
               <div className="password">
                 <input
                   type={onShowPassword ? "text" : "password"}
                   name="password"
                   className="--width-100 !rounded-xl"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   onChange={handleInput}
                 />
                 <span
@@ -121,19 +127,19 @@ const Login = ({
                   )}
                 </span>
               </div>
-              <button className="--btn --btn-dark hover:bg-black/90 hover:text-gray-300/90 --btn-block">
-                Login
+              <button className="--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block">
+                Đăng nhập
               </button>
-              <a className="--text-sm cursor-pointer" onClick={onReset}>
-                Forgot password?
-              </a>
+              {/* <a className="--text-sm cursor-pointer" onClick={onReset}>
+                Quên mật khẩu?
+              </a> */}
               <span className="--text-sm --block">
-                Don't have an account?
+                Chưa có tài khoản?
                 <a className="--text-sm cursor-pointer" onClick={onRegister}>
-                  Register
+                  Đăng ký
                 </a>
               </span>
-              <div className="flex items-center justify-center gap-4 pt-4">
+              {/* <div className="flex items-center justify-center gap-4 pt-4">
                 <img
                   className="h-14 w-14 object-cover cursor-pointer"
                   src={facebook}
@@ -146,7 +152,7 @@ const Login = ({
                   alt="google"
                   onClick={() => onClickTypeLogin("google")}
                 />
-              </div>
+              </div> */}
             </form>
           </div>
         </div>

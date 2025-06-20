@@ -9,6 +9,7 @@ export interface IUser extends Document {
   firstname: string;
   lastname: string;
   email: string;
+  phone: string;
   password: string;
   refreshToken: string;
   avatar?: string;
@@ -18,7 +19,6 @@ export interface IUser extends Document {
   address: string;
   gender: "MALE" | "FEMALE" | "OTHER";
   enrolledCoursesCount: number;
-  phoneNumber: string;
   isCorrectPassword(password: string): Promise<boolean>;
   createPasswordChangedToken(): string;
   passwordResetToken?: string;
@@ -46,7 +46,7 @@ const UserSchema = new Schema<IUser>(
     level: { type: Number, default: 0 },
     address: { type: String, default: "" },
     gender: { type: String, default: "MALE" },
-    phoneNumber: { type: String, default: "" },
+    phone: { type: String, default: "" },
     total_score: { type: Number, default: 0 },
     enrolledCoursesCount: { type: Number, default: 0 },
     passwordResetToken: { type: String },

@@ -10,9 +10,9 @@ dotenv.config();
 //method post = path(delele, post, put,get )
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, typeLogin, username } = req.body;
+    const { phone, password, typeLogin, username } = req.body;
     console.log(username);
-    if (!email || !password || !username) {
+    if (!phone || !password || !username) {
       res.status(400).json({
         success: false,
         mes: "Missing inputs",
@@ -20,14 +20,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     const { firstName, lastName } = splitName(username);
-    if (typeLogin === "email" && !password) {
+    if (typeLogin === "phone" && !password) {
       res.status(400).json({
         success: false,
-        mes: "Password is required for email login",
+        mes: "Password is required for phone login",
       });
       return;
     }
-    const existingUser = await User.findOne({ email, typeLogin });
+    const existingUser = await User.findOne({ phone, typeLogin });
     if (existingUser) {
       res.status(409).json({
         err: 0,
@@ -54,8 +54,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { phone, password } = req.body;
+  if (!phone || !password) {
     res.status(400).json({
       success: false,
       mes: "Missing inputs",
@@ -63,7 +63,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     return;
   }
   // plain object
-  const response = await User.findOne({ email });
+  const response = await User.findOne({ phone });
   if (response && (await response.isCorrectPassword(password))) {
     // Tách password và role ra khỏi response
     const { password, role, refreshToken, ...userData } = response.toObject();

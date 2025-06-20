@@ -18,15 +18,24 @@ const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => (
     className="text-xs text-gray-400 mb-2 px-1 flex items-center space-x-0.5 pt-4"
     aria-label="Breadcrumb"
   >
-    <a href="#" className="hover:text-yellow-400 flex items-center">
+    <a
+      href="#"
+      className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs"
+    >
       <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <a href="#" className="hover:text-yellow-400">
+    <a
+      href="#"
+      className="hover:text-yellow-400 text-xs text-white hover:text-xs"
+    >
       Xem lại
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <a href="#" className="hover:text-yellow-400">
+    <a
+      href="#"
+      className="hover:text-yellow-400 text-xs text-white hover:text-xs"
+    >
       {replay?.sport?.name || "Thể loại"}
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />

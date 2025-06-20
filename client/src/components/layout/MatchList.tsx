@@ -14,11 +14,13 @@ const MatchList: React.FC<MatchListProps> = (props: MatchListProps) => {
     return (
       <div className="bg-slate-800 p-6 rounded-b-md text-center text-gray-400">
         <CalendarDaysIcon className="w-16 h-16 mx-auto text-slate-700 mb-4" />
-        <p className="text-lg font-semibold">Không có lịch thi đấu</p>
-        <p className="text-sm">
+        <p className="text-lg font-semibold !text-slate-700">
+          Không có lịch thi đấu
+        </p>
+        <p className="text-sm !text-slate-700">
           Không có trận đấu nào được lên lịch cho {selectedDateLabel}.
         </p>
-        <p className="text-sm">Vui lòng chọn ngày khác.</p>
+        <p className="text-sm !text-slate-700">Vui lòng chọn ngày khác.</p>
       </div>
     );
   }
