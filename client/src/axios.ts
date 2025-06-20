@@ -4,9 +4,11 @@ import { logout } from "./stores/actions/authAction";
 import toast from "react-hot-toast";
 import reduxStore from "@/store";
 import { navigate } from "./lib/navigate";
+import type { AppDispatch } from "@/store";
 const production = "https://sv.hoiquan.live/api";
 const development = "http://localhost:8080/api";
 const { store } = reduxStore();
+const typedDispatch = store.dispatch as AppDispatch;
 const instance = axios.create({
   // baseURL: production,
   baseURL: development,
@@ -76,7 +78,7 @@ instance.interceptors.response.use(
       } catch (refreshError) {
         console.error("Refresh token expired:", refreshError);
         window.localStorage.removeItem("persist:auth");
-        store.dispatch(logout());
+        typedDispatch(logout());
         navigate(
           location.pathname.startsWith("/admin") ? "/admin/auth" : "/auth"
         );

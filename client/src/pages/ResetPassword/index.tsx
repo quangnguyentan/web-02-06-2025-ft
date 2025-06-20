@@ -23,7 +23,7 @@ const ResetPassword: React.FC = () => {
     try {
       setLoading(true);
       const response = await apiResetPassword({
-        token: resetToken,
+        token: resetToken ?? "",
         password: newPassword,
       });
 

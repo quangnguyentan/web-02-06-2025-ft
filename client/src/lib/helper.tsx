@@ -1,4 +1,4 @@
-export function formatDuration(minutes) {
+export function formatDuration(minutes: any) {
   // Lấy số nguyên phút
   const totalSeconds = Math.round(minutes * 60); // Chuyển phút thành giây
   const hours = Math.floor(totalSeconds / 3600); // Tính giờ

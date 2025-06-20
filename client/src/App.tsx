@@ -2,10 +2,10 @@ import { Route, RouteObject, Routes, useNavigate } from "react-router-dom";
 import routes from "./pages/routes";
 import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "./store";
+
 import { Toaster } from "react-hot-toast";
 import { getCurrent } from "./stores/actions/userAction";
-import { AppDispatch } from "./main";
+import type { RootState, AppDispatch } from "./store";
 import { setNavigate } from "./lib/navigate";
 function App() {
   const { isLoggedIn, current } = useSelector((state: RootState) => state.auth);
@@ -13,8 +13,9 @@ function App() {
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     const setTimeoutId = setTimeout(() => {
-      if (isLoggedIn) dispatch(getCurrent());
-      else {
+      if (isLoggedIn) {
+        dispatch(getCurrent());
+      } else {
         // navigate("/");
         // const publicPaths = [
         //   /^\/auth$/,

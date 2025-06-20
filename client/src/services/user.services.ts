@@ -125,7 +125,7 @@ export const apiResetPassword = async (data: ResetPasswordPayload) => {
     throw error;
   }
 };
-export const apiUpdateProfile = async (data) => {
+export const apiUpdateProfile = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",
