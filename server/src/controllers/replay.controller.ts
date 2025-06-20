@@ -41,9 +41,9 @@ export const createReplay: RequestHandler[] = [
       // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
-          videoUrl?: Express.Multer.File[];
-          thumbnail?: Express.Multer.File[];
-        }
+            videoUrl?: Express.Multer.File[];
+            thumbnail?: Express.Multer.File[];
+          }
         | undefined;
 
       // Validate match
@@ -62,11 +62,15 @@ export const createReplay: RequestHandler[] = [
 
       // Handle video file
       // Accessing files.videoUrl[0] is now safe because of the check above
-      const videoUrl = `http://localhost:8080/static/${path.basename(files.videoUrl[0].path)}`;
+      const videoUrl = `http://localhost:8080/static/${path.basename(
+        files.videoUrl[0].path
+      )}`;
 
       // Handle thumbnail file (optional)
       const thumbnailUrl = files?.thumbnail?.[0]
-        ? `http://localhost:8080/static/${path.basename(files.thumbnail[0].path)}`
+        ? `http://localhost:8080/static/${path.basename(
+            files.thumbnail[0].path
+          )}`
         : undefined;
 
       // Prepare replay data
@@ -87,7 +91,21 @@ export const createReplay: RequestHandler[] = [
 
       const newReplay = new Replay(replayData);
       await newReplay.save();
-      res.status(201).json(newReplay);
+      const populatedReplay = await Replay.findById(newReplay._id)
+        .populate({
+          path: "match",
+          populate: [
+            { path: "homeTeam", select: "name logo" },
+            { path: "awayTeam", select: "name logo" },
+            { path: "league", select: "name" },
+          ],
+        })
+        .populate({
+          path: "sport",
+          select: "name icon slug",
+        });
+
+      res.status(201).json(populatedReplay);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
@@ -178,9 +196,9 @@ export const updateReplay: RequestHandler[] = [
       // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
-          videoUrl?: Express.Multer.File[];
-          thumbnail?: Express.Multer.File[];
-        }
+            videoUrl?: Express.Multer.File[];
+            thumbnail?: Express.Multer.File[];
+          }
         | undefined;
 
       // Validate match if provided
@@ -206,22 +224,38 @@ export const updateReplay: RequestHandler[] = [
       const updateData: Partial<IReplay> = {
         title: body.title || existingReplay.title,
         slug: body.slug || existingReplay.slug,
-        description: body.description !== undefined ? body.description : existingReplay.description,
+        description:
+          body.description !== undefined
+            ? body.description
+            : existingReplay.description,
         match: body.match || existingReplay.match,
         sport: body.sport || existingReplay.sport,
-        duration: body.duration ? Number(body.duration) : existingReplay.duration,
+        duration: body.duration
+          ? Number(body.duration)
+          : existingReplay.duration,
         views: body.views ? Number(body.views) : existingReplay.views,
-        commentator: body.commentator !== undefined ? body.commentator : existingReplay.commentator,
+        commentator:
+          body.commentator !== undefined
+            ? body.commentator
+            : existingReplay.commentator,
         publishDate: body.publishDate || existingReplay.publishDate,
         isShown:
-          body.isShown === "true" ? true : body.isShown === "false" ? false : existingReplay.isShown,
+          body.isShown === "true"
+            ? true
+            : body.isShown === "false"
+            ? false
+            : existingReplay.isShown,
       };
 
       // Handle video upload
       // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
       if (files?.videoUrl?.[0]) {
-        updateData.videoUrl = `http://localhost:8080/static/${path.basename(files.videoUrl[0].path)}`;
-        if (existingReplay.videoUrl?.startsWith("http://localhost:8080/static/")) {
+        updateData.videoUrl = `http://localhost:8080/static/${path.basename(
+          files.videoUrl[0].path
+        )}`;
+        if (
+          existingReplay.videoUrl?.startsWith("http://localhost:8080/static/")
+        ) {
           const filename = path.basename(existingReplay.videoUrl);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
@@ -234,14 +268,20 @@ export const updateReplay: RequestHandler[] = [
       // Handle thumbnail upload
       // Now 'files' is correctly typed, so 'files?.thumbnail' is valid
       if (files?.thumbnail?.[0]) {
-        updateData.thumbnail = `http://localhost:8080/static/${path.basename(files.thumbnail[0].path)}`;
-        if (existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
+        updateData.thumbnail = `http://localhost:8080/static/${path.basename(
+          files.thumbnail[0].path
+        )}`;
+        if (
+          existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")
+        ) {
           const filename = path.basename(existingReplay.thumbnail);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
       } else if (body.thumbnail === "") {
         updateData.thumbnail = undefined;
-        if (existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
+        if (
+          existingReplay.thumbnail?.startsWith("http://localhost:8080/static/")
+        ) {
           const filename = path.basename(existingReplay.thumbnail);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
@@ -258,10 +298,26 @@ export const updateReplay: RequestHandler[] = [
       }
 
       // Update replay
-      const updatedReplay = await Replay.findByIdAndUpdate(req.params.id, updateData, {
-        new: true,
-        runValidators: true,
-      });
+      const updatedReplay = await Replay.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      )
+        .populate({
+          path: "match",
+          populate: [
+            { path: "homeTeam", select: "name logo" },
+            { path: "awayTeam", select: "name logo" },
+            { path: "league", select: "name" },
+          ],
+        })
+        .populate({
+          path: "sport",
+          select: "name icon slug",
+        });
 
       if (!updatedReplay) {
         res.status(404).json({ message: "Không tìm thấy video" });
@@ -301,7 +357,11 @@ export const deleteReplay = async (
 
     // Delete video file if it exists
     if (deletedReplay.videoUrl?.startsWith("http://localhost:8080/static/")) {
-      const videoPath = path.join(__dirname, "../../assets/images", path.basename(deletedReplay.videoUrl));
+      const videoPath = path.join(
+        __dirname,
+        "../../assets/images",
+        path.basename(deletedReplay.videoUrl)
+      );
       try {
         await fs.access(videoPath); // Check if file exists before trying to unlink
         await fs.unlink(videoPath);
@@ -312,7 +372,11 @@ export const deleteReplay = async (
 
     // Delete thumbnail file if it exists
     if (deletedReplay.thumbnail?.startsWith("http://localhost:8080/static/")) {
-      const thumbnailPath = path.join(__dirname, "../../assets/images", path.basename(deletedReplay.thumbnail));
+      const thumbnailPath = path.join(
+        __dirname,
+        "../../assets/images",
+        path.basename(deletedReplay.thumbnail)
+      );
       try {
         await fs.access(thumbnailPath); // Check if file exists before trying to unlink
         await fs.unlink(thumbnailPath);

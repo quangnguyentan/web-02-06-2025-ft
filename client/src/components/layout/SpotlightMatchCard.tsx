@@ -9,6 +9,7 @@ import volleyball from "@/assets/user/volleyball-min.jpg";
 import boxing from "@/assets/user/boxing-min.jpg";
 import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
+import badminton from "@/assets/user/badminton-min.png";
 
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
@@ -49,10 +50,12 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       ? volleyball
       : match?.sport?.name === "Đua xe"
       ? race
-      : match?.sport?.name === "Võ thuật"
+      : match?.sport?.name === "Boxing"
       ? boxing
       : match?.sport?.name === "eSports"
       ? esport
+      : match?.sport?.name === "Cầu lông"
+      ? badminton
       : "";
   return (
     <div

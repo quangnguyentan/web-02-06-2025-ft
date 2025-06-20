@@ -21,21 +21,28 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { useCallback } from "react";
 import { apiCreateSport } from "@/services/sport.services";
-import { Sport } from "@/types/sport.types"; // Giả định type Sport
+import { Sport } from "@/types/sport.types";
+import { useDropzone } from "react-dropzone";
 
 // Schema cho form
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Sport name is required" }),
+  name: z.string().min(1, { message: "Tên môn thể thao là bắt buộc" }),
   slug: z
     .string()
-    .min(1, { message: "Slug is required" })
+    .min(1, { message: "Slug là bắt buộc" })
     .regex(/^[a-z0-9-]+$/i, {
-      message: "Slug must contain only lowercase letters, numbers, or hyphens",
+      message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
     })
-    .transform((val) => val.toLowerCase()), // Chuyển slug thành lowercase
-  icon: z.string().url({ message: "Icon must be a valid URL" }),
-  order: z.coerce.number().min(1, { message: "Order must be non-negative" }),
+    .transform((val) => val.toLowerCase()),
+  icon: z
+    .instanceof(File)
+    .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
+      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
+    })
+    .optional(),
+  order: z.coerce.number().min(1, { message: "Thứ tự phải là số không âm" }),
 });
 
 export const CreateSportModal = () => {
@@ -48,28 +55,56 @@ export const CreateSportModal = () => {
     defaultValues: {
       name: "",
       slug: "",
-      icon: "",
-      order: undefined,
+      icon: undefined,
+      order: 1,
     },
   });
 
   const isLoading = form.formState.isSubmitting;
 
+  const onDropIcon = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles[0]) {
+        form.setValue("icon", acceptedFiles[0], { shouldValidate: true });
+      }
+    },
+    [form]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: onDropIcon,
+    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB limit
+    onDropRejected: (fileRejections) => {
+      const error =
+        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
+      toast.error(error);
+    },
+  });
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const payload: Sport = {
-        ...values,
-      };
-      const res = await apiCreateSport(payload);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("slug", values.slug);
+      formData.append("order", values.order.toString());
+      if (values.icon) {
+        formData.append("icon", values.icon);
+      }
+
+      const res = await apiCreateSport(formData);
       if (res?.data) {
         toast.success(`Đã tạo ${values.name} thành công`);
         onClose();
         addSport(res.data);
         setSelectedPage("Sports");
+        form.reset();
       }
-      form.reset();
-    } catch (error) {
-      toast.error("Lỗi khi tạo môn thể thao");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Lỗi khi tạo môn thể thao";
+      toast.error(errorMessage);
       console.error(error);
     }
   };
@@ -90,18 +125,17 @@ export const CreateSportModal = () => {
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 px-6">
-              {/* Name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sport Name</FormLabel>
+                    <FormLabel>Tên Môn Thể Thao</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter sport name (e.g., Football)"
+                        placeholder="Nhập tên môn thể thao (ví dụ: Bóng Đá)"
                         {...field}
                         type="text"
                       />
@@ -110,8 +144,6 @@ export const CreateSportModal = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -122,7 +154,7 @@ export const CreateSportModal = () => {
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter slug (e.g., football)"
+                        placeholder="Nhập slug (ví dụ: bong-da)"
                         {...field}
                         type="text"
                       />
@@ -131,38 +163,42 @@ export const CreateSportModal = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Icon */}
               <FormField
                 control={form.control}
                 name="icon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icon URL</FormLabel>
+                    <FormLabel>Icon (Không bắt buộc)</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter icon URL (e.g., https://example.com/icon.png)"
-                        {...field}
-                        type="url"
-                      />
+                      <div
+                        {...getRootProps()}
+                        className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                          isDragActive ? "border-blue-500" : "border-gray-300"
+                        }`}
+                      >
+                        <input {...getInputProps()} />
+                        {field.value ? (
+                          <p className="text-blue-600">{field.value.name}</p>
+                        ) : (
+                          <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {/* Order (Optional) */}
               <FormField
                 control={form.control}
                 name="order"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Order</FormLabel>
+                    <FormLabel>Thứ Tự</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
-                        placeholder="Enter order"
+                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        placeholder="Nhập thứ tự"
                         {...field}
                         type="number"
                         min={1}
@@ -178,6 +214,8 @@ export const CreateSportModal = () => {
               <Button
                 onClick={handleClose}
                 className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
+                type="button"
+                disabled={isLoading}
               >
                 Đóng
               </Button>

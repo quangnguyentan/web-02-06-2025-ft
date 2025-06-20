@@ -133,12 +133,12 @@ export const getColumns = (
       if (
         typeof sportData === "object" &&
         sportData !== null &&
-        "title" in sportData
+        "name" in sportData
       ) {
-        sportName = (sportData as Sport).name;
+        sportName = (sportData as Sport)?.name;
       } else if (typeof sportData === "string") {
         const foundMatch = sports.find((m) => m._id === sportData);
-        sportName = foundMatch ? foundMatch.name : "ID: " + sportData;
+        sportName = foundMatch ? foundMatch?.name : "ID: " + sportData;
       }
       return <div className="capitalize">{sportName}</div>;
     },

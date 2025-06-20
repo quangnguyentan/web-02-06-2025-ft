@@ -361,7 +361,7 @@ export const CreateReplayModal = () => {
                           <SelectValue placeholder="Chọn trận đấu" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {matches.map((match) => (
                           <SelectItem key={match._id} value={match._id}>
                             {match.title}
@@ -389,7 +389,7 @@ export const CreateReplayModal = () => {
                           <SelectValue placeholder="Chọn môn thể thao" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {sports.map((sport) => (
                           <SelectItem key={sport._id} value={sport._id}>
                             {sport.name}

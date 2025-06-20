@@ -6,11 +6,15 @@ import {
   getLeagueById,
   updateLeague,
 } from "../controllers/league.controller";
-
+import { upload } from "../middlewares/multer";
 const router = Router();
 
-router.route("/").post(createLeague).get(getAllLeagues);
+router.route("/").post(upload.single("logo"), createLeague).get(getAllLeagues);
 
-router.route("/:id").get(getLeagueById).put(updateLeague).delete(deleteLeague);
+router
+  .route("/:id")
+  .get(getLeagueById)
+  .put(upload.single("logo"), updateLeague)
+  .delete(deleteLeague);
 
 export default router;

@@ -189,13 +189,24 @@ export const getColumns = (
   {
     accessorKey: "isHot",
     header: "Hot Match",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row.getValue("isHot") === true
-          ? "Trận đấu tâm điểm"
-          : "Trận đấu thường"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const sportData = row.original.sport;
+      let sportName = "N/A";
+      if (
+        typeof sportData === "object" &&
+        sportData !== null &&
+        "name" in sportData
+      ) {
+        sportName = (sportData as Sport).name;
+      }
+      return (
+        <div className="capitalize">
+          {row.getValue("isHot") === true
+            ? `Trận đấu tâm điểm/${sportName}`
+            : `Trận đấu ${sportName}`}
+        </div>
+      );
+    },
   },
 
   {

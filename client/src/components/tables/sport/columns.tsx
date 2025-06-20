@@ -59,7 +59,18 @@ export const getColumns = (
   {
     accessorKey: "icon",
     header: "Icon",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("icon")}</div>,
+    cell: ({ row }) => {
+      const iconUrl = row.getValue("icon") as string;
+      return iconUrl ? (
+        <img
+          src={iconUrl}
+          alt="Team Logo"
+          className="w-6 h-6 object-contain rounded-full" // Thay đổi kích thước và bo tròn nếu cần
+        />
+      ) : (
+        "N/A"
+      );
+    },
   },
   {
     accessorKey: "order",

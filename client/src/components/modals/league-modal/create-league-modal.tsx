@@ -28,24 +28,29 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiCreateLeague } from "@/services/league.services";
 import { apiGetAllSports } from "@/services/sport.services";
 import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
+import { useDropzone } from "react-dropzone";
 
-// Schema dựa trên ILeague
-const formSchema = z.object({
-  name: z.string().min(1, { message: "League name is required" }),
+const leagueFormSchema = z.object({
+  name: z.string().min(1, { message: "Tên giải đấu là bắt buộc" }),
   slug: z
     .string()
-    .min(1, { message: "Slug is required" })
+    .min(1, { message: "Slug là bắt buộc" })
     .regex(/^[a-z0-9-]+$/i, {
-      message: "Slug must contain only lowercase letters, numbers, or hyphens",
+      message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
     })
     .transform((val) => val.toLowerCase()),
-  logo: z.string().url({ message: "Logo must be a valid URL" }).optional(),
-  sport: z.string().min(1, { message: "Sport is required" }), // ID của môn thể thao
+  logo: z
+    .instanceof(File)
+    .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
+      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
+    })
+    .optional(),
+  sport: z.string().min(1, { message: "Môn thể thao là bắt buộc" }),
 });
 
 export const CreateLeagueModal = () => {
@@ -54,57 +59,83 @@ export const CreateLeagueModal = () => {
   const { setSelectedPage, addLeague } = useSelectedPageContext();
   const [sports, setSports] = useState<Sport[]>([]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof leagueFormSchema>>({
+    resolver: zodResolver(leagueFormSchema),
     defaultValues: {
       name: "",
       slug: "",
-      logo: "",
+      logo: undefined,
       sport: "",
     },
   });
 
   const isLoading = form.formState.isSubmitting;
 
+  const onDropLogo = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles[0]) {
+        form.setValue("logo", acceptedFiles[0], { shouldValidate: true });
+      }
+    },
+    [form]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: onDropLogo,
+    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB limit to match multer
+    onDropRejected: (fileRejections) => {
+      const error =
+        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
+      toast.error(error);
+    },
+  });
+
   useEffect(() => {
     if (!isModalOpen) return;
+
+    const fetchSports = async () => {
+      try {
+        const res = await apiGetAllSports();
+        setSports(res.data);
+      } catch (error) {
+        toast.error("Lỗi khi tải danh sách môn thể thao");
+        console.error(error);
+      }
+    };
+
     fetchSports();
   }, [isModalOpen]);
 
-  const fetchSports = async () => {
+  const onSubmit = async (values: z.infer<typeof leagueFormSchema>) => {
     try {
-      const res = await apiGetAllSports();
-      setSports(res.data);
-    } catch (error) {
-      toast.error("Lỗi khi tải danh sách môn thể thao");
-      console.error(error);
-    }
-  };
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      // Tìm object Sport dựa trên ID
       const sport = sports.find((s) => s._id === values.sport);
       if (!sport) {
         toast.error("Môn thể thao không hợp lệ");
         return;
       }
 
-      const payload: League = {
-        ...values,
-        sport, // Gửi object Sport
-      };
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("slug", values.slug);
+      formData.append("sport", values.sport);
+      if (values.logo) {
+        formData.append("logo", values.logo);
+      }
 
-      const res = await apiCreateLeague(payload);
+      const res = await apiCreateLeague(formData);
       if (res?.data) {
         toast.success(`Đã tạo ${values.name} thành công`);
         onClose();
         addLeague(res.data);
         setSelectedPage("Leagues");
+        form.reset();
       }
-      form.reset();
-    } catch (error) {
-      toast.error("Lỗi khi tạo giải đấu");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Lỗi khi tạo giải đấu";
+      toast.error(errorMessage);
       console.error(error);
     }
   };
@@ -119,24 +150,23 @@ export const CreateLeagueModal = () => {
       <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh]">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Thêm Giải Đấu
+            Tạo Giải Đấu Mới
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 px-6">
-              {/* Name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>League Name</FormLabel>
+                    <FormLabel>Tên Giải Đấu</FormLabel>
                     <FormControl>
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter league name (e.g., Premier League)"
+                        placeholder="Nhập tên giải đấu (ví dụ: Premier League)"
                         {...field}
                         type="text"
                       />
@@ -145,8 +175,6 @@ export const CreateLeagueModal = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -157,7 +185,7 @@ export const CreateLeagueModal = () => {
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter slug (e.g., premier-league)"
+                        placeholder="Nhập slug (ví dụ: premier-league)"
                         {...field}
                         type="text"
                       />
@@ -166,35 +194,37 @@ export const CreateLeagueModal = () => {
                   </FormItem>
                 )}
               />
-
-              {/* Logo */}
               <FormField
                 control={form.control}
                 name="logo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Logo URL (Optional)</FormLabel>
+                    <FormLabel>Logo (Không bắt buộc)</FormLabel>
                     <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Enter logo URL (e.g., https://example.com/logo.png)"
-                        {...field}
-                        type="url"
-                      />
+                      <div
+                        {...getRootProps()}
+                        className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                          isDragActive ? "border-blue-500" : "border-gray-300"
+                        }`}
+                      >
+                        <input {...getInputProps()} />
+                        {field.value ? (
+                          <p className="text-blue-600">{field.value.name}</p>
+                        ) : (
+                          <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sport</FormLabel>
+                    <FormLabel>Môn Thể Thao</FormLabel>
                     <Select
                       disabled={isLoading}
                       onValueChange={field.onChange}
@@ -202,10 +232,10 @@ export const CreateLeagueModal = () => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select sport" />
+                          <SelectValue placeholder="Chọn môn thể thao" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black">
                         {sports.map((sport) => (
                           <SelectItem key={sport._id} value={sport._id}>
                             {sport.name}
@@ -222,6 +252,8 @@ export const CreateLeagueModal = () => {
               <Button
                 onClick={handleClose}
                 className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
+                type="button"
+                disabled={isLoading}
               >
                 Đóng
               </Button>

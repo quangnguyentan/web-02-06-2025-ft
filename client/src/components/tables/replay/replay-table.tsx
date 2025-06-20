@@ -81,7 +81,6 @@ export function ReplayTable() {
       },
     },
   });
-
   const fetchReplayRelatedData = async () => {
     try {
       // 1. Fetch all matches and replays concurrently

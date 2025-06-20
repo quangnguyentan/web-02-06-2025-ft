@@ -409,7 +409,8 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 const SportsNavbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sportData } = useData();
+  const { sportData, matchData } = useData();
+
   const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
   React.useEffect(() => {
@@ -514,12 +515,10 @@ const SportsNavbar: React.FC = () => {
             }
           `}
           />
-          {(category.name === "Cầu lông" ||
-            category.name === "Bóng rổ" ||
-            category.name === "Môn khác" ||
-            category.name === "Tennis" ||
-            category.name === "Đua xe" ||
-            category.name === "eSports") && (
+          {matchData?.some(
+            (match) =>
+              match.sport?.slug === category.slug && match.status === "LIVE"
+          ) && (
             <span className="ml-1 text-[7px] bg-red-500 text-white px-2 rounded-xl absolute right-[-10px] top-[0px]">
               LIVE
             </span>

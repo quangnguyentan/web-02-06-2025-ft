@@ -1,10 +1,11 @@
 import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -44,50 +45,34 @@ import { registerLocale, setDefaultLocale } from "react-datepicker";
 import { vi } from "date-fns/locale/vi";
 import { useDropzone } from "react-dropzone";
 import { PlusCircle, XCircle } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
+// Updated streamLinkSchema: url is string only, image and commentatorImage are File or undefined
 const streamLinkSchema = z.object({
   label: z.string().min(1, { message: "Nhãn liên kết là bắt buộc" }),
-  url: z.union([
-    z
-      .string()
-      .url("URL không hợp lệ")
-      .min(1, { message: "URL liên kết là bắt buộc" }),
-    z.instanceof(File).refine((file) => /video\/|audio\//.test(file.type), {
-      message: "Vui lòng chọn file video hoặc audio hợp lệ",
-    }),
-  ]),
-  urlType: z.enum(["text", "file"]),
+  url: z
+    .string()
+    .url("URL không hợp lệ")
+    .min(1, { message: "URL liên kết là bắt buộc" }),
   image: z
-    .union([
-      z.string().url("URL ảnh không hợp lệ").optional(),
-      z
-        .instanceof(File)
-        .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
-          message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-        })
-        .optional(),
-    ])
+    .instanceof(File)
+    .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
+      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
+    })
     .optional(),
-  imageType: z.enum(["text", "file"]).optional(),
   commentator: z.string().optional(),
   commentatorImage: z
-    .union([
-      z.string().url("URL ảnh không hợp lệ").optional(),
-      z
-        .instanceof(File)
-        .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
-          message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-        })
-        .optional(),
-    ])
+    .instanceof(File)
+    .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
+      message: "File ảnh không hợp lệ (.jpg, .jpeg, .png)",
+    })
     .optional(),
-  commentatorImageType: z.enum(["text", "file"]).optional(),
   priority: z.coerce
     .number()
-    .min(0, { message: "Ưu tiên phải là số không âm" })
+    .min(1, { message: "Ưu tiên phải là số không hợp lệ" })
     .optional(),
 });
 
@@ -146,42 +131,12 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
   remove,
   isLoading,
 }) => {
-  const onDropUrl = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles[0]) {
-        form.setValue(`streamLinks.${index}.url`, acceptedFiles[0], {
-          shouldValidate: true,
-        });
-        form.setValue(`streamLinks.${index}.urlType`, "file");
-      }
-    },
-    [form, index]
-  );
-
-  const {
-    getRootProps: getUrlRootProps,
-    getInputProps: getUrlInputProps,
-    isDragActive: isUrlDragActive,
-  } = useDropzone({
-    onDrop: onDropUrl,
-    accept: { "video/*": [], "audio/*": [] },
-    maxFiles: 1,
-    maxSize: 50 * 1024 * 1024,
-    onDropRejected: (fileRejections) => {
-      const error =
-        fileRejections[0]?.errors[0]?.message ||
-        "File video/audio không hợp lệ";
-      toast.error(error);
-    },
-  });
-
   const onDropImage = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles[0]) {
         form.setValue(`streamLinks.${index}.image`, acceptedFiles[0], {
           shouldValidate: true,
         });
-        form.setValue(`streamLinks.${index}.imageType`, "file");
       }
     },
     [form, index]
@@ -213,7 +168,6 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
             shouldValidate: true,
           }
         );
-        form.setValue(`streamLinks.${index}.commentatorImageType`, "file");
       }
     },
     [form, index]
@@ -236,7 +190,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-3 rounded-md relative">
+    <div className="grid grid-cols-1 md:grid-cols-1 gap-4 border p-3 rounded-md relative">
       <Button
         type="button"
         onClick={() => remove(index)}
@@ -266,42 +220,6 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
       />
       <FormField
         control={form.control}
-        name={`streamLinks.${index}.urlType`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              Loại URL <span className="text-red-500">*</span>
-            </FormLabel>
-            <Select
-              disabled={isLoading}
-              onValueChange={(value) => {
-                form.setValue(
-                  `streamLinks.${index}.urlType`,
-                  value as "text" | "file"
-                );
-                form.setValue(
-                  `streamLinks.${index}.url`,
-                  value === "text" ? "" : undefined
-                );
-              }}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn loại URL" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="text">Nhập URL</SelectItem>
-                <SelectItem value="file">Upload file</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
         name={`streamLinks.${index}.url`}
         render={({ field }) => (
           <FormItem>
@@ -309,64 +227,13 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
               URL <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              {form.getValues(`streamLinks.${index}.urlType`) === "file" ? (
-                <div
-                  {...getUrlRootProps()}
-                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
-                    isUrlDragActive ? "border-blue-500" : "border-gray-300"
-                  }`}
-                >
-                  <input {...getUrlInputProps()} />
-                  {field.value instanceof File ? (
-                    <p className="text-blue-600">{field.value.name}</p>
-                  ) : (
-                    <p>Kéo và thả file video/audio tại đây</p>
-                  )}
-                </div>
-              ) : (
-                <Input
-                  disabled={isLoading}
-                  placeholder="Ví dụ: https://example.com/stream"
-                  type="text"
-                  value={typeof field.value === "string" ? field.value : ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              )}
+              <Input
+                disabled={isLoading}
+                placeholder="Ví dụ: https://example.com/stream"
+                type="text"
+                {...field}
+              />
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name={`streamLinks.${index}.imageType`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Loại ảnh đại diện</FormLabel>
-            <Select
-              disabled={isLoading}
-              onValueChange={(value) => {
-                form.setValue(
-                  `streamLinks.${index}.imageType`,
-                  value as "text" | "file"
-                );
-                form.setValue(
-                  `streamLinks.${index}.image`,
-                  value === "text" ? "" : undefined
-                );
-              }}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn loại ảnh" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="text">Nhập URL</SelectItem>
-                <SelectItem value="file">Upload file</SelectItem>
-              </SelectContent>
-            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -378,10 +245,10 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
           <FormItem>
             <FormLabel>Ảnh đại diện link</FormLabel>
             <FormControl>
-              {form.getValues(`streamLinks.${index}.imageType`) === "file" ? (
+              <div>
                 <div
                   {...getImageRootProps()}
-                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer mt-2 ${
                     isImageDragActive ? "border-blue-500" : "border-gray-300"
                   }`}
                 >
@@ -392,15 +259,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
                     <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
                   )}
                 </div>
-              ) : (
-                <Input
-                  disabled={isLoading}
-                  placeholder="Ví dụ: https://image.com/logo.png"
-                  type="text"
-                  value={typeof field.value === "string" ? field.value : ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              )}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -425,50 +284,15 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
       />
       <FormField
         control={form.control}
-        name={`streamLinks.${index}.commentatorImageType`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Loại ảnh BLV</FormLabel>
-            <Select
-              disabled={isLoading}
-              onValueChange={(value) => {
-                form.setValue(
-                  `streamLinks.${index}.commentatorImageType`,
-                  value as "text" | "file"
-                );
-                form.setValue(
-                  `streamLinks.${index}.commentatorImage`,
-                  value === "text" ? "" : undefined
-                );
-              }}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn loại ảnh" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="text">Nhập URL</SelectItem>
-                <SelectItem value="file">Upload file</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
         name={`streamLinks.${index}.commentatorImage`}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Ảnh BLV (Link này)</FormLabel>
             <FormControl>
-              {form.getValues(`streamLinks.${index}.commentatorImageType`) ===
-              "file" ? (
+              <div>
                 <div
                   {...getCommentatorImageRootProps()}
-                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer mt-2 ${
                     isCommentatorImageDragActive
                       ? "border-blue-500"
                       : "border-gray-300"
@@ -481,15 +305,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
                     <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
                   )}
                 </div>
-              ) : (
-                <Input
-                  disabled={isLoading}
-                  placeholder="Ví dụ: https://image.com/blv.png"
-                  type="text"
-                  value={typeof field.value === "string" ? field.value : ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              )}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -684,38 +500,31 @@ export const CreateMatchModal = () => {
       }
 
       const validStreamLinks =
-        values.streamLinks?.filter(
-          (link) => link.label && (link.url || link.url instanceof File)
-        ) || [];
-      const processedLinks = validStreamLinks.map((link, index) => ({
+        values.streamLinks?.filter((link) => link.label && link.url) || [];
+      const processedLinks = validStreamLinks.map((link) => ({
         label: link.label,
-        url: link.urlType === "file" ? `file:video-${index}` : link.url,
+        url: link.url, // Always a string URL
         image:
-          link.imageType === "file"
-            ? `file:image-${index}`
-            : link.image || undefined,
+          link.image instanceof File
+            ? `file:image-${Math.random()}`
+            : undefined,
         commentator: link.commentator || undefined,
         commentatorImage:
-          link.commentatorImageType === "file"
-            ? `file:commentatorImage-${index}`
-            : link.commentatorImage || undefined,
-        priority: link.priority || 0,
+          link.commentatorImage instanceof File
+            ? `file:commentatorImage-${Math.random()}`
+            : undefined,
+        priority: link.priority || 1,
       }));
 
       formData.append("streamLinks", JSON.stringify(processedLinks));
 
-      validStreamLinks.forEach((link, index) => {
-        if (link.url instanceof File) {
-          formData.append(`streamLinkVideos[${index}]`, link.url);
-        }
+      // Append files without array indexing
+      validStreamLinks.forEach((link) => {
         if (link.image instanceof File) {
-          formData.append(`streamLinkImages[${index}]`, link.image);
+          formData.append("streamLinkImages", link.image);
         }
         if (link.commentatorImage instanceof File) {
-          formData.append(
-            `streamLinkCommentatorImages[${index}]`,
-            link.commentatorImage
-          );
+          formData.append("streamLinkCommentatorImages", link.commentatorImage);
         }
       });
 
@@ -747,6 +556,10 @@ export const CreateMatchModal = () => {
           <DialogTitle className="text-2xl text-center font-bold">
             Tạo trận đấu
           </DialogTitle>
+          <DialogDescription>
+            Tạo một trận đấu mới với thông tin về đội nhà, đội khách, giải đấu,
+            và liên kết stream.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
@@ -803,7 +616,7 @@ export const CreateMatchModal = () => {
                           <SelectValue placeholder="Chọn đội nhà" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {teams.map((team) => (
                           <SelectItem key={team._id} value={team._id}>
                             {team.name}
@@ -831,7 +644,7 @@ export const CreateMatchModal = () => {
                           <SelectValue placeholder="Chọn đội khách" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {teams.map((team) => (
                           <SelectItem key={team._id} value={team._id}>
                             {team.name}
@@ -859,7 +672,7 @@ export const CreateMatchModal = () => {
                           <SelectValue placeholder="Chọn giải đấu" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {leagues.map((league) => (
                           <SelectItem key={league._id} value={league._id}>
                             {league.name}
@@ -887,7 +700,7 @@ export const CreateMatchModal = () => {
                           <SelectValue placeholder="Chọn môn thể thao" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {sports.map((sport) => (
                           <SelectItem key={sport._id} value={sport._id}>
                             {sport.name}
@@ -946,7 +759,7 @@ export const CreateMatchModal = () => {
                           <SelectValue placeholder="Chọn trạng thái" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[220px]">
                         {Object.values(MatchStatusType).map((status) => (
                           <SelectItem key={status} value={status}>
                             {status}
@@ -1136,13 +949,10 @@ export const CreateMatchModal = () => {
                     append({
                       label: "",
                       url: "",
-                      urlType: "text",
-                      image: "",
-                      imageType: "text",
+                      image: undefined,
                       commentator: "",
-                      commentatorImage: "",
-                      commentatorImageType: "text",
-                      priority: 0,
+                      commentatorImage: undefined,
+                      priority: 1,
                     })
                   }
                   className="flex items-center gap-2 mt-4 bg-blue-500 hover:bg-blue-600"

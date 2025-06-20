@@ -6,11 +6,15 @@ import {
   getTeamById,
   updateTeam,
 } from "../controllers/team.controller";
-
+import { upload } from "../middlewares/multer";
 const router = Router();
 
-router.route("/").post(createTeam).get(getAllTeams);
+router.route("/").post(upload.single("logo"), createTeam).get(getAllTeams);
 
-router.route("/:id").get(getTeamById).put(updateTeam).delete(deleteTeam);
+router
+  .route("/:id")
+  .get(getTeamById)
+  .put(upload.single("logo"), updateTeam)
+  .delete(deleteTeam);
 
 export default router;
