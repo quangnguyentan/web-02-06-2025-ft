@@ -230,7 +230,7 @@ export const generateFixedDateTabs = (matches: Match[]): DateTabInfo[] => {
     const dateId = formatDate(date);
     const hasMatches = matches?.some(
       (match) =>
-        formatDate(new Date(match.startTime)) === dateId &&
+        formatDate(new Date(match.startTime ?? "")) === dateId &&
         (match.status === MatchStatusType.FINISHED ||
           match.status === MatchStatusType.LIVE)
     );
@@ -241,7 +241,7 @@ export const generateFixedDateTabs = (matches: Match[]): DateTabInfo[] => {
       isToday: date.toDateString() === today.toDateString(),
       hasLive: matches.some(
         (match) =>
-          formatDate(new Date(match.startTime)) === dateId &&
+          formatDate(new Date(match.startTime ?? "")) === dateId &&
           match.status === MatchStatusType.LIVE
       ),
     });

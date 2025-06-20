@@ -5,11 +5,6 @@ const placeholderThumbnail = (
   width: number = 300,
   height: number = 160
 ) => `https://picsum.photos/seed/${seed}/${width}/${height}`;
-const placeholderVideoPoster = (
-  seed: string,
-  width: number = 1280,
-  height: number = 720
-) => `https://picsum.photos/seed/${seed}/${width}/${height}`;
 
 export const mockMainReplayItem: Replay = {
   id: "superbowl_2024_replay",

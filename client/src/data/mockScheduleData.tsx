@@ -67,7 +67,7 @@ export const generateFixedDateTabsForSchedule = (
     const dateId = formatDate(date);
     const hasMatches = matches.some(
       (match) =>
-        formatDate(new Date(match.startTime)) === dateId &&
+        formatDate(new Date(match.startTime ?? "")) === dateId &&
         match.status !== MatchStatusType.FINISHED
     );
     tabs.push({
@@ -77,7 +77,7 @@ export const generateFixedDateTabsForSchedule = (
       isToday: date.toDateString() === today.toDateString(),
       hasLive: matches.some(
         (match) =>
-          formatDate(new Date(match.startTime)) === dateId &&
+          formatDate(new Date(match.startTime ?? "")) === dateId &&
           match.status === MatchStatusType.LIVE
       ),
     });
@@ -123,7 +123,11 @@ const transformMatchesToSchedule = (
     // Chuẩn bị dữ liệu match
     const matchData: Match = {
       _id: match._id || `m_${Date.now()}`,
-      title: match.title || `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+      title:
+        match.title ||
+        `${match?.homeTeam && match.homeTeam.name} vs ${
+          match?.awayTeam && match.awayTeam.name
+        }`,
       slug: match.slug || `${match._id || Date.now()}`,
       homeTeam: createTeam(match.homeTeam),
       awayTeam: createTeam(match.awayTeam),
@@ -136,11 +140,11 @@ const transformMatchesToSchedule = (
       isHot: match.isHot,
       mainCommentator:
         match.mainCommentator ||
-        match.streamLinks[0]?.commentator ||
+        (match?.streamLinks && match.streamLinks[0]?.commentator) ||
         "Người Dùng",
       mainCommentatorImage:
         match.mainCommentatorImage ||
-        match.streamLinks[0]?.commentatorImage ||
+        (match?.streamLinks && match.streamLinks[0]?.commentatorImage) ||
         "https://via.placeholder.com/24/4A5568/E2E8F0?text=U",
       secondaryCommentator: match.secondaryCommentator,
       secondaryCommentatorImage: match.secondaryCommentatorImage,
