@@ -4,6 +4,7 @@ export const apiGetAllLeagues = async () => {
     const response = await axiosConfig({
       method: "GET",
       url: "/leagues/",
+      withCredentials: true,
     });
     return response;
   } catch (error) {
@@ -16,6 +17,7 @@ export const apiGetLeagueById = async (id: string) => {
     const response = await axiosConfig({
       method: "GET",
       url: "/leagues/" + id,
+      withCredentials: true,
     });
     return response;
   } catch (error) {

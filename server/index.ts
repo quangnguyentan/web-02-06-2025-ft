@@ -22,9 +22,9 @@ const corsOptions: CorsOptions = {
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean | string) => void
   ) => {
-    // Allow requests with no origin (e.g., mobile apps, curl) and origins in the allowed list
+    // Allow requests with no origin (e.g., mobile apps, curl) or from allowed origins
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // Use true to let cors middleware handle the header
+      callback(null, origin ?? allowedOrigins[0]); // Use the specific origin or the first allowed origin
     } else {
       callback(new Error("Not allowed by CORS"));
     }
@@ -37,7 +37,10 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
+// Remove any manual header setting that might conflict
 app.use((req, res, next) => {
+  res.removeHeader("Access-Control-Allow-Origin"); // Ensure no conflicting headers
+  res.removeHeader("Access-Control-Allow-Credentials"); // Ensure no conflicting headers
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
   next();

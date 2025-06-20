@@ -72,6 +72,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     isLoading: sportLoading,
   } = useSWR<Sport[]>(
     "/api/sports",
+
     async () => {
       const response = await apiGetAllSports();
       return response?.data || [];
