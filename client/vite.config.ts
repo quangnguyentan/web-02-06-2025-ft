@@ -13,6 +13,13 @@ export default defineConfig({
   server: {
     port: 5173,
     allowedHosts: ["hoiquan.live"], // Thêm host được phép
+    proxy: {
+      "/api": {
+        target: "https://sv.hoiquan.live",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   build: {
     outDir: "dist", // Thư mục output khi build

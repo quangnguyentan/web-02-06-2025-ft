@@ -12,7 +12,10 @@ const fetcher = async (url: string) => {
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
     const fullUrl = `${production}${url}`;
-    const res = await fetch(fullUrl, { signal: controller.signal });
+    const res = await fetch(fullUrl, {
+      signal: controller.signal,
+      credentials: "include",
+    });
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
     const data = await res.json();

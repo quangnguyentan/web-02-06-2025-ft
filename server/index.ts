@@ -24,7 +24,7 @@ const corsOptions: CorsOptions = {
   ) => {
     // Allow requests with no origin (e.g., mobile apps, curl) and origins in the allowed list
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin || "*"); // Use the specific origin or * for no-origin cases
+      callback(null, true); // Use true to let cors middleware handle the header
     } else {
       callback(new Error("Not allowed by CORS"));
     }
@@ -32,6 +32,7 @@ const corsOptions: CorsOptions = {
   credentials: true, // Enable credentials (cookies, authorization headers)
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
