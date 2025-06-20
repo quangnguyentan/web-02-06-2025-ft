@@ -1,4 +1,3 @@
-import { Team } from "@/types/team.types";
 import axiosConfig from "../axios";
 export const apiGetAllTeams = async () => {
   try {
@@ -36,7 +35,7 @@ export const apiDeleteTeamById = async (id: string) => {
     throw error;
   }
 };
-export const apiCreateTeam = async (data: Team) => {
+export const apiCreateTeam = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -49,7 +48,7 @@ export const apiCreateTeam = async (data: Team) => {
     throw error;
   }
 };
-export const apiUpdateTeam = async (id: string, data: Team) => {
+export const apiUpdateTeam = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

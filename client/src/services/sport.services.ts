@@ -1,4 +1,3 @@
-import { Sport } from "@/types/sport.types";
 import axiosConfig from "../axios";
 export const apiGetAllSports = async () => {
   try {
@@ -36,7 +35,7 @@ export const apiDeleteSportById = async (id: string) => {
     throw error;
   }
 };
-export const apiCreateSport = async (data: Sport) => {
+export const apiCreateSport = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -49,7 +48,7 @@ export const apiCreateSport = async (data: Sport) => {
     throw error;
   }
 };
-export const apiUpdateSport = async (id: string, data: Sport) => {
+export const apiUpdateSport = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

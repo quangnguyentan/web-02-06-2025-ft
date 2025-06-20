@@ -1,4 +1,3 @@
-import { League } from "@/types/league.types";
 import axiosConfig from "../axios";
 export const apiGetAllLeagues = async () => {
   try {
@@ -36,7 +35,7 @@ export const apiDeleteLeagueById = async (id: string) => {
     throw error;
   }
 };
-export const apiCreateLeague = async (data: League) => {
+export const apiCreateLeague = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -49,7 +48,7 @@ export const apiCreateLeague = async (data: League) => {
     throw error;
   }
 };
-export const apiUpdateLeague = async (id: string, data: League) => {
+export const apiUpdateLeague = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

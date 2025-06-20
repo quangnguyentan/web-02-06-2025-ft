@@ -31,7 +31,6 @@ import { useSelectedPageContext } from "@/hooks/use-context";
 import { useState, useEffect, useCallback } from "react";
 import { apiCreateLeague } from "@/services/league.services";
 import { apiGetAllSports } from "@/services/sport.services";
-import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
 

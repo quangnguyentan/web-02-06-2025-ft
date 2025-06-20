@@ -1,4 +1,3 @@
-import { Match } from "@/types/match.types";
 import axiosConfig from "../axios";
 export const apiGetAllMatches = async (matchIdCanBo?: string) => {
   try {
@@ -9,7 +8,7 @@ export const apiGetAllMatches = async (matchIdCanBo?: string) => {
         excludeId: matchIdCanBo,
         // status: 'ongoing',
         // sport: 'football'
-      }
+      },
     });
     return response;
   } catch (error) {
@@ -53,7 +52,7 @@ export const apiDeleteMatchById = async (id: string) => {
     throw error;
   }
 };
-export const apiCreateMatch = async (data: Match) => {
+export const apiCreateMatch = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -66,7 +65,7 @@ export const apiCreateMatch = async (data: Match) => {
     throw error;
   }
 };
-export const apiUpdateMatch = async (id: string, data: Match) => {
+export const apiUpdateMatch = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

@@ -34,7 +34,6 @@ import { apiGetAllSports } from "@/services/sport.services";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import toast from "react-hot-toast";
 import { Match } from "@/types/match.types";
-import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -547,16 +546,21 @@ export const EditReplayModal = () => {
                         render={({ field: dateField }) => (
                           <DatePicker
                             selected={dateField.value}
-                            onChange={(date) => dateField.onChange(date)}
+                            onChange={(date: Date | null) =>
+                              dateField.onChange(date || new Date())
+                            }
                             showTimeSelect
                             timeFormat="HH:mm"
                             timeIntervals={15}
                             dateFormat="dd/MM/yyyy HH:mm"
                             locale="vi"
                             disabled={isLoading}
-                            placeholderText="Chọn ngày và giờ"
+                            placeholderText="Nhập ngày và giờ"
                             className="w-full p-2 border rounded placeholder:text-gray-500"
                             minDate={new Date()}
+                            // Remove selectsMultiple or set to false if allowed by context
+                            // If the error persists, comment out selectsMultiple temporarily
+                            // selectsMultiple={false}
                           />
                         )}
                       />

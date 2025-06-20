@@ -4,14 +4,14 @@ import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 import { apiGetAllSports } from "@/services/sport.services";
-
-const BASE_URL = "http://localhost:8080";
-
+const production = "https://sv.hoiquan.live";
+const development = "http://localhost:8080";
+// const BASE_URL = process.env.NODE_ENV === "production" ? production : development;
 const fetcher = async (url: string) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
-    const fullUrl = `${BASE_URL}${url}`;
+    const fullUrl = `${development}${url}`;
     const res = await fetch(fullUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);

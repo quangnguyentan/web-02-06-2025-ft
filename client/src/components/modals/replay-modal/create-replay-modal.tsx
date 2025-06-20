@@ -34,7 +34,6 @@ import { apiCreateReplay } from "@/services/replay.services";
 import { apiGetAllMatches } from "@/services/match.services";
 import { apiGetAllSports } from "@/services/sport.services";
 import { Match } from "@/types/match.types";
-import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -433,7 +432,9 @@ export const CreateReplayModal = () => {
                         render={({ field: dateField }) => (
                           <DatePicker
                             selected={dateField.value}
-                            onChange={(date) => dateField.onChange(date)}
+                            onChange={(date: Date | null) =>
+                              dateField.onChange(date || new Date())
+                            }
                             showTimeSelect
                             timeFormat="HH:mm"
                             timeIntervals={15}
@@ -443,6 +444,9 @@ export const CreateReplayModal = () => {
                             placeholderText="Nhập ngày và giờ"
                             className="w-full p-2 border rounded placeholder:text-gray-500"
                             minDate={new Date()}
+                            // Remove selectsMultiple or set to false if allowed by context
+                            // If the error persists, comment out selectsMultiple temporarily
+                            // selectsMultiple={false}
                           />
                         )}
                       />

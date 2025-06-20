@@ -1,4 +1,3 @@
-import { Replay } from "@/types/replay.types";
 import axiosConfig from "../axios";
 export const apiGetAllReplays = async (id?: string) => {
   try {
@@ -51,7 +50,7 @@ export const apiDeleteReplayById = async (id: string) => {
     throw error;
   }
 };
-export const apiCreateReplay = async (data: Replay) => {
+export const apiCreateReplay = async (data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -64,7 +63,7 @@ export const apiCreateReplay = async (data: Replay) => {
     throw error;
   }
 };
-export const apiUpdateReplay = async (id: string, data: Replay) => {
+export const apiUpdateReplay = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

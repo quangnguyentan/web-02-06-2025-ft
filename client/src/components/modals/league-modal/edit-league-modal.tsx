@@ -31,7 +31,6 @@ import { useSelectedPageContext } from "@/hooks/use-context";
 import { useState, useEffect, useCallback } from "react";
 import { apiUpdateLeague } from "@/services/league.services";
 import { apiGetAllSports } from "@/services/sport.services";
-import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -167,7 +166,7 @@ export const EditLeagueModal = () => {
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Lỗi khi cập nhật giải đấu";
+        error.response?.data?.message ?? "Lỗi khi cập nhật giải đấu";
       toast.error(errorMessage);
       console.error(error);
     }

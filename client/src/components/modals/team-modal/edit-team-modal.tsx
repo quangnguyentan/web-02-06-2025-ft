@@ -31,10 +31,9 @@ import { useSelectedPageContext } from "@/hooks/use-context";
 import { useState, useEffect, useCallback } from "react";
 import { apiUpdateTeam } from "@/services/team.services";
 import { apiGetAllSports } from "@/services/sport.services";
-import { Team } from "@/types/team.types";
+
 import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Tên đội là bắt buộc" }),

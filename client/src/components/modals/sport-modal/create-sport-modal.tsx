@@ -23,7 +23,6 @@ import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useCallback } from "react";
 import { apiCreateSport } from "@/services/sport.services";
-import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
 
 // Schema cho form

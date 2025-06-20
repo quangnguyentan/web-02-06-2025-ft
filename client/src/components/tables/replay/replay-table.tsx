@@ -10,6 +10,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  ColumnDef,
+  ColumnMeta,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,9 @@ import { Replay } from "@/types/replay.types";
 import { Match } from "@/types/match.types"; // Import Match type
 import { Sport } from "@/types/sport.types";
 import { apiGetAllSports } from "@/services/sport.services";
+interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
+  width?: string | number;
+}
 
 export function ReplayTable() {
   const { onOpen } = useModal();
@@ -46,7 +51,7 @@ export function ReplayTable() {
 
   // Chuyển onOpen và matches vào getColumns
   const columns = React.useMemo(
-    () => getColumns(onOpen, matches, sports),
+    () => getColumns(onOpen, matches, sports) as ColumnDef<Match, unknown>[],
     [onOpen, matches, sports]
   );
 
@@ -187,7 +192,14 @@ export function ReplayTable() {
                   <TableHead
                     key={header.id}
                     className="px-4 py-2 text-left font-medium whitespace-nowrap"
-                    style={{ width: header.column.columnDef.meta?.width }}
+                    style={{
+                      width: (
+                        header.column.columnDef.meta as CustomColumnMeta<
+                          Match,
+                          unknown
+                        >
+                      )?.width,
+                    }}
                   >
                     {header.isPlaceholder
                       ? null

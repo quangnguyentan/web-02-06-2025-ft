@@ -1,4 +1,3 @@
-// MatchTable.tsx
 import * as React from "react";
 import {
   ColumnFiltersState,
@@ -10,6 +9,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  ColumnDef,
+  ColumnMeta,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,11 @@ import { League } from "@/types/league.types"; // Import League type
 import { Team } from "@/types/team.types"; // Import Team type
 import { Sport } from "@/types/sport.types"; // Import Sport type
 
+// Define a custom ColumnMeta type with width
+interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
+  width?: string | number;
+}
+
 export function MatchTable() {
   const { onOpen } = useModal();
   const { match, setMatch } = useSelectedPageContext();
@@ -48,9 +54,10 @@ export function MatchTable() {
   const [teams, setTeams] = React.useState<Team[]>([]); // State để lưu danh sách teams
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
 
-  // Chuyển onOpen, leagues, teams, và sports vào getColumns
+  // Type the columns with the custom meta
   const columns = React.useMemo(
-    () => getColumns(onOpen, leagues, teams, sports),
+    () =>
+      getColumns(onOpen, leagues, teams, sports) as ColumnDef<Match, unknown>[],
     [onOpen, leagues, teams, sports]
   );
 
@@ -226,7 +233,14 @@ export function MatchTable() {
                   <TableHead
                     key={indexHeader}
                     className="px-4 py-2 text-left font-medium whitespace-nowrap"
-                    style={{ width: header.column.columnDef.meta?.width }}
+                    style={{
+                      width: (
+                        header.column.columnDef.meta as CustomColumnMeta<
+                          Match,
+                          unknown
+                        >
+                      )?.width,
+                    }}
                   >
                     {header.isPlaceholder
                       ? null
