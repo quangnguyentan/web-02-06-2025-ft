@@ -57,6 +57,7 @@ const AppContent: React.FC = () => {
         const matchDay = formatDateFull(matchDate);
         const todayDay = formatDateFull(vietnamToday);
         return (
+          match?.sport &&
           match.sport.slug === slug &&
           match?.status !== MatchStatusType.FINISHED &&
           match?.status !== MatchStatusType.CANCELLED &&
@@ -72,7 +73,7 @@ const AppContent: React.FC = () => {
     return sports.reduce(
       (acc, sport) => ({
         ...acc,
-        [sport.slug]: filterMatchesBySport(sport.slug),
+        [sport.slug ?? ""]: filterMatchesBySport(sport.slug ?? ""),
       }),
       {} as Record<string, typeof matchData>
     );
@@ -121,9 +122,9 @@ const AppContent: React.FC = () => {
         {sports.map((sport) => (
           <SportSection
             key={sport._id}
-            title={sport.name}
-            icon={sportIconMap[sport.slug] || sport.icon || null}
-            matches={sportMatches[sport.slug] || []}
+            title={sport.name ?? ""}
+            icon={sportIconMap[sport.slug ?? ""] || sport.icon || null}
+            matches={sportMatches[sport.slug ?? ""] || []}
             viewAllUrl="#"
           />
         ))}

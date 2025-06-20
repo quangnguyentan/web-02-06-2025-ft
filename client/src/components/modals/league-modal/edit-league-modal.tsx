@@ -308,7 +308,7 @@ export const EditLeagueModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black">
                         {sports.map((sport) => (
-                          <SelectItem key={sport._id} value={sport._id}>
+                          <SelectItem key={sport._id} value={sport._id ?? ""}>
                             {sport.name}
                           </SelectItem>
                         ))}

@@ -23,7 +23,7 @@ import Fade from "@mui/material/Fade";
 import { Sport } from "@/types/sport.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useData } from "@/context/DataContext";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useAppDispatch } from "@/hooks/use-dispatch";
 import { logout } from "@/stores/actions/authAction";
 import { useSelector } from "react-redux";
@@ -107,7 +107,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 
   const dispatch = useAppDispatch();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-  const wrapperRef = React.useRef(null);
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     setSelectedPage("TRANG CHỦ");
@@ -123,8 +123,11 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   };
 
   React.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+    const handleClickOutside = (event: any) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node) // event.target needs to be cast to Node for .contains()
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -155,8 +158,8 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                 const finalUrl =
                   item.url.includes(":slug") || item.url.includes(":title")
                     ? item.url
-                        .replace(":slug", targetSlug)
-                        .replace(":title", targetSlug)
+                        .replace(":slug", targetSlug ?? "")
+                        .replace(":title", targetSlug ?? "")
                     : item.url;
 
                 navigate(finalUrl);
@@ -329,7 +332,7 @@ const SportsNavbar: React.FC = () => {
       const sportFromUrl = sportData.find((s) => s.slug === currentPathSlug);
       let initialSportName = "eSports";
       if (sportFromUrl) {
-        initialSportName = sportFromUrl.name;
+        initialSportName = sportFromUrl.name ?? "";
       } else {
         const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
         if (
@@ -358,8 +361,8 @@ const SportsNavbar: React.FC = () => {
       targetUrl = `/${category.slug}`;
     }
     navigate(targetUrl);
-    setSelectedSportsNavbarPage(category.name);
-    localStorage.setItem("selectedSportsNavbarPage", category.name);
+    setSelectedSportsNavbarPage(category.name ?? "");
+    localStorage.setItem("selectedSportsNavbarPage", category.name ?? "");
   };
 
   return (

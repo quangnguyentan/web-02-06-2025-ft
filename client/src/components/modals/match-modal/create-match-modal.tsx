@@ -618,7 +618,7 @@ export const CreateMatchModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {teams.map((team) => (
-                          <SelectItem key={team._id} value={team._id}>
+                          <SelectItem key={team._id} value={team._id ?? ""}>
                             {team.name}
                           </SelectItem>
                         ))}
@@ -646,7 +646,7 @@ export const CreateMatchModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {teams.map((team) => (
-                          <SelectItem key={team._id} value={team._id}>
+                          <SelectItem key={team._id} value={team._id ?? ""}>
                             {team.name}
                           </SelectItem>
                         ))}
@@ -674,7 +674,7 @@ export const CreateMatchModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {leagues.map((league) => (
-                          <SelectItem key={league._id} value={league._id}>
+                          <SelectItem key={league._id} value={league._id ?? ""}>
                             {league.name}
                           </SelectItem>
                         ))}
@@ -702,7 +702,7 @@ export const CreateMatchModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {sports.map((sport) => (
-                          <SelectItem key={sport._id} value={sport._id}>
+                          <SelectItem key={sport._id} value={sport._id ?? ""}>
                             {sport.name}
                           </SelectItem>
                         ))}

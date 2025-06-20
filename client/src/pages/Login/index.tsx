@@ -1,7 +1,6 @@
 import loginImg from "@/assets/admin/login.svg";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import facebook from "@/assets/admin/facebook.png";
-import google from "@/assets/admin/google.webp";
+
 import { apiLogin } from "@/services/auth.services";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { authActionProps, loginAction } from "@/stores/actions/authAction";
@@ -27,7 +26,6 @@ const Login = ({
   onClose,
 }: loginProps) => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState<authActionProps>({
     phone: "",
@@ -58,7 +56,9 @@ const Login = ({
         dispatch(loginAction(input))
           .then(() => {
             toast.success("Login successful!");
-            onClose();
+            if (onClose) {
+              onClose();
+            }
           })
           .catch(() => {
             toast.error("Login failed. Please try again.");
@@ -68,10 +68,10 @@ const Login = ({
             setLoading(false);
           });
       }
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false);
       const msg =
-        error.response?.data?.msg || "Login failed. Please try again.";
+        error.response?.data?.msg ?? "Login failed. Please try again.";
       toast.error(msg);
 
       console.error("Login failed:", error);

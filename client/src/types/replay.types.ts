@@ -18,10 +18,10 @@ export type Replay = {
 };
 
 export interface FeaturedBroadcastItem {
-  id: string;
-  playerImage: string;
-  playerName: string;
-  time: string; // e.g., "16:00 ---"
+  id?: string;
+  playerImage?: string;
+  playerName?: string;
+  time?: string; // e.g., "16:00 ---"
   opponentName: string;
   commentator: string;
 }

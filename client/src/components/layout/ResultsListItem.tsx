@@ -18,7 +18,7 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
     <div className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0 relative">
       <div className="w-[15%] sm:w-[12%] text-xs text-gray-400 pr-2">
         <div>
-          {new Date(match?.startTime).toLocaleString("vi-VN", {
+          {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -55,7 +55,7 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
                 : "text-gray-500"
             }
           >
-            {getStatusText(match?.status)}
+            {getStatusText(match?.status ?? MatchStatusType.UPCOMING)}
           </span>
         </div>
       </div>

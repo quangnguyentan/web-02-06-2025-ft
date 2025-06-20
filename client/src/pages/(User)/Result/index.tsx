@@ -19,8 +19,6 @@ const Result: React.FC = () => {
 
   // Dữ liệu giả lập cho kết quả (nếu có trong mockResultsData)
   // Giả sử useScheduleDataForResults([]) trả về một cấu trúc tương tự mockResultsData cho trường hợp không có dữ liệu
-  const { scheduleData: mockScheduleDataForResults } =
-    useScheduleDataForResults([]);
   const mockReplayData: Replay[] = React.useMemo(() => [], []); // Dữ liệu giả lập cho replay, memoize rỗng
 
   // Lọc dữ liệu trận đấu dựa trên slug và trạng thái, sử dụng useMemo
@@ -37,7 +35,7 @@ const Result: React.FC = () => {
 
     // Lọc trận đấu theo slug và trạng thái hoàn thành/đang trực tiếp
     return matchesToFilter.filter((m) => {
-      const matchDate = new Date(m.startTime);
+      const matchDate = new Date(m.startTime ?? "");
       return (
         m.sport?.slug === slug &&
         !isNaN(matchDate.getTime()) &&

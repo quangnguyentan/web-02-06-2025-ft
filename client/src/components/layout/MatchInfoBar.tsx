@@ -22,7 +22,7 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
             <span>
               Thời gian:{" "}
               <span className="text-gray-300 text-xs">
-                {new Date(match?.startTime).toLocaleString("vi-VN", {
+                {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",

@@ -8,7 +8,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { Match } from "@/types/match.types";
 
 interface SportSectionProps {
-  isSportSection?;
+  isSportSection?: boolean;
   title: string;
   icon?: React.ReactNode;
   matches: Match[];
@@ -40,7 +40,7 @@ const SportSection: React.FC<SportSectionProps> = ({
     arrows: true,
     nextArrow: <NextArrow />,
     prevArrow: <PreviewArrow />,
-    lazyLoad: "ondemand",
+    lazyLoad: "ondemand" as "ondemand" | "progressive",
     responsive: [
       {
         breakpoint: 1280,
@@ -108,7 +108,7 @@ const SportSection: React.FC<SportSectionProps> = ({
   );
 };
 
-const NextArrow = (props) => {
+const NextArrow = (props: any) => {
   const { onClick } = props;
   return (
     <div
@@ -123,7 +123,7 @@ const NextArrow = (props) => {
     </div>
   );
 };
-const PreviewArrow = (props) => {
+const PreviewArrow = (props: any) => {
   const { onClick } = props;
   return (
     <div

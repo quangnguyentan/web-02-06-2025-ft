@@ -4,7 +4,6 @@ import { useData } from "@/context/DataContext";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 import { Replay } from "@/types/replay.types";
-import { Match } from "@/types/match.types";
 
 const today = new Date();
 

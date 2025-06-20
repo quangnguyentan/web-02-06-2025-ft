@@ -2,7 +2,7 @@ import ReplayHubPage from "@/components/layout/ReplayHubPage";
 import { useData } from "@/context/DataContext";
 import * as React from "react";
 import { FootballIcon } from "@/components/layout/Icon";
-import { Replay } from "@/types/replay.types";
+import { HighlightedEventInfo, type Replay } from "@/types/replay.types";
 import { useParams } from "react-router-dom";
 
 const Replay: React.FC = () => {
@@ -94,7 +94,7 @@ const Replay: React.FC = () => {
   return (
     <ReplayHubPage
       featuredBroadcasts={featuredBroadcasts}
-      highlightedEvent={highlightedEvent}
+      highlightedEvent={highlightedEvent as HighlightedEventInfo}
       categorizedReplays={categorizedReplays}
       sidebarReplays={sidebarReplays}
     />

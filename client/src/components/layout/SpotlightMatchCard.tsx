@@ -61,8 +61,11 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
     <div
       onClick={() => {
         navigate(targetUrl);
-        setSelectedSportsNavbarPage(match?.sport?.name);
-        localStorage.setItem("selectedSportsNavbarPage", match?.sport?.name);
+        setSelectedSportsNavbarPage(match?.sport?.name ?? "");
+        localStorage.setItem(
+          "selectedSportsNavbarPage",
+          match?.sport?.name ?? ""
+        );
       }}
       className="bg-slate-800 shadow-lg overflow-hidden flex flex-col rounded-xl h-full relative cursor-pointer"
       style={{
@@ -74,7 +77,9 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
     >
       {/* Overlay to ensure readability */}
       {/* <div className="absolute inset-0 bg-black/50"></div> */}
-      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
+      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
+        match?.sport?.name ?? ""
+      ) && (
         <div
           className="absolute inset-0 bg-black bg-opacity-90"
           style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung

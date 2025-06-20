@@ -1,4 +1,7 @@
+import "react-datepicker";
+
 declare module "react-datepicker" {
+  // the DatePicker component deeply.
   export interface YearProps {
     onYearMouseEnter?: () => void;
     onYearMouseLeave?: () => void;
@@ -12,5 +15,4 @@ declare module "react-datepicker" {
     format?: string;
     intervals?: number;
   }
-  // Add other missing properties as needed
 }

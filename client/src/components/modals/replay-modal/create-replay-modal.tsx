@@ -362,7 +362,7 @@ export const CreateReplayModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {matches.map((match) => (
-                          <SelectItem key={match._id} value={match._id}>
+                          <SelectItem key={match._id} value={match._id ?? ""}>
                             {match.title}
                           </SelectItem>
                         ))}
@@ -390,7 +390,7 @@ export const CreateReplayModal = () => {
                       </FormControl>
                       <SelectContent className="bg-white text-black h-[220px]">
                         {sports.map((sport) => (
-                          <SelectItem key={sport._id} value={sport._id}>
+                          <SelectItem key={sport._id} value={sport._id ?? ""}>
                             {sport.name}
                           </SelectItem>
                         ))}

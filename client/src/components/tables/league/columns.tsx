@@ -72,11 +72,11 @@ export const getColumns = (
         "name" in sportData
       ) {
         // Nếu là object và có thuộc tính 'name'
-        sportName = (sportData as Sport).name;
+        sportName = (sportData as Sport).name ?? "N/A";
       } else if (typeof sportData === "string") {
         // Nếu là string (ID), tìm tên từ mảng sports được truyền vào
         const foundSport = sports.find((s) => s._id === sportData);
-        sportName = foundSport ? foundSport.name : "ID: " + sportData; // Fallback to ID if not found
+        sportName = foundSport ? foundSport.name ?? "N/A" : "ID: " + sportData; // Fallback to ID if not found
       }
 
       return <div className="capitalize">{sportName}</div>;

@@ -3,8 +3,10 @@ import "./index.css";
 import Login from "../Login";
 import Register from "../Register";
 import Reset from "../Reset";
-
-const Auth = ({ handleClose }) => {
+interface AuthProps {
+  handleClose: () => void; // handleClose is a function that takes no arguments and returns nothing
+}
+const Auth = ({ handleClose }: AuthProps) => {
   const [auth, setAuth] = useState({
     login: true,
     register: false,

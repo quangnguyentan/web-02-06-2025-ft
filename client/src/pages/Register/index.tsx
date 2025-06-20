@@ -1,14 +1,11 @@
-import { useState, useEffect, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent } from "react";
 import registerImg from "@/assets/admin/register.svg";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { GoDotFill } from "react-icons/go";
-import { FaCheck } from "react-icons/fa";
-import facebook from "@/assets/admin/facebook.png";
-import google from "@/assets/admin/google.webp";
+
 import toast from "react-hot-toast";
 import { apiRegister } from "@/services/auth.services";
 import { authActionProps } from "@/stores/actions/authAction";
-import icon_auth from "@/assets/user/icon-auth.jpeg";
+
 import "./index.css";
 
 type registerProps = {
@@ -21,16 +18,7 @@ const Register = ({
   onLogin,
   onShowPassword,
   onTogglePassword,
-  onClickTypeLogin,
 }: registerProps) => {
-  const [showIndicator, setShowIndicator] = useState(false);
-
-  const [passLetter, setPassLetter] = useState(false);
-  const [passNumber, setPassNumber] = useState(false);
-  const [passChar, setPassChar] = useState(false);
-  const [passLength, setPassLength] = useState(false);
-
-  const [passComplete, setPassComplete] = useState(false);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState<authActionProps>({
     username: "",

@@ -31,7 +31,6 @@ import { useSelectedPageContext } from "@/hooks/use-context";
 import { useState, useEffect, useCallback } from "react";
 import { apiUpdateTeam } from "@/services/team.services";
 import { apiGetAllSports } from "@/services/sport.services";
-
 import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
 
@@ -309,8 +308,8 @@ export const EditTeamModal = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-white text-black">
-                        {sports.map((sport) => (
-                          <SelectItem key={sport._id} value={sport._id}>
+                        {sports?.map((sport) => (
+                          <SelectItem key={sport._id} value={sport?._id ?? ""}>
                             {sport.name}
                           </SelectItem>
                         ))}

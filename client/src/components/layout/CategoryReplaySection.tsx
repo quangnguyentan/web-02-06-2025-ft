@@ -1,6 +1,5 @@
 import { CategorizedReplayGroup } from "@/types/replay.types";
 import ReplayCard from "./ReplayCard";
-import { ChevronRightIcon } from "./Icon";
 import * as React from "react";
 
 interface CategoryReplaySectionProps {

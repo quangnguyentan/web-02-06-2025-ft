@@ -50,8 +50,11 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     <div
       onClick={() => {
         navigate(targetUrl);
-        setSelectedSportsNavbarPage(match?.sport?.name);
-        localStorage.setItem("selectedSportsNavbarPage", match?.sport?.name);
+        setSelectedSportsNavbarPage(match?.sport?.name ?? "");
+        localStorage.setItem(
+          "selectedSportsNavbarPage",
+          match?.sport?.name ?? ""
+        );
       }}
       className={`bg-slate-800 rounded-xl shadow-md overflow-hidden my-1 ml-1 ${
         small
@@ -66,7 +69,9 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       }}
     >
       {/* Overlay to ensure readability */}
-      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(match?.sport?.name) && (
+      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
+        match?.sport?.name ?? ""
+      ) && (
         <div
           className="absolute inset-0 bg-black bg-opacity-90"
           style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung

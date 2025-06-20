@@ -149,7 +149,7 @@ export const EditUserModal = () => {
         avatar: values.avatar,
       };
 
-      const res = await apiUpdateUser(userToEdit?._id, payload);
+      const res = await apiUpdateUser(userToEdit?._id ?? "", payload);
       if (res?.data) {
         toast.success(`Đã cập nhật người dùng ${values.username} thành công`);
         onClose();

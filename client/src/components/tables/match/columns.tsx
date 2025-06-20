@@ -75,10 +75,10 @@ export const getColumns = (
         teamData !== null &&
         "name" in teamData
       ) {
-        teamName = (teamData as Team).name;
+        teamName = (teamData as Team).name ?? "N/A";
       } else if (typeof teamData === "string") {
         const foundTeam = teams.find((t) => t._id === teamData);
-        teamName = foundTeam ? foundTeam.name : "ID: " + teamData;
+        teamName = foundTeam ? foundTeam.name ?? "N/A" : "ID: " + teamData;
       }
       return <div className="capitalize">{teamName}</div>;
     },
@@ -103,10 +103,10 @@ export const getColumns = (
         teamData !== null &&
         "name" in teamData
       ) {
-        teamName = (teamData as Team).name;
+        teamName = (teamData as Team).name ?? "N/A";
       } else if (typeof teamData === "string") {
         const foundTeam = teams.find((t) => t._id === teamData);
-        teamName = foundTeam ? foundTeam.name : "ID: " + teamData;
+        teamName = foundTeam ? foundTeam.name ?? "N/A" : "ID: " + teamData;
       }
       return <div className="capitalize">{teamName}</div>;
     },
@@ -131,10 +131,12 @@ export const getColumns = (
         leagueData !== null &&
         "name" in leagueData
       ) {
-        leagueName = (leagueData as League).name;
+        leagueName = (leagueData as League).name ?? "N/A";
       } else if (typeof leagueData === "string") {
         const foundLeague = leagues.find((l) => l._id === leagueData);
-        leagueName = foundLeague ? foundLeague.name : "ID: " + leagueData;
+        leagueName = foundLeague
+          ? foundLeague.name ?? "N/A"
+          : "ID: " + leagueData;
       }
       return <div className="capitalize">{leagueName}</div>;
     },
@@ -150,10 +152,10 @@ export const getColumns = (
         sportData !== null &&
         "name" in sportData
       ) {
-        sportName = (sportData as Sport).name;
+        sportName = (sportData as Sport).name ?? "N/A";
       } else if (typeof sportData === "string") {
         const foundSport = sports.find((s) => s._id === sportData);
-        sportName = foundSport ? foundSport.name : "ID: " + sportData;
+        sportName = foundSport ? foundSport.name ?? "N/A" : "ID: " + sportData;
       }
       return <div className="capitalize">{sportName}</div>;
     },
@@ -197,7 +199,7 @@ export const getColumns = (
         sportData !== null &&
         "name" in sportData
       ) {
-        sportName = (sportData as Sport).name;
+        sportName = (sportData as Sport).name ?? "N/A";
       }
       return (
         <div className="capitalize">

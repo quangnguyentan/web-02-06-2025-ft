@@ -18,11 +18,6 @@ const placeholderImg = (
   width: number = 100,
   height: number = 140
 ) => `https://picsum.photos/seed/${seed}/${width}/${height}`;
-const placeholderThumbnail = (
-  seed: string,
-  width: number = 300,
-  height: number = 160
-) => `https://picsum.photos/seed/${seed}/${width}/${height}`;
 
 export const mockFeaturedBroadcasts: FeaturedBroadcastItem[] = [
   {

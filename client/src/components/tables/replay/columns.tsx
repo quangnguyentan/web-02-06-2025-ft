@@ -116,10 +116,12 @@ export const getColumns = (
         matchData !== null &&
         "title" in matchData
       ) {
-        matchTitle = (matchData as Match).title;
+        matchTitle = (matchData as Match).title ?? "N/A";
       } else if (typeof matchData === "string") {
         const foundMatch = matches.find((m) => m._id === matchData);
-        matchTitle = foundMatch ? foundMatch.title : "ID: " + matchData;
+        matchTitle = foundMatch
+          ? foundMatch.title ?? "N/A"
+          : "ID: " + matchData;
       }
       return <div className="capitalize">{matchTitle}</div>;
     },
@@ -135,10 +137,10 @@ export const getColumns = (
         sportData !== null &&
         "name" in sportData
       ) {
-        sportName = (sportData as Sport)?.name;
+        sportName = (sportData as Sport)?.name ?? "N/A";
       } else if (typeof sportData === "string") {
         const foundMatch = sports.find((m) => m._id === sportData);
-        sportName = foundMatch ? foundMatch?.name : "ID: " + sportData;
+        sportName = foundMatch ? foundMatch?.name ?? "N/A" : "ID: " + sportData;
       }
       return <div className="capitalize">{sportName}</div>;
     },

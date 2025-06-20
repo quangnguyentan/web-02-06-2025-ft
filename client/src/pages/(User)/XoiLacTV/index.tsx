@@ -4,7 +4,7 @@ import { MatchStatusType } from "@/types/match.types";
 import * as React from "react";
 
 const XoiLacTV: React.FC = () => {
-  const { matchData, replayData, loading } = useData();
+  const { matchData, loading } = useData();
   const today = new Date();
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
@@ -41,6 +41,7 @@ const XoiLacTV: React.FC = () => {
       const matchDay = formatDate(matchDate);
       const todayDay = formatDate(today);
       return (
+        match?.sport &&
         match.sport.slug === "football" &&
         match?.status !== MatchStatusType.FINISHED &&
         match?.status !== MatchStatusType.CANCELLED &&
@@ -56,6 +57,7 @@ const XoiLacTV: React.FC = () => {
       const matchDay = formatDate(matchDate);
       const todayDay = formatDate(today);
       return (
+        match?.sport &&
         match.sport.slug === "tennis" &&
         match?.status !== MatchStatusType.FINISHED &&
         match?.status !== MatchStatusType.CANCELLED &&
@@ -71,6 +73,7 @@ const XoiLacTV: React.FC = () => {
       const matchDay = formatDate(matchDate);
       const todayDay = formatDate(today);
       return (
+        match?.sport &&
         match.sport.slug === "basketball" &&
         match?.status !== MatchStatusType.FINISHED &&
         match?.status !== MatchStatusType.CANCELLED &&
@@ -85,6 +88,7 @@ const XoiLacTV: React.FC = () => {
       const matchDay = formatDate(matchDate);
       const todayDay = formatDate(today);
       return (
+        match?.sport &&
         match.sport.slug === "volleyball" &&
         match?.status !== MatchStatusType.FINISHED &&
         match?.status !== MatchStatusType.CANCELLED &&

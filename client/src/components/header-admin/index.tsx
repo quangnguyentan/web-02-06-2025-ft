@@ -15,7 +15,8 @@ const HeaderAdmin = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const wrapperRef = useRef(null);
+  // FIX: Explicitly type the ref to HTMLDivElement
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     setSelectedPage("TRANG CHỦ");
@@ -31,8 +32,13 @@ const HeaderAdmin = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      // The `if (wrapperRef.current)` acts as a type guard,
+      // ensuring TypeScript knows `wrapperRef.current` is not null here.
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node) // event.target needs to be cast to Node for .contains()
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -46,6 +52,8 @@ const HeaderAdmin = () => {
   return (
     <header className="flex justify-end items-center p-4 bg-[#2ABBB2] text-white w-full absolute">
       <div className="relative" ref={wrapperRef}>
+        {" "}
+        {/* ref attached here */}
         <button
           onClick={toggleDropdown}
           className="flex items-center gap-2 focus:outline-none"

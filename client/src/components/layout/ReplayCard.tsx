@@ -45,8 +45,11 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
           navigate(targetUrl);
           localStorage.setItem("selectedPage", "XEM LẠI"); // Set selected page
           setSelectedPage("XEM LẠI");
-          setSelectedSportsNavbarPage(replay?.sport?.name);
-          localStorage.setItem("selectedSportsNavbarPage", replay?.sport?.name);
+          setSelectedSportsNavbarPage(replay?.sport?.name ?? "");
+          localStorage.setItem(
+            "selectedSportsNavbarPage",
+            replay?.sport?.name ?? ""
+          );
           localStorage.setItem("setByReplayCard", "true"); // Set flag
         }}
         className="flex items-center space-x-3 group p-1.5  rounded-md transition-colors duration-150 cursor-pointer"
@@ -59,7 +62,8 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
             {replay.title}
           </h3>
           {replay.commentator &&
-            !replay.title
+            replay.title &&
+            !replay?.title
               .toLowerCase()
               .includes(replay.commentator.toLowerCase()) && (
               <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">
@@ -68,7 +72,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
             )}
           <p className="text-[10px] sm:text-[13px] text-gray-400 group-hover:text-gray-400">
             {replay?.sport?.name} -{" "}
-            {new Date(replay?.publishDate).toLocaleString("vi-VN", {
+            {new Date(replay?.publishDate ?? "").toLocaleString("vi-VN", {
               day: "2-digit",
               month: "2-digit",
               year: "numeric",
@@ -105,8 +109,11 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
         navigate(targetUrl);
         localStorage.setItem("selectedPage", "XEM LẠI"); // Set selected page
         setSelectedPage("XEM LẠI");
-        setSelectedSportsNavbarPage(replay?.sport?.name);
-        localStorage.setItem("selectedSportsNavbarPage", replay?.sport?.name);
+        setSelectedSportsNavbarPage(replay?.sport?.name ?? "");
+        localStorage.setItem(
+          "selectedSportsNavbarPage",
+          replay?.sport?.name ?? ""
+        );
         localStorage.setItem("setByReplayCard", "true"); // Set flag
       }}
       className="block rounded-lg shadow-2xl overflow-hidden group cursor-pointer"
@@ -123,7 +130,7 @@ const ReplayCard: React.FC<ReplayCardProps> = ({
           <DefaultPlayIcon className="w-10 h-10 sm:w-12 sm:h-12 text-white opacity-70 group-hover:opacity-100" />
         </div>
         <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-[11px] sm:text-xs px-2 py-1 rounded-sm">
-          {new Date(replay?.publishDate).toLocaleString("vi-VN", {
+          {new Date(replay?.publishDate ?? "").toLocaleString("vi-VN", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

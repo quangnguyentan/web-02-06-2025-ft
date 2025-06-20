@@ -166,15 +166,17 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
               <div className="lg:w-3/4 flex-shrink-0 pr-2">
                 <div className="rounded-lg shadow-md mb-4">
                   <FeaturedBroadcastSection
-                    items={featuredBroadcasts}
-                    highlightedEvent={highlightedEvent}
+                    items={featuredBroadcasts || []}
+                    highlightedEvent={
+                      highlightedEvent || ({} as HighlightedEventInfo)
+                    }
                   />
                 </div>
               </div>
               <div className="lg:w-1/4 flex-shrink-0">
                 <div>
                   <ReplaySuggestionsPanel
-                    replays={sidebarReplays}
+                    replays={sidebarReplays || []}
                     title="XEM LẠI BÓNG ĐÁ"
                   />
                 </div>

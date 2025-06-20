@@ -49,12 +49,12 @@ export const getColumns = (
         sportData !== null &&
         "name" in sportData
       ) {
-        sportName = (sportData as Sport).name;
+        sportName = (sportData as Sport).name ?? "N/A";
       }
       // Nếu sport là string (ID), tìm trong mảng sports đã truyền vào
       else if (typeof sportData === "string") {
         const foundSport = sports.find((s) => s._id === sportData);
-        sportName = foundSport ? foundSport.name : "ID: " + sportData;
+        sportName = foundSport ? foundSport.name ?? "N/A" : "ID: " + sportData;
       }
       return <div className="capitalize">{sportName}</div>;
     },

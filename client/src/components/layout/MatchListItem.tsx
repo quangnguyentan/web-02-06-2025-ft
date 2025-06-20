@@ -1,7 +1,5 @@
 import { UserIcon } from "./Icon"; // For streamer avatar fallback
 import * as React from "react";
-import team_1 from "@/assets/user/team-1.png";
-import team_2 from "@/assets/user/team-2.png";
 import { Match } from "@/types/match.types";
 import { useNavigate } from "react-router-dom";
 const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
@@ -15,7 +13,7 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
     >
       {/* Time */}
       <div className="w-1/3 sm:w-1/6 text-xs sm:text-xs text-gray-300 font-medium mb-1 sm:mb-0">
-        {new Date(match?.startTime).toLocaleString("vi-VN", {
+        {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
