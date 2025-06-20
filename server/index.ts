@@ -9,9 +9,13 @@ import path from "path";
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT ?? 5000;
+const productionOrigin = "https://hoiquan.live";
+const developmentOrigin = "http://localhost:5173";
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: productionOrigin,
+    // origin: developmentOrigin,
     credentials: true,
   })
 );
