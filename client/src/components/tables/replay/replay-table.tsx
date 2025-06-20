@@ -51,7 +51,7 @@ export function ReplayTable() {
 
   // Chuyển onOpen và matches vào getColumns
   const columns = React.useMemo(
-    () => getColumns(onOpen, matches, sports) as ColumnDef<Match, unknown>[],
+    () => getColumns(onOpen, matches, sports) as ColumnDef<Replay, unknown>[],
     [onOpen, matches, sports]
   );
 
@@ -195,7 +195,7 @@ export function ReplayTable() {
                     style={{
                       width: (
                         header.column.columnDef.meta as CustomColumnMeta<
-                          Match,
+                          Replay,
                           unknown
                         >
                       )?.width,

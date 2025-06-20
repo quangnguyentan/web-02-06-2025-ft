@@ -10,6 +10,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  ColumnDef,
+  ColumnMeta,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 
@@ -37,7 +39,9 @@ import { apiGetAllSports } from "@/services/sport.services"; // Import Sport API
 
 import { Team } from "@/types/team.types"; // Import Team type
 import { Sport } from "@/types/sport.types"; // Import Sport type
-
+interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
+  width?: string | number;
+}
 export function TeamTable() {
   const { onOpen } = useModal();
   const { team, setTeam } = useSelectedPageContext();
@@ -45,7 +49,7 @@ export function TeamTable() {
 
   // Chuyển onOpen và sports vào getColumns
   const columns = React.useMemo(
-    () => getColumns(onOpen, sports),
+    () => getColumns(onOpen, sports) as ColumnDef<Sport, unknown>[],
     [onOpen, sports]
   );
 
@@ -193,7 +197,14 @@ export function TeamTable() {
                     <TableHead
                       key={header.id}
                       className="px-4 py-2 text-left font-medium whitespace-nowrap" // Thêm padding, font-medium, whitespace-nowrap
-                      style={{ width: header.column.columnDef.meta?.width }} // Giữ lại style width nếu cần
+                      style={{
+                        width: (
+                          header.column.columnDef.meta as CustomColumnMeta<
+                            Sport,
+                            unknown
+                          >
+                        )?.width,
+                      }}
                     >
                       {header.isPlaceholder
                         ? null

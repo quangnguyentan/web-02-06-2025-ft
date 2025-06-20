@@ -9,6 +9,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  ColumnDef,
+  ColumnMeta,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 
@@ -32,10 +34,16 @@ import { getColumns } from "./columns";
 import { apiGetAllUser } from "@/services/user.services";
 import { useModal } from "@/hooks/use-model-store";
 import { useSelectedPageContext } from "@/hooks/use-context";
-
+import { User } from "@/types/user.types";
+interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
+  width?: string | number;
+}
 export function UserTable() {
   const { onOpen } = useModal();
-  const columns = React.useMemo(() => getColumns(onOpen), [onOpen]);
+  const columns = React.useMemo(
+    () => getColumns(onOpen) as ColumnDef<User, unknown>[],
+    [onOpen]
+  );
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -135,7 +143,14 @@ export function UserTable() {
                   <TableHead
                     key={header.id}
                     className="px-4 py-2 text-left font-medium whitespace-nowrap"
-                    style={{ width: header.column.columnDef.meta?.width }}
+                    style={{
+                      width: (
+                        header.column.columnDef.meta as CustomColumnMeta<
+                          User,
+                          unknown
+                        >
+                      )?.width,
+                    }}
                   >
                     {header.isPlaceholder
                       ? null
