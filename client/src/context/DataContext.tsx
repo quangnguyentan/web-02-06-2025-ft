@@ -3,10 +3,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
-import { apiGetAllSports } from "@/services/sport.services";
 const production = "https://sv.hoiquan.live";
-const development = "http://localhost:8080";
-// const BASE_URL = process.env.NODE_ENV === "production" ? production : development;
+const development = "http://localhost:5173";
+
 const fetcher = async (url: string) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -19,7 +18,7 @@ const fetcher = async (url: string) => {
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
     const data = await res.json();
-    console.log(`Fetched data for ${url}:`, data); // Debug log
+    console.log(`Fetched data for ${url}:`, data);
     return data;
   } catch (error) {
     clearTimeout(timeoutId);
@@ -34,7 +33,7 @@ interface DataContextType {
   loading: boolean;
   fetchData: () => Promise<void>;
   isDataLoaded: boolean;
-  error: Error | null; // Thêm error vào context
+  error: Error | null;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -51,7 +50,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
-    shouldRetryOnError: false, // Không thử lại khi lỗi
+    shouldRetryOnError: false,
   });
 
   const {
@@ -70,27 +69,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     data: sports = [],
     error: sportError,
     isLoading: sportLoading,
-  } = useSWR<Sport[]>(
-    "/api/sports",
-
-    async () => {
-      const response = await apiGetAllSports();
-      return response?.data || [];
-    },
-    {
-      revalidateOnMount: true,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000,
-      shouldRetryOnError: false,
-    }
-  );
+  } = useSWR<Sport[]>("/api/sports", fetcher, {
+    // Use fetcher instead of apiGetAllSports
+    revalidateOnMount: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
+    shouldRetryOnError: false,
+  });
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  // Chỉ coi là loading khi lần đầu tải dữ liệu
   const loading =
     !isDataLoaded && (matchLoading || replayLoading || sportLoading);
-  // Gộp lỗi từ các API
   const error = matchError || replayError || sportError;
 
   const fetchData = async () => {
@@ -103,7 +93,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsDataLoaded(true);
     } catch (err) {
       console.error("Error refreshing data:", err);
-      setIsDataLoaded(true); // Đặt isDataLoaded để thoát trạng thái loading
+      setIsDataLoaded(true);
     }
   };
 
@@ -146,7 +136,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         fetchData,
         isDataLoaded,
-        error, // Cung cấp error cho context
+        error,
       }}
     >
       {children}

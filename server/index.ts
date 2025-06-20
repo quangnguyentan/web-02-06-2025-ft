@@ -5,10 +5,11 @@ import { initRoutes } from "./src/routes/index.routes";
 import path from "path";
 import { connectDB } from "./src/configs/connectDB";
 import cookieParser from "cookie-parser";
+
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT ?? 5000;
-const allowedOrigins = ["*", "https://hoiquan.live", "http://localhost:5173"];
+const allowedOrigins = ["https://hoiquan.live", "http://localhost:5173"]; // Remove *
 
 const corsOptions: CorsOptions = {
   origin: (
@@ -32,40 +33,43 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
-// app.use((req, res, next) => {
-//   res.removeHeader("Access-Control-Allow-Origin");
-//   res.removeHeader("Access-Control-Allow-Credentials");
-//   console.log("Response headers before setting:", res.getHeaders());
-//   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-//   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-//   next();
-// });
+app.use((req, res, next) => {
+  res.removeHeader("Access-Control-Allow-Origin");
+  res.removeHeader("Access-Control-Allow-Credentials");
+  console.log("Response headers before setting:", res.getHeaders());
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
 
-// app.use(
-//   (
-//     err: Error,
-//     req: express.Request,
-//     res: express.Response,
-//     next: express.NextFunction
-//   ) => {
-//     res.header("Access-Control-Allow-Origin", "localhost:5173");
-//     res.header(
-//       "Access-Control-Allow-Methods",
-//       "GET, POST, PUT, DELETE, OPTIONS"
-//     );
-//     res.header("Access-Control-Allow-Credentials", "true");
-//     res.status(500).json({ error: err.message });
-//   }
-// );
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
+      res.header("Access-Control-Allow-Credentials", "true");
+    }
+    res.status(err.name === "NotAllowedError" ? 403 : 500).json({ error: err.message });
+  }
+);
+
 app.use(cookieParser());
 app.use(
   "/static",
   (req, res, next) => {
     const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
     const ext = path.extname(req.path).toLowerCase();
-
     if (imageExtensions.includes(ext)) {
-      // Change to 'cross-origin' to allow any origin to load these resources
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     }
     next();
