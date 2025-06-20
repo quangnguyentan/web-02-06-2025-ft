@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT ?? 5000;
-const allowedOrigins = ["https://hoiquan.live", "http://localhost:5173"];
+const allowedOrigins = ["*", "https://hoiquan.live", "http://localhost:5173"];
 
 const corsOptions: CorsOptions = {
   origin: (
@@ -17,8 +17,8 @@ const corsOptions: CorsOptions = {
   ) => {
     console.log("Request origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
-      console.log("Allowed origin set to:", origin || allowedOrigins[0]);
-      callback(null, origin || allowedOrigins[0]);
+      console.log("Allowed origin set to:", origin ?? allowedOrigins[0]);
+      callback(null, origin ?? allowedOrigins[0]);
     } else {
       console.log("Blocked origin:", origin);
       callback(new Error("Not allowed by CORS"));
@@ -32,28 +32,31 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  res.removeHeader("Access-Control-Allow-Origin");
-  res.removeHeader("Access-Control-Allow-Credentials");
-  console.log("Response headers before setting:", res.getHeaders());
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.removeHeader("Access-Control-Allow-Origin");
+//   res.removeHeader("Access-Control-Allow-Credentials");
+//   console.log("Response headers before setting:", res.getHeaders());
+//   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+//   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+//   next();
+// });
 
-// Error handler to enforce CORS headers
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    res.header("Access-Control-Allow-Origin", "https://hoiquan.live");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.status(500).json({ error: err.message });
-  }
-);
+// app.use(
+//   (
+//     err: Error,
+//     req: express.Request,
+//     res: express.Response,
+//     next: express.NextFunction
+//   ) => {
+//     res.header("Access-Control-Allow-Origin", "localhost:5173");
+//     res.header(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, PUT, DELETE, OPTIONS"
+//     );
+//     res.header("Access-Control-Allow-Credentials", "true");
+//     res.status(500).json({ error: err.message });
+//   }
+// );
 app.use(cookieParser());
 app.use(
   "/static",

@@ -6,13 +6,13 @@ import reduxStore from "@/store";
 import { navigate } from "./lib/navigate";
 import type { AppDispatch } from "@/store";
 const production = "https://sv.hoiquan.live/api";
-// const development = "http://localhost:8080/api";
+const development = "http://localhost:8080/api";
 const { store } = reduxStore();
 const typedDispatch = store.dispatch as AppDispatch;
 const instance = axios.create({
-  baseURL: production,
-  // baseURL: development,
-  // withCredentials: true,
+  // baseURL: production,
+  baseURL: development,
+  withCredentials: true,
 });
 instance.interceptors.request.use(
   function (config) {

@@ -6,7 +6,7 @@ export const apiRegister = async (data: authActionProps) => {
       method: "POST",
       url: "/auth/register",
       data,
-      withCredentials: true
+      withCredentials: true,
     });
     return response;
   } catch (error) {
@@ -19,7 +19,7 @@ export const apiRefreshToken = async () => {
     const response = await axiosConfig({
       method: "POST",
       url: "/auth/refreshToken",
-      withCredentials: true
+      withCredentials: true,
     });
     return response;
   } catch (error) {
@@ -33,8 +33,8 @@ export const apiLogin = async (data: authActionProps) => {
       method: "POST",
       url: "/auth/login",
       data,
-      withCredentials: true
-    })
+      withCredentials: true,
+    });
     return response;
   } catch (error) {
     console.error("Error during login:", error);
@@ -47,11 +47,11 @@ export const apiLoginSuccess = async (id: unknown, tokenLogin: unknown) => {
       method: "POST",
       url: "/auth/login-success",
       data: { id, tokenLogin },
-      withCredentials: true
+      withCredentials: true,
     });
     return response;
   } catch (error) {
     console.error("Error during login:", error);
     throw error;
   }
-}
+};
