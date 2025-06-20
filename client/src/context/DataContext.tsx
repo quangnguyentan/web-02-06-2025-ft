@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
+
 const production = "https://sv.hoiquan.live";
 const development = "http://localhost:5173";
 
@@ -70,7 +71,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     error: sportError,
     isLoading: sportLoading,
   } = useSWR<Sport[]>("/api/sports", fetcher, {
-    // Use fetcher instead of apiGetAllSports
     revalidateOnMount: true,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
