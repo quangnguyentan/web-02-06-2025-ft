@@ -12,7 +12,7 @@ const typedDispatch = store.dispatch as AppDispatch;
 const instance = axios.create({
   baseURL: production,
   // baseURL: development,
-  withCredentials: true,
+  // withCredentials: true,
 });
 instance.interceptors.request.use(
   function (config) {

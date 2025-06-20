@@ -1,70 +1,58 @@
 import express from "express";
+import cors, { CorsOptions } from "cors"; // Ensure 'cors' package is installed
 import dotenv from "dotenv";
-import cors, { CorsOptions } from "cors"; // Import CorsOptions type
-import cookieParser from "cookie-parser";
-import { connectDB } from "./src/configs/connectDB";
-import { initRoutes } from "./src/routes/index.routes";
-import "./src/passport/index";
 import path from "path";
 
+// Initialize Express app
 const app = express();
 dotenv.config();
+
 const PORT = process.env.PORT ?? 5000;
-const productionOrigin = "https://hoiquan.live";
-const developmentOrigin = "http://localhost:5173";
+const allowedOrigins = ["https://hoiquan.live", "http://localhost:5173"]; // Define allowed origins
 
-// Define allowed origins
-const allowedOrigins = [productionOrigin, developmentOrigin];
-
-// Define the corsOptions with typed origin function
+// Define CORS options
 const corsOptions: CorsOptions = {
   origin: (
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean | string) => void
   ) => {
-    // Allow requests with no origin (e.g., mobile apps, curl) or from allowed origins
+    console.log("Request origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin ?? allowedOrigins[0]); // Use the specific origin or the first allowed origin
+      console.log("Allowed origin set to:", origin || allowedOrigins[0]);
+      callback(null, origin || allowedOrigins[0]);
     } else {
+      console.log("Blocked origin:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, // Enable credentials (cookies, authorization headers)
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200,
 };
 
+// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Remove any manual header setting that might conflict
+// Middleware to clean headers and set additional policies
 app.use((req, res, next) => {
-  res.removeHeader("Access-Control-Allow-Origin"); // Ensure no conflicting headers
-  res.removeHeader("Access-Control-Allow-Credentials"); // Ensure no conflicting headers
+  res.removeHeader("Access-Control-Allow-Origin");
+  res.removeHeader("Access-Control-Allow-Credentials");
+  console.log("Response headers before setting:", res.getHeaders());
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
   next();
 });
 
-app.use(cookieParser());
-app.use(
-  "/static",
-  (req, res, next) => {
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
-    const ext = path.extname(req.path).toLowerCase();
-
-    if (imageExtensions.includes(ext)) {
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    }
-    next();
-  },
-  express.static(path.join(__dirname, "./assets/images"))
-);
+// Other middleware and routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-connectDB();
-initRoutes(app);
 
+app.get("/api/sports", (req, res) => {
+  res.json({ message: "Sports data" });
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
