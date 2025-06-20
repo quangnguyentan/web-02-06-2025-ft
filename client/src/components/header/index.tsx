@@ -59,7 +59,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   console.log(userData);
 
   const getSportNameFromSlug = (slug: string) => {
-    const sport = sportData.find((s) => s.slug === slug);
+    const sport = sportData?.find((s) => s.slug === slug);
     return sport ? sport.name : null;
   };
 
@@ -82,7 +82,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 
   const navItems: NavItem[] = React.useMemo(() => {
     const activeSportName = getInitialActiveSportName();
-    const sport = sportData.find((s) => s.name === activeSportName);
+    const sport = sportData?.find((s) => s.name === activeSportName);
     const slug = sport ? sport.slug : "esports";
     return [
       { label: "TRANG CHỦ", url: "/" },
@@ -153,7 +153,9 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
               onClick={() => {
                 const activeSportName =
                   selectedSportsNavbarPage || getInitialActiveSportName();
-                const sport = sportData.find((s) => s.name === activeSportName);
+                const sport = sportData?.find(
+                  (s) => s.name === activeSportName
+                );
                 const targetSlug = sport ? sport.slug : "esports";
                 const finalUrl =
                   item.url.includes(":slug") || item.url.includes(":title")
@@ -329,7 +331,7 @@ const SportsNavbar: React.FC = () => {
       location.pathname.startsWith("/ket-qua/") ||
       location.pathname.startsWith("/xem-lai/")
     ) {
-      const sportFromUrl = sportData.find((s) => s.slug === currentPathSlug);
+      const sportFromUrl = sportData?.find((s) => s.slug === currentPathSlug);
       let initialSportName = "eSports";
       if (sportFromUrl) {
         initialSportName = sportFromUrl.name ?? "";
@@ -416,7 +418,7 @@ const DrawerMenu: React.FC<{
   const { sportData } = useData();
 
   const handleSportClick = (category: SportCategory) => {
-    const sport = sportData.find((s) => s.name === category.name);
+    const sport = sportData?.find((s) => s.name === category.name);
     const targetUrl = sport ? `/xem-lai/${sport.slug}` : "/xem-lai/esports";
     navigate(targetUrl);
     setSelectedSportsNavbarPage(category.name);

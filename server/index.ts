@@ -1,16 +1,15 @@
 import express from "express";
-import cors, { CorsOptions } from "cors"; // Ensure 'cors' package is installed
+import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
+import { initRoutes } from "./src/routes/index.routes";
 import path from "path";
-
-// Initialize Express app
+import { connectDB } from "./src/configs/connectDB";
+import cookieParser from "cookie-parser";
 const app = express();
 dotenv.config();
-
 const PORT = process.env.PORT ?? 5000;
-const allowedOrigins = ["https://hoiquan.live", "http://localhost:5173"]; // Define allowed origins
+const allowedOrigins = ["https://hoiquan.live", "http://localhost:5173"];
 
-// Define CORS options
 const corsOptions: CorsOptions = {
   origin: (
     origin: string | undefined,
@@ -31,10 +30,8 @@ const corsOptions: CorsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Middleware to clean headers and set additional policies
 app.use((req, res, next) => {
   res.removeHeader("Access-Control-Allow-Origin");
   res.removeHeader("Access-Control-Allow-Credentials");
@@ -44,15 +41,38 @@ app.use((req, res, next) => {
   next();
 });
 
-// Other middleware and routes
+// Error handler to enforce CORS headers
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    res.header("Access-Control-Allow-Origin", "https://hoiquan.live");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.status(500).json({ error: err.message });
+  }
+);
+app.use(cookieParser());
+app.use(
+  "/static",
+  (req, res, next) => {
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
+    const ext = path.extname(req.path).toLowerCase();
+
+    if (imageExtensions.includes(ext)) {
+      // Change to 'cross-origin' to allow any origin to load these resources
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    }
+    next();
+  },
+  express.static(path.join(__dirname, "./assets/images"))
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.get("/api/sports", (req, res) => {
-  res.json({ message: "Sports data" });
-});
-
-// Start server
+initRoutes(app);
+connectDB();
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
