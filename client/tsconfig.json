@@ -6,9 +6,18 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "jsx": "react-jsx", // Move this inside "compilerOptions"
-    "module": "ESNext", // Set to a compatible module system
-    "target": "ES2020", // Ensure the target is compatible with the module system
-    "moduleResolution": "node" // Use "node" for better compatibility with Vite
-  }
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "target": "ES2020",
+    "moduleResolution": "bundler", // Switch to "bundler" for Vite compatibility
+    "allowSyntheticDefaultImports": true, // Allow default imports for CommonJS modules
+    "esModuleInterop": true, // Improve interop between CommonJS and ES Modules
+    "strict": true, // Enable strict type checking
+    "skipLibCheck": true, // Skip type checking of declaration files to avoid third-party issues
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true, // No output during type checking (Vite handles bundling)
+    "isolatedModules": true // Ensure compatibility with Vite's transformation
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }
