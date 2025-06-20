@@ -11,6 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    allowedHosts: ["hoiquan.live"], // Thêm host được phép
   },
   build: {
     outDir: "dist", // Thư mục output khi build

@@ -14,8 +14,8 @@ const developmentOrigin = "http://localhost:5173";
 
 app.use(
   cors({
-    // origin: productionOrigin,
-    origin: developmentOrigin,
+    origin: productionOrigin,
+    // origin: developmentOrigin,
     credentials: true,
   })
 );
