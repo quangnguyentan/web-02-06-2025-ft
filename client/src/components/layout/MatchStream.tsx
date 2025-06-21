@@ -34,7 +34,7 @@ const Breadcrumbs: React.FC<{ match: Match }> = ({ match }) => (
       {match?.sport?.name || "Thể thao"}
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <span className="truncate max-w-[200px] sm:max-w-xs text-orange-500">
+    <span className="truncate max-w-[200px] sm:max-w-xs text-current-color">
       {match?.title}
     </span>
   </nav>
@@ -46,7 +46,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
   replaySuggestions,
 }) => {
   return (
-    <div className="flex flex-col min-h-screen  ">
+    <div className="flex flex-col min-h-screen w-full">
       <main
         className="lg:max-w-[1024px]
     xl:max-w-[1200px]
@@ -62,9 +62,9 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
         <div className="md:hidden">
           <MatchInfoBar match={match} />
         </div>
-        <div className="flex flex-col lg:flex-row">
+        <div className="flex flex-col lg:flex-row ">
           {/* Left Column: Video + Match Info + Related */}
-          <div className="lg:w-2/3 flex-shrink-0 pr-2">
+          <div className="lg:w-2/3 flex-shrink-0 pr-2 ">
             <VideoPlayer
               videoUrl={`${match?.streamLinks?.[0]?.url}`}
               videoTitle={`${match?.homeTeam?.name} vs ${match?.awayTeam?.name}`}

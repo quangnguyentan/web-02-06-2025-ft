@@ -40,3 +40,11 @@ export const adjustToVietnamTime = (date: Date): Date => {
   vietnamDate.setHours(vietnamDate.getHours()); // Điều chỉnh từ UTC sang UTC+07:00
   return vietnamDate;
 };
+
+const createSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+};

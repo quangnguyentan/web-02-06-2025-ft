@@ -44,7 +44,7 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
   const introText =
     "XOILAC TV xem trực tiếp bóng đá online nhanh nhất. Xem XoilacTV là kênh cập nhật link xem trực tiếp bóng đá, bóng chuyền, bóng rổ và các môn Thể thao khác cho Fan hâm mộ Việt Nam và Quốc tế với tốc độ Internet. Xem thể thao trực tuyến với tiền thân Xoilac TV chất lượng cao không giật lag.";
   const titleText =
-    "THAPCAM TV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online nhanh nhất - Thập Cẩm TV";
+    "HOIQUAN TV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online nhanh nhất - Thập Cẩm TV";
   return (
     <>
       <HeroSection />

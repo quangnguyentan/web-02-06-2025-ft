@@ -40,7 +40,7 @@ const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => (
     </a>
     <ChevronRightIcon className="w-3 h-3 text-gray-500" />
     <span
-      className="text-orange-500 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
+      className="text-current-color truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
       title={replay?.title}
     >
       {replay?.title}

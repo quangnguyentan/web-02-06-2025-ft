@@ -60,12 +60,12 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
   const pageTitleDate = selectedDateTab?.isToday
     ? "HÔM NAY"
     : selectedDateTab?.dateSuffix;
-  const pageTitle = `THAPCAM TV: KẾT QUẢ ${nameSlug} ${
+  const pageTitle = `HOIQUAN TV: KẾT QUẢ ${nameSlug} ${
     pageTitleDate ? pageTitleDate : ""
   } CẬP NHẬT MỚI NHẤT 24H`;
   const pageDescription = `Kết quả ${nameSlug} ${
     pageTitleDate ? pageTitleDate : ""
-  } mới nhất được ThapCamTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại ThapCamTV.`;
+  } mới nhất được HoiQuanTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại HoiQuanTV.`;
 
   return (
     <div className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">

@@ -10,6 +10,7 @@ import {
   TennisIcon,
   EventsIcon,
 } from "@/components/layout/Icon";
+import { Loader } from "@/components/layout/Loader";
 
 const ReplayStreamPage = React.lazy(
   () => import("@/components/layout/ReplayStreamPage")
@@ -75,18 +76,18 @@ const ReplayStream: React.FC = () => {
   }, [relatedReplays]);
 
   if (loading && !replayData.length) {
-    return <div>Loading replay...</div>;
+    return <Loader />;
   }
 
   if (error) {
-    return <div>Error loading replay. Please try again.</div>;
+    return <Loader />;
   }
 
   if (!currentReplay) {
-    return <div>Replay not found.</div>;
+    return <Loader />;
   }
   return (
-    <React.Suspense fallback={<div>Loading page content...</div>}>
+    <React.Suspense fallback={<Loader />}>
       <ReplayStreamPage
         mainReplay={currentReplay}
         categorizedReplays={categorizedReplays}

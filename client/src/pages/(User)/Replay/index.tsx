@@ -4,6 +4,7 @@ import * as React from "react";
 import { FootballIcon } from "@/components/layout/Icon";
 import { HighlightedEventInfo, type Replay } from "@/types/replay.types";
 import { useParams } from "react-router-dom";
+import { Loader } from "@/components/layout/Loader";
 
 const Replay: React.FC = () => {
   const { replayData, fetchData, loading } = useData();
@@ -90,7 +91,7 @@ const Replay: React.FC = () => {
     return replaySuggestions;
   }, [replaySuggestions]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loader />;
   return (
     <ReplayHubPage
       featuredBroadcasts={featuredBroadcasts}

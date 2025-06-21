@@ -48,6 +48,7 @@ const Auth = ({ handleClose }: AuthProps) => {
         )}
         {auth.register && (
           <Register
+            onClose={handleClose}
             onLogin={handleLogin}
             onShowPassword={showPassword}
             onTogglePassword={handleTogglePassword}

@@ -25,6 +25,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        "current-color": "#2e9fff",
+        "before-color": "#ff7f32",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -55,6 +57,7 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

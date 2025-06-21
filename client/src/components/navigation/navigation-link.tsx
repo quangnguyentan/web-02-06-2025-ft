@@ -18,7 +18,7 @@ const NavigationLink = ({ children, name, selectedItem }: Props) => {
       }`}
     >
       {children}
-      <p className="text-[15px] font-serif overflow-clip truncate whitespace-nowrap tracking-wide font-normal font-ubuntu ">
+      <p className="text-[15px] !text-white overflow-clip truncate whitespace-nowrap tracking-wide font-normal font-ubuntu ">
         {name}
       </p>
     </a>

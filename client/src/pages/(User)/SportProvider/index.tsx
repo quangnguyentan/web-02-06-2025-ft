@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import { Match, MatchStatusType } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { adjustToVietnamTime, formatDateFull } from "@/lib/helper";
+import { Loader } from "@/components/layout/Loader";
 
 const AppContent: React.FC = () => {
   const [currentMatch, setCurrentMatch] = React.useState<Match[]>([]);
@@ -48,7 +49,7 @@ const AppContent: React.FC = () => {
 
   const initialDateId = formatDate(today);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loader />;
 
   return (
     <main className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] ">

@@ -95,9 +95,9 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
   sidebarReplays,
 }) => {
   const pageTitle =
-    "XEM LẠI NHỮNG TRẬN ĐẤU ĐỈNH CAO TRÊN THAPCAM TV MỚI NHẤT, CẬP NHẬT LIÊN TỤC";
+    "XEM LẠI NHỮNG TRẬN ĐẤU ĐỈNH CAO TRÊN HOIQUANTV TV MỚI NHẤT, CẬP NHẬT LIÊN TỤC";
   const pageDescription =
-    "Trang Thapcam TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
+    "Trang Hoiquan TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
   const [currentPage, setCurrentPage] = React.useState(1);
 
   // Flatten replays from all groups

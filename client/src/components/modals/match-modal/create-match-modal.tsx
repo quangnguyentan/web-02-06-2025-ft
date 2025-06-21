@@ -256,7 +256,9 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
                   {field.value instanceof File ? (
                     <p className="text-blue-600">{field.value.name}</p>
                   ) : (
-                    <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
+                    <p className="!text-sm">
+                      Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
+                    </p>
                   )}
                 </div>
               </div>
@@ -302,7 +304,9 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
                   {field.value instanceof File ? (
                     <p className="text-blue-600">{field.value.name}</p>
                   ) : (
-                    <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
+                    <p className="!text-sm">
+                      Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
+                    </p>
                   )}
                 </div>
               </div>
@@ -854,7 +858,7 @@ export const CreateMatchModal = () => {
                           {field.value ? (
                             <p className="text-blue-600">{field.value.name}</p>
                           ) : (
-                            <p>
+                            <p className="!text-sm">
                               Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
                             </p>
                           )}
@@ -907,7 +911,7 @@ export const CreateMatchModal = () => {
                           {field.value ? (
                             <p className="text-blue-600">{field.value.name}</p>
                           ) : (
-                            <p>
+                            <p className="!text-sm">
                               Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
                             </p>
                           )}
@@ -936,7 +940,7 @@ export const CreateMatchModal = () => {
                 )}
               />
               <div className="space-y-4 border p-4 rounded-lg">
-                <h3 className="text-lg font-semibold">
+                <h3 className="!text-base font-semibold">
                   Liên kết stream (Không bắt buộc)
                 </h3>
                 {fields.map((item, index) => (

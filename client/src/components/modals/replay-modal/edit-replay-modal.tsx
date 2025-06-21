@@ -394,7 +394,7 @@ export const EditReplayModal = () => {
                                 {field.value.name}
                               </p>
                             ) : (
-                              <p>
+                              <p className="!text-sm">
                                 Kéo và thả file video tại đây (.mp4, .mov, .avi)
                               </p>
                             )}
@@ -448,7 +448,9 @@ export const EditReplayModal = () => {
                                 {field.value.name}
                               </p>
                             ) : (
-                              <p>Kéo và thả file ảnh tại đây (.jpg, .png)</p>
+                              <p className="!text-sm">
+                                Kéo và thả file ảnh tại đây (.jpg, .png)
+                              </p>
                             )}
                           </div>
                         )}

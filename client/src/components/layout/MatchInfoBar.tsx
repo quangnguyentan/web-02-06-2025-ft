@@ -13,10 +13,7 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
         <div className="mb-2 sm:mb-0">
           <div className="flex items-center text-xs text-gray-400 mb-1">
             <InformationCircleIconSolid className="w-4 h-4 mr-1 text-sky-400" />
-            <span>
-              {match?.title ||
-                `Trực tiếp ${match?.title}: ${match?.homeTeam?.name} vs ${match?.awayTeam?.name}`}
-            </span>
+            <span>{`Trận đấu: ${match?.title}`}</span>
           </div>
           <div className="text-sm text-gray-500">
             <span>
@@ -35,13 +32,14 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
             </span>
             <span className="mx-2 text-gray-600">|</span>
             <span>
-              Giải đấu: <span className="text-gray-300">{match?.title}</span>
+              Giải đấu:{" "}
+              <span className="text-gray-300">{match?.league?.name}</span>
             </span>
           </div>
         </div>
         <a
           // href={match.betUrl || "#"}
-          className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-2 px-4 rounded text-sm shadow-md whitespace-nowrap transition-colors self-start sm:self-center"
+          className="bg-yellow-500 hover:bg-yellow-600 !text-xs cursor-pointer  text-slate-900 font-medium py-2 px-4 rounded text-sm shadow-md whitespace-nowrap transition-colors self-start sm:self-center"
         >
           CƯỢC UY TÍN 100%
         </a>

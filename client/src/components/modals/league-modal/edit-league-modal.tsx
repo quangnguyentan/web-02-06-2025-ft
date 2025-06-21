@@ -257,7 +257,7 @@ export const EditLeagueModal = () => {
                           {field.value ? (
                             <p className="text-blue-600">{field.value.name}</p>
                           ) : (
-                            <p>
+                            <p className="!text-sm">
                               Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
                             </p>
                           )}

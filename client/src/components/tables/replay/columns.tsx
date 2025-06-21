@@ -80,7 +80,7 @@ export const getColumns = (
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline break-all"
+          className="text-blue-600 hover:underline break-all !text-sm"
         >
           {url}
         </a>

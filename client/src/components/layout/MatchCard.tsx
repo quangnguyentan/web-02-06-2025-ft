@@ -27,7 +27,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     hour12: false,
   });
   const isLive = match?.status === "LIVE";
-  const targetUrl = `/truc-tiep/${match.slug}/${match?.sport?.slug}`;
+  const targetUrl = `/truc-tiep/${match?.slug}/${match?.sport?.slug}`;
   const imageSlug =
     match?.sport?.name === "Bóng đá"
       ? football
@@ -83,7 +83,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
           <div className="flex items-center space-x-1 text-xs text-gray-400">
             <FootballIcon className="w-4 h-4 text-yellow-400" />
             <span className="truncate max-w-[90px] sm:max-w-[140px]">
-              {match.league?.name || match.title}
+              {match.league?.name ?? match?.title}
             </span>
           </div>
           <div className="text-xs text-gray-400 whitespace-nowrap">
@@ -99,8 +99,8 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         <div className="flex items-center justify-around my-2 sm:my-3">
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={match.homeTeam?.logo || ""}
-              alt={match.homeTeam?.name}
+              src={match?.homeTeam?.logo || ""}
+              alt={match?.homeTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />
             <span className="text-white text-xs sm:text-sm font-medium truncate w-full">
@@ -111,7 +111,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
           {match?.status && match?.scores ? (
             <div className="text-center px-1">
               <span className="text-xs md:text-xl font-bold text-white">
-                {match.scores.homeScore} - {match.scores.awayScore}
+                {match?.scores?.homeScore} - {match?.scores?.awayScore}
               </span>
               <div className="text-xs text-yellow-400 mt-1 font-medium">
                 {/* {isLive ? "LIVE" : match?.status} */}
@@ -126,8 +126,8 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={match.awayTeam?.logo || ""}
-              alt={match.awayTeam?.name}
+              src={match?.awayTeam?.logo || ""}
+              alt={match?.awayTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />
             <span className="text-white text-xs sm:text-sm font-medium truncate w-full">
@@ -144,20 +144,20 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         }}
       >
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          {match.streamLinks?.[0]?.commentatorImage && (
+          {match?.streamLinks?.[0]?.commentatorImage && (
             <img
-              src={match.streamLinks[0].commentatorImage}
-              alt={match.streamLinks[0].commentator}
+              src={match?.streamLinks[0]?.commentatorImage}
+              alt={match?.streamLinks[0]?.commentator}
               className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
             />
           )}
-          {match.streamLinks?.[0].commentator && (
+          {match?.streamLinks?.[0]?.commentator && (
             <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[90px] sm:max-w-[120px]">
-              {match.streamLinks[0].commentator}
+              {match?.streamLinks[0]?.commentator}
             </span>
           )}
         </div>
-        <a className="bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto">
+        <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] text-white hover:text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
           Xem Ngay
         </a>
       </div>

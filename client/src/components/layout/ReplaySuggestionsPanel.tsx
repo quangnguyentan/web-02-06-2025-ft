@@ -28,9 +28,11 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
       <div className="space-y-5 max-h-[320px] sm:max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
         {/* Added max-h and pr for scrollbar spacing */}
         {titleHidden && (
-          <div className="flex items-center space-x-2 px-2">
+          <div className="flex items-center space-x-2 px-2 w-full">
             <TVIcon className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-sm sm:text-lg font-bold text-white">{title}</h3>
+            <h6 className="text-sm sm:text-base font-bold text-white">
+              {title}
+            </h6>
           </div>
         )}
         {location?.pathname?.startsWith("/xem-lai/") ? (

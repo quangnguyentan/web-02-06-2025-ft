@@ -13,6 +13,7 @@ import propImage from "@/assets/user/500t1500.gif";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import { X } from "lucide-react";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 const style = {
   position: "absolute",
@@ -24,6 +25,9 @@ const style = {
   outline: "none", // Remove any outline (e.g., focus outline)
 };
 const Public = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const location = useLocation();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { setSelectedPage, setSelectedSportsNavbarPage } =
@@ -53,21 +57,21 @@ const Public = () => {
         className="bg-white text-brand-text overflow-y-auto h-screen "
       >
         <div className="flex flex-col min-h-screen bg-[#1E2027]">
-          <StickyAdBanner position="top" imageUrl={belt_bottom_top} />
+          {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}
           <div className="pt-[6px] flex-grow relative">
             <Header />
             <div className="container mx-auto relative px-1 sm:px-0">
               <div className="hidden lg:block">
-                <VerticalAdBanner position="left" imageUrl={belt_left_right} />
-                <VerticalAdBanner position="right" imageUrl={belt_left_right} />
+                {/* <VerticalAdBanner position="left" imageUrl={belt_left_right} /> */}
+                {/* <VerticalAdBanner position="right" imageUrl={belt_left_right} /> */}
               </div>
               <Outlet />
             </div>
             <FooterInfo />
           </div>
-          <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} />
+          {/* <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} /> */}
           <FloatingChatButton />
-          <Modal
+          {/* <Modal
             open={open}
             onClose={handleClose}
             aria-labelledby="modal-modal-title"
@@ -75,22 +79,28 @@ const Public = () => {
           >
             <Box sx={style}>
               <div className="flex justify-center relative">
-                <div className="relative w-full">
+                <div
+                  className={
+                    isMobile
+                      ? "relative w-[320px]" // Chiều rộng bằng ảnh khi mobile
+                      : "relative w-full" // Chiều rộng full khi desktop
+                  }
+                >
                   <img
                     src={propImage}
                     alt="Centered Ad Banner"
-                    className="w-full h-auto object-cover"
+                    className="w-full h-auto"
                   />
                   <button
                     onClick={handleClose}
-                    className="absolute top-0 right-0 w-6 h-6 bg-white text-black rounded-lg flex items-center justify-center "
+                    className="absolute top-0 right-0 w-6 h-6 bg-red-500 text-white rounded-lg flex items-center justify-center z-20"
                   >
                     <X />
                   </button>
                 </div>
               </div>
             </Box>
-          </Modal>
+          </Modal> */}
         </div>
       </div>
     </DataProvider>

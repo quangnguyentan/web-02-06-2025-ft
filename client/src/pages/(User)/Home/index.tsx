@@ -7,6 +7,7 @@ import { adjustToVietnamTime, formatDateFull } from "@/lib/helper";
 import { apiGetAllSports } from "@/services/sport.services";
 import { Sport } from "@/types/sport.types";
 import { EventsIcon } from "@/components/layout/Icon";
+import { Loader } from "@/components/layout/Loader";
 
 const HeroSection = React.lazy(() => import("@/components/layout/HeroSection"));
 const SportSection = React.lazy(
@@ -100,10 +101,10 @@ const AppContent: React.FC = () => {
     return replayData?.filter((match) => match?.isShown);
   }, [replayData]);
 
-  if (loading || !sports.length) return <div>Loading...</div>;
+  if (loading || !sports.length) return <Loader />;
 
   return (
-    <Suspense fallback={<div>Đang tải các thành phần...</div>}>
+    <Suspense fallback={<Loader />}>
       <HeroSection />
       <main className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
         <SportSection
@@ -112,13 +113,13 @@ const AppContent: React.FC = () => {
           matches={spotlightMatches}
           isSpotlight
         />
-        <div className="px-1 sm:px-4 md:px-6">
+        {/* <div className="px-1 sm:px-4 md:px-6">
           <img
             src={belt_bottom_top}
             alt="Ad Banner"
             className="object-cover md:w-full"
           />
-        </div>
+        </div> */}
         {sports.map((sport) => (
           <SportSection
             key={sport._id}

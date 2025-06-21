@@ -7,18 +7,23 @@ import { apiRegister } from "@/services/auth.services";
 import { authActionProps } from "@/stores/actions/authAction";
 
 import "./index.css";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 type registerProps = {
   onLogin?: () => void;
   onShowPassword?: boolean;
   onTogglePassword?: () => void;
   onClickTypeLogin: (type: string) => void;
+  onClose?: () => void;
 };
 const Register = ({
   onLogin,
   onShowPassword,
   onTogglePassword,
+  onClose,
 }: registerProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState<authActionProps>({
     username: "",
@@ -97,14 +102,41 @@ const Register = ({
   // }, [input.password, passLetter, passNumber, passChar, passLength]);
 
   return (
-    <>
-      <div className="main-container --flex-center">
+    <div className="relative">
+      <div
+        onClick={onClose}
+        className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 text-sm shadow absolute right-0 top-0 cursor-pointer"
+      >
+        <button className="text-white hover:text-yellow-200 text-xl leading-none">
+          &times;
+        </button>
+      </div>
+      <div
+        className={
+          isMobile ? "h-[360px]  w-full" : "main-container --flex-center"
+        }
+      >
         <div className="form-container ">
-          <form onSubmit={handleSubmit} className="--form-control ">
-            <h2 className="--color-dark --text-center font-bold text-4xl">
+          <form
+            onSubmit={handleSubmit}
+            className="--form-control !flex !flex-col !space-y-2"
+          >
+            <h2
+              className={`${
+                isMobile
+                  ? "--color-dark --text-center font-bold text-2xl "
+                  : "--color-dark --text-center font-bold text-4xl "
+              }`}
+            >
               Đăng ký
             </h2>
-            <span className="font-normal text-gray-500/80 text-[18px] flex items-center justify-center">
+            <span
+              className={`${
+                isMobile
+                  ? "font-normal text-gray-500/80 text-[14px] flex items-center justify-center"
+                  : "font-normal text-gray-500/80 text-[18px] flex items-center justify-center"
+              }`}
+            >
               Chào mừng đến với HOIQUANTV
             </span>
             {/* <input type="text" className="--width-100" placeholder="Username" /> */}
@@ -112,28 +144,38 @@ const Register = ({
               onChange={handleInput}
               name="username"
               type="text"
-              className="--width-100 !rounded-xl"
+              className={
+                isMobile
+                  ? "--width-100 !rounded-xl h-10 placeholder:text-base !text-base"
+                  : "--width-100 !rounded-xl"
+              }
               placeholder="Họ và tên"
             />
             <input
               onChange={handleInput}
               name="phone"
               type="number"
-              className="no-arrows --width-100 !rounded-xl"
+              className={
+                isMobile
+                  ? "--width-100 !rounded-xl h-10 placeholder:text-base !text-base no-arrows"
+                  : "--width-100 !rounded-xl no-arrows"
+              }
               placeholder="Số điện thoại"
             />
-            {/* PASSWORD FIELD */}
             <div className="password">
               <input
                 type={onShowPassword ? "text" : "password"}
-                className="--width-100 !rounded-xl"
                 name="password"
+                className={
+                  isMobile
+                    ? "--width-100 !rounded-xl h-10 placeholder:text-base !text-base"
+                    : "--width-100 !rounded-xl"
+                }
                 placeholder="Mật khẩu"
-                value={input.password}
                 onChange={handleInput}
               />
               <span
-                className="icon"
+                className="block absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700 transition-all duration-200 ease-in-out"
                 data-testid="toggle-password-icon"
                 onClick={onTogglePassword}
               >
@@ -151,15 +193,28 @@ const Register = ({
             > */}
             <button
               className={
-                "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block"
+                isMobile
+                  ? "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block h-8 !text-base"
+                  : "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block"
               }
             >
               Đăng ký tài khoản
             </button>
 
-            <span className="--text-sm --block">
+            <span
+              className={
+                isMobile ? "--text-sm --block !text-sm" : "--text-sm --block"
+              }
+            >
               Đã có tài khoản?
-              <a className="--text-sm cursor-pointer" onClick={onLogin}>
+              <a
+                className={`${
+                  isMobile
+                    ? "--text-sm cursor-pointer !text-sm"
+                    : "--text-sm cursor-pointer"
+                }`}
+                onClick={onLogin}
+              >
                 Đăng nhập
               </a>
             </span>
@@ -318,7 +373,7 @@ const Register = ({
           <img src={registerImg} alt="login" />
         </div>
       </div> */}
-    </>
+    </div>
   );
 };
 

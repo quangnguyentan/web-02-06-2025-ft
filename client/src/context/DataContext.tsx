@@ -5,7 +5,7 @@ import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 
 const production = "https://sv.hoiquan.live";
-// const development = "http://localhost:8080";
+const development = "http://localhost:8080";
 
 const fetcher = async (url: string) => {
   const controller = new AbortController();

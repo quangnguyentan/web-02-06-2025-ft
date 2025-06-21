@@ -4,6 +4,7 @@ import { useData } from "@/context/DataContext";
 import * as React from "react";
 import { useParams } from "react-router-dom";
 import { Replay } from "@/types/replay.types";
+import { Loader } from "@/components/layout/Loader";
 
 const today = new Date();
 
@@ -53,12 +54,12 @@ const Schedule: React.FC = () => {
 
   // Hiển thị thông báo lỗi nếu có
   if (error) {
-    return <div>Error loading data. Displaying mock data.</div>;
+    return <Loader />;
   }
 
   // Chỉ hiển thị loading khi đang fetch lần đầu và chưa có dữ liệu
   if (loading && !matchData.length && !replayData.length) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   return (

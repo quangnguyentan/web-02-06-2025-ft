@@ -5,6 +5,7 @@ import { useData } from "@/context/DataContext";
 import belt from "@/assets/user/160t1800.gif";
 import * as React from "react";
 import { formatDateFull } from "@/lib/helper";
+import { Loader } from "@/components/layout/Loader";
 
 // Lazy load components
 const MatchStreamPage = React.lazy(
@@ -57,7 +58,7 @@ const Live: React.FC = () => {
   console.log(currentMatch);
 
   return (
-    <React.Suspense fallback={<div>Loading page...</div>}>
+    <React.Suspense fallback={<Loader />}>
       <div className="flex">
         <VerticalAdBanner position="left" imageUrl={belt} />
         {/* FIX: Conditionally render MatchStreamPage only if currentMatch is not null */}
@@ -68,7 +69,7 @@ const Live: React.FC = () => {
             replaySuggestions={replaySuggestions}
           />
         ) : (
-          <div>Loading...</div>
+          <Loader />
         )}
         <VerticalAdBanner position="right" imageUrl={belt} />
       </div>

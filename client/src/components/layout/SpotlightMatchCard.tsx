@@ -189,12 +189,12 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <a className="flex-1 bg-slate-600 hover:bg-slate-500 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center">
+          <a className="flex-1 bg-blue-600 hover:bg-blue-500 text-white hover:text-gray-800 text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm">
             Xem Ngay
           </a>
           <a
             href="#"
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center"
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm"
           >
             Đặt Cược
           </a>

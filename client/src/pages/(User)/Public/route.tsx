@@ -16,6 +16,7 @@ const XoiLacTVPage = lazy(() => import("../XoiLacTV/index"));
 const ReplayStreamPage = lazy(() => import("../ReplayStream/index"));
 
 import "./index.css";
+import { Loader } from "@/components/layout/Loader";
 
 // Wrapper component to decide between ReplayPage and ReplayStreamPage
 const ReplayRouteHandler: React.FC = () => {
@@ -26,19 +27,7 @@ const ReplayRouteHandler: React.FC = () => {
   const isSportSlug = sportData?.some((sport) => sport.slug === slug);
 
   return (
-    <Suspense
-      fallback={
-        <div id="load">
-          <div>G</div>
-          <div>N</div>
-          <div>I</div>
-          <div>D</div>
-          <div>A</div>
-          <div>O</div>
-          <div>L</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<Loader />}>
       {isSportSlug ? <ReplayPage /> : <ReplayStreamPage />}
     </Suspense>
   );
@@ -52,19 +41,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <HomePage />
           </Suspense>
         ),
@@ -73,19 +50,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/:slug",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <SportProviderPage />
           </Suspense>
         ),
@@ -93,19 +58,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/truc-tiep/:slug/:slugSport",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <LivePage />
           </Suspense>
         ),
@@ -113,19 +66,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/lich-thi-dau/:slug",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <SchedulePageIndex />
           </Suspense>
         ),
@@ -133,19 +74,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/ket-qua/:slug",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <ResultPage />
           </Suspense>
         ),
@@ -157,19 +86,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/xoi-lac-tv",
         element: (
-          <Suspense
-            fallback={
-              <div id="load">
-                <div>G</div>
-                <div>N</div>
-                <div>I</div>
-                <div>D</div>
-                <div>A</div>
-                <div>O</div>
-                <div>L</div>
-              </div>
-            }
-          >
+          <Suspense fallback={<Loader />}>
             <XoiLacTVPage />
           </Suspense>
         ),

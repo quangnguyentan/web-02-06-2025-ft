@@ -60,7 +60,7 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
   } Cập Nhật Mới Nhất 24H - Thập Cẩm TV`;
   const pageDescription = `Lịch trực tiếp ${nameSlug} ${
     selectedDateTab?.dateSuffix || ""
-  } mới nhất được ThapCamTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại ThapCamTV.`;
+  } mới nhất được HoiQuanTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại HoiQuanTV.`;
   return (
     <div
       className="lg:max-w-[1024px]

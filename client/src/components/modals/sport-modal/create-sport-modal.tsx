@@ -179,7 +179,9 @@ export const CreateSportModal = () => {
                         {field.value ? (
                           <p className="text-blue-600">{field.value.name}</p>
                         ) : (
-                          <p>Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)</p>
+                          <p className="!text-sm">
+                            Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
+                          </p>
                         )}
                       </div>
                     </FormControl>

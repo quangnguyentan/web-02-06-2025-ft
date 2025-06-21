@@ -237,11 +237,13 @@ export const getColumns = (
       row.streamLinks?.map((link) => link.commentatorImage).join(", ") || "N/A",
     cell: ({ getValue }) => {
       return getValue() ? (
-        <img
-          src={getValue() as string}
-          alt="Team Logo"
-          className="w-10 h-10 object-contain rounded-full" // Thay đổi kích thước và bo tròn nếu cần
-        />
+        <div className="flex items-center justify-center">
+          <img
+            src={getValue() as string}
+            alt="Team Logo"
+            className="w-10 h-10 object-contain rounded-full " // Thay đổi kích thước và bo tròn nếu cần
+          />
+        </div>
       ) : (
         "N/A"
       );
@@ -265,7 +267,7 @@ export const getColumns = (
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-all" // break-all để ngắt dòng URL dài
+              className="text-blue-600 hover:underline break-all !text-sm" // break-all để ngắt dòng URL dài
             >
               {link.label || link.url}
             </a>

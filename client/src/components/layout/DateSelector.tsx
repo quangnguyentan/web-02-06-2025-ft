@@ -17,16 +17,16 @@ const DateSelector: React.FC<DateSelectorProps> = ({
 }) => {
   const getActiveClasses = () => {
     if (activeTabStyle === "results") {
-      return "bg-orange-600 text-white shadow-md scale-100"; // Match the orange-ish background from the screenshot
+      return "bg-current-color text-white shadow-md scale-100 text-xs"; // Match the orange-ish background from the screenshot
     }
-    return "bg-orange-500 text-white shadow-md scale-105";
+    return "bg-current-color text-white shadow-md scale-105 text-xs";
   };
 
   const getInactiveClasses = () => {
     if (activeTabStyle === "results") {
-      return "bg-slate-700 text-gray-300 hover:bg-slate-600 hover:text-white";
+      return "bg-slate-700 text-gray-300 hover:bg-slate-600 hover:text-white text-xs";
     }
-    return "bg-slate-700 text-gray-300 hover:bg-slate-600 hover:text-white";
+    return "bg-slate-700 text-gray-300 hover:bg-slate-600 hover:text-white text-xs";
   };
 
   return (
