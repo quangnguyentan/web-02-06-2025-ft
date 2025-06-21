@@ -2,6 +2,8 @@ import * as React from "react";
 import ReplayCard from "@/components/layout/ReplayCard";
 import { ChevronRightIcon, TVIcon } from "@/components/layout/Icon";
 import { Replay } from "@/types/replay.types";
+import { useSelectedPageContext } from "@/hooks/use-context";
+import { useNavigate } from "react-router-dom";
 
 interface ReplaySectionProps {
   title: string;
@@ -14,6 +16,8 @@ const ReplaySection: React.FC<ReplaySectionProps> = ({
   replays,
   viewAllUrl,
 }) => {
+  const navigate = useNavigate();
+  const { setSelectedPage } = useSelectedPageContext();
   if (!replays || replays.length === 0) {
     return null;
   }
@@ -25,12 +29,16 @@ const ReplaySection: React.FC<ReplaySectionProps> = ({
           <TVIcon className="w-6 h-6 mr-2 text-yellow-400" /> {title}
         </h2>
         {viewAllUrl && (
-          <a
-            href={viewAllUrl}
-            className="text-xs sm:text-sm text-yellow-400 hover:text-yellow-300 flex items-center"
+          <div
+            onClick={() => {
+              navigate(`/xem-lai/esports`);
+              localStorage.setItem("selectedPage", "XEM LẠI");
+              setSelectedPage("XEM LẠI");
+            }}
+            className="text-xs sm:text-sm text-yellow-400 hover:text-yellow-300 flex items-center cursor-pointer"
           >
             Xem tất cả <ChevronRightIcon className="w-4 h-4 ml-1" />
-          </a>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 3xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">

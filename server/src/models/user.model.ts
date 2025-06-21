@@ -13,7 +13,7 @@ export interface IUser extends Document {
   password: string;
   refreshToken: string;
   avatar?: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "COMMMENTATOR";
   level: number;
   total_score: number;
   address: string;
@@ -40,7 +40,7 @@ const UserSchema = new Schema<IUser>(
     avatar: { type: String, default: "" },
     role: {
       type: String,
-      enum: ["USER", "ADMIN"],
+      enum: ["USER", "ADMIN", "COMMMENTATOR"],
       default: "USER",
     },
     level: { type: Number, default: 0 },

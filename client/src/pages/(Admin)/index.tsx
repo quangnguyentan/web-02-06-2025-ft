@@ -11,52 +11,76 @@ import {
   UserGroupIcon,
   UsersIcon,
 } from "@heroicons/react/24/solid";
-
-const items = [
-  {
-    id: 1,
-    name: "Users",
-    icon: <UsersIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
-  },
-  {
-    id: 2,
-    name: "Sports",
-    icon: (
-      <GlobeAsiaAustraliaIcon className="stroke-white stroke-[1] min-w-5 w-5" />
-    ),
-  },
-  {
-    id: 3,
-    name: "Leagues",
-    icon: (
-      <CalendarDateRangeIcon className="stroke-white stroke-[1] min-w-5 w-5" />
-    ),
-  },
-  {
-    id: 4,
-    name: "Teams",
-    icon: <UserGroupIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
-  },
-  {
-    id: 5,
-    name: "Matches",
-    icon: <BanknotesIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
-  },
-  {
-    id: 6,
-    name: "Replays",
-    icon: <ArrowPathIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
-  },
-];
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import React from "react";
+interface MenuItem {
+  id: number;
+  name: string;
+  icon: React.ReactElement; // Kiểu cho icon React component
+}
 
 const Home = () => {
+  const { isLoggedIn, current } = useSelector((state: RootState) => state.auth);
+  console.log(current);
+  const allItems: MenuItem[] = [
+    {
+      id: 1,
+      name: "Users",
+      icon: <UsersIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+    {
+      id: 2,
+      name: "Sports",
+      icon: (
+        <GlobeAsiaAustraliaIcon className="stroke-white stroke-[1] min-w-5 w-5" />
+      ),
+    },
+    {
+      id: 3,
+      name: "Leagues",
+      icon: (
+        <CalendarDateRangeIcon className="stroke-white stroke-[1] min-w-5 w-5" />
+      ),
+    },
+    {
+      id: 4,
+      name: "Teams",
+      icon: <UserGroupIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+    {
+      id: 5,
+      name: "Matches",
+      icon: <BanknotesIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+    {
+      id: 6,
+      name: "Replays",
+      icon: <ArrowPathIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+  ];
+  // Sử dụng React.useMemo để lọc các mục dựa trên vai trò của người dùng
+  const filteredNavItems = React.useMemo(() => {
+    if (current === "COMMMENTATOR") {
+      // Nếu là COMMENTATOR, chỉ hiện mục "Matches"
+      return allItems.filter((item) => item.name === "Matches");
+    } else if (current === "ADMIN") {
+      // Nếu là ADMIN, hiện tất cả các mục
+      return allItems;
+    }
+    // Mặc định hoặc khi chưa đăng nhập, không hiện mục nào
+    // Bạn có thể thay đổi logic này nếu có các vai trò khác hoặc trạng thái mặc định
+    return [];
+  }, [current]); // Dependency array: chỉ tính toán lại khi `current` thay đổi
+  const initialPageName =
+    filteredNavItems?.length > 0 ? filteredNavItems[0]?.name : "Users";
   return (
-    <SelectedPageProvider initialPage="Users">
+    <SelectedPageProvider initialPage={initialPageName}>
       <main className="w-full h-screen flex flex-col relative bg-white overflow-hidden ">
         <HeaderAdmin />
         <div className="flex flex-row flex-1 overflow-hidden">
           <div className="flex flex-col bg-gray-800 text-white h-full overflow-y-auto min-w-[200px] sticky z-50">
-            <NavigationBarAdmin items={items} />
+            <NavigationBarAdmin items={filteredNavItems} />
           </div>
           <section className="flex flex-col flex-1 p-8 overflow-y-auto items-center justify-center gap-5">
             <ModalProvider />

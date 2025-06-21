@@ -6,6 +6,8 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { Match } from "@/types/match.types";
+import { useNavigate } from "react-router-dom";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 interface SportSectionProps {
   isSportSection?: boolean;
@@ -26,6 +28,8 @@ const SportSection: React.FC<SportSectionProps> = ({
   isSpotlight = false,
   titleClassName = "text-lg sm:text-xl md:text-2xl font-semibold text-white",
 }) => {
+  const navigate = useNavigate();
+  const { setSelectedSportsNavbarPage } = useSelectedPageContext();
   if (!matches || matches.length === 0) {
     return null;
   }
@@ -61,12 +65,19 @@ const SportSection: React.FC<SportSectionProps> = ({
           {title}
         </h2>
         {viewAllUrl && !isSpotlight && (
-          <a
-            href={viewAllUrl}
-            className="text-xs sm:text-sm text-yellow-400 hover:text-yellow-300 flex items-center"
+          <div
+            onClick={() => {
+              navigate(matches?.[0]?.sport?.slug ?? "");
+              localStorage.setItem(
+                "selectedSportsNavbarPage",
+                matches[0]?.sport?.name ?? ""
+              );
+              setSelectedSportsNavbarPage(matches?.[0]?.sport?.name ?? "");
+            }}
+            className="text-xs sm:text-sm text-yellow-400 hover:text-yellow-300 flex items-center cursor-pointer"
           >
             Xem tất cả <ChevronRightIcon className="w-4 h-4 ml-1" />
-          </a>
+          </div>
         )}
       </div>
       {isSpotlight ? (

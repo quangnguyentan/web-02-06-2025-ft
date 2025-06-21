@@ -14,7 +14,6 @@ import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import { X } from "lucide-react";
 import { useMediaQuery, useTheme } from "@mui/material";
-
 const style = {
   position: "absolute",
   top: "50%",
@@ -55,6 +54,7 @@ const Public = () => {
       <div
         ref={containerRef}
         className="bg-white text-brand-text overflow-y-auto h-screen "
+        style={{}}
       >
         <div className="flex flex-col min-h-screen bg-[#1E2027]">
           {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}

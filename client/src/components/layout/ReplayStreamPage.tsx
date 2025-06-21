@@ -6,6 +6,8 @@ import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
 import CategoryReplaySection from "./CategoryReplaySection";
+import { useNavigate } from "react-router-dom";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 interface ReplayStreamPageProps {
   mainReplay: Replay;
@@ -13,40 +15,45 @@ interface ReplayStreamPageProps {
   suggestedReplays: Replay[];
 }
 
-const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => (
-  <nav
-    className="text-xs text-gray-400 mb-2 px-1 flex items-center space-x-0.5 pt-4"
-    aria-label="Breadcrumb"
-  >
-    <a
-      href="#"
-      className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs"
+const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => {
+  const navigate = useNavigate();
+  const { setSelectedSportsNavbarPage } = useSelectedPageContext();
+  return (
+    <nav
+      className="text-xs text-gray-400 mb-2 px-1 flex items-center space-x-0.5 pt-4"
+      aria-label="Breadcrumb"
     >
-      <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
-    </a>
-    <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <a
-      href="#"
-      className="hover:text-yellow-400 text-xs text-white hover:text-xs"
-    >
-      Xem lại
-    </a>
-    <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <a
-      href="#"
-      className="hover:text-yellow-400 text-xs text-white hover:text-xs"
-    >
-      {replay?.sport?.name || "Thể loại"}
-    </a>
-    <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <span
-      className="text-current-color truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
-      title={replay?.title}
-    >
-      {replay?.title}
-    </span>
-  </nav>
-);
+      <div
+        onClick={() => navigate("/")}
+        className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
+      >
+        <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
+      </div>
+      <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+      <div
+        onClick={() => {
+          navigate(`/xem-lai/${replay?.sport?.slug}`);
+          localStorage.setItem("selectedSportsNavbarPage", "eSports");
+          setSelectedSportsNavbarPage("eSports");
+        }}
+        className="hover:text-yellow-400 text-xs text-white hover:text-xs cursor-pointer"
+      >
+        Xem lại
+      </div>
+      <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+      <div className="text-xs text-current-color hover:text-xs ">
+        {replay?.sport?.name || "Thể loại"}
+      </div>
+      <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+      <span
+        className="text-current-color truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs"
+        title={replay?.title}
+      >
+        {replay?.title}
+      </span>
+    </nav>
+  );
+};
 
 const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
   mainReplay,

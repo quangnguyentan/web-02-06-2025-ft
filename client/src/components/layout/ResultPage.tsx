@@ -7,6 +7,7 @@ import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { Replay } from "@/types/replay.types";
+import { useNavigate } from "react-router-dom";
 
 interface ResultsPageProps {
   availableDates: DateTabInfo[];
@@ -18,18 +19,19 @@ interface ResultsPageProps {
 
 const ResultsBreadcrumbs: React.FC = () => {
   const nameSlug = localStorage.getItem("selectedSportsNavbarPage");
+  const navigate = useNavigate();
 
   return (
     <nav
       className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
       aria-label="Breadcrumb"
     >
-      <a
-        href="#"
-        className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs"
+      <div
+        onClick={() => navigate("/")}
+        className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
       >
         <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
-      </a>
+      </div>
       <ChevronRightIcon className="w-3 h-3 text-gray-500" />
       <span className="text-gray-200 font-medium">Kết Quả {nameSlug}</span>
     </nav>

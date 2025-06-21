@@ -10,7 +10,7 @@ export type User = {
   password: string;
   refreshToken?: string;
   avatar?: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "COMMMENTATOR";
   level: number;
   total_score: number;
   address: string;

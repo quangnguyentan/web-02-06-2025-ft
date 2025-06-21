@@ -6,7 +6,7 @@ const homeRoutes: (RouteObject & { role?: string[] })[] = [
     path: "/",
     element: <HomePageWrapper />,
     index: true,
-    role: ["ADMIN"],
+    role: ["ADMIN", "COMMMENTATOR"],
   },
 ];
 export default homeRoutes;
