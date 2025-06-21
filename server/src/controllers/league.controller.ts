@@ -3,7 +3,8 @@ import League, { ILeague } from "../models/league.model";
 import Sport from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
-
+const baseURL = "http://localhost:8080";
+// const baseURL = "https://sv.hoiquan.live";
 // @desc    Tạo một giải đấu mới
 // @route   POST /api/leagues
 export const createLeague = async (
@@ -30,7 +31,7 @@ export const createLeague = async (
 
     let logoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `http://localhost:8080/static/${path.basename(logoFile.path)}`;
+      logoUrl = `${baseURL}/static/${path.basename(logoFile.path)}`;
     }
 
     const newLeague: ILeague = new League({
@@ -117,9 +118,7 @@ export const updateLeague = async (
 
     // Handle logo update
     if (logoFile) {
-      updateData.logo = `http://localhost:8080/static/${path.basename(
-        logoFile.path
-      )}`;
+      updateData.logo = `${baseURL}/static/${path.basename(logoFile.path)}`;
     } else if (removeLogo === "true") {
       // Delete existing logo file if it exists
       const league = await League.findById(req.params.id);

@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import Sport, { ISport } from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
+const baseURL = "http://localhost:8080";
+// const baseURL = "https://sv.hoiquan.live";
 
 // @desc    Tạo một môn thể thao mới
 // @route   POST /api/sports
@@ -22,7 +24,7 @@ export const createSport = async (
 
     let iconUrl: string | undefined;
     if (iconFile) {
-      iconUrl = `http://localhost:8080/static/${path.basename(iconFile.path)}`;
+      iconUrl = `${baseURL}/static/${path.basename(iconFile.path)}`;
     }
 
     const newSport: ISport = new Sport({
@@ -100,9 +102,7 @@ export const updateSport = async (
 
     // Handle icon update
     if (iconFile) {
-      updateData.icon = `http://localhost:8080/static/${path.basename(
-        iconFile.path
-      )}`;
+      updateData.icon = `${baseURL}/static/${path.basename(iconFile.path)}`;
     } else if (removeIcon === "true") {
       // Delete existing icon file if it exists
       const sport = await Sport.findById(req.params.id);

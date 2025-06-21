@@ -9,6 +9,7 @@ import {
   Cog6ToothIconSolid,
 } from "./Icon";
 import * as React from "react";
+import { Cog8ToothIcon } from "@heroicons/react/24/solid";
 
 interface VideoPlayerProps {
   videoTitle?: string;
@@ -391,7 +392,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               aria-label="Settings"
               className="hover:text-red-500 transition-colors"
             >
-              <Cog6ToothIconSolid className="w-6 h-6" />
+              <Cog8ToothIcon className="w-6 h-6" />
             </button>
             <button
               onClick={handleFullscreen}

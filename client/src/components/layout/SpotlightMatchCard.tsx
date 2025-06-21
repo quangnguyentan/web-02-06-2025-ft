@@ -34,7 +34,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
-    year: "2-digit",
+    // year: "2-digit",
     hour12: false,
   });
   const targetUrl = `/truc-tiep/${match.slug}/${match?.sport?.slug}`;
@@ -145,7 +145,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
                 VS
               </span>
             )}
-            <div className="text-xs sm:text-sm text-gray-400 mt-1">
+            <div className="text-xs sm:text-sm text-white mt-1">
               {startTime}
             </div>
           </div>

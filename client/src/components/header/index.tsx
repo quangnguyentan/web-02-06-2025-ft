@@ -207,9 +207,9 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                 <img
                   src={userData?.avatar ? userData?.avatar : avatar} // Replace with actual avatar path
                   alt="User Avatar"
-                  className="w-6 h-6 rounded-full"
+                  className="w-4 h-4 md:w-6 md:h-6 rounded-full"
                 />
-                <span className="font-bold text-xs">
+                <span className="font-bold text-[9px] md:text-sm">
                   {userData?.username ?? "anonymous"}
                 </span>
               </button>
@@ -368,7 +368,7 @@ const SportsNavbar: React.FC = () => {
   };
 
   return (
-    <div className="flex  md:flex-row bg-[#22252D] px-2 md:px-3 py-3 md:py-4 gap-6 md:gap-8 overflow-x-auto md:overflow-x-hidden shadow-xl">
+    <div className="flex md:flex-row bg-[#22252D] px-2 md:px-3 py-3 md:py-4 gap-6 md:gap-8 overflow-x-auto md:overflow-x-hidden shadow-xl">
       {sportData?.map((category) => (
         <div
           key={category._id}
@@ -526,7 +526,7 @@ const DrawerMenu: React.FC<{
   };
   return (
     <div
-      className={`fixed inset-0 z-50 transition-all duration-300 ${
+      className={`fixed  inset-0 z-50 transition-all duration-300 ${
         open ? "visible" : "invisible"
       }`}
     >
@@ -559,7 +559,7 @@ const DrawerMenu: React.FC<{
             />
           </svg>
         </button> */}
-        <nav className="flex-1 px-4 pt-8">
+        <nav className="flex-1 px-4 pt-8 overflow-y-auto h-auto">
           {navItems.map((item) => (
             <div
               key={item.label}
@@ -641,7 +641,7 @@ const DrawerMenu: React.FC<{
                     match.sport?.slug === category.slug &&
                     match.status === "LIVE"
                 ) && (
-                  <span className="ml-1 text-[7px] bg-red-500 text-white px-2 rounded-xl flex-shrink-0">
+                  <span className="ml-1 text-[7px] bg-red-500 text-white px-2 rounded-full flex-shrink-0 animate-pulse">
                     LIVE
                   </span>
                 )}

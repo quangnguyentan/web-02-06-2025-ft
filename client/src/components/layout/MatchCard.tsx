@@ -23,7 +23,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
-    year: "numeric",
+    // year: "numeric",
     hour12: false,
   });
   const isLive = match?.status === "LIVE";
@@ -82,11 +82,11 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center space-x-1 text-xs text-gray-400">
             <FootballIcon className="w-4 h-4 text-yellow-400" />
-            <span className="truncate max-w-[90px] sm:max-w-[140px]">
+            <span className="truncate max-w-[90px] sm:max-w-[140px] text-white">
               {match.league?.name ?? match?.title}
             </span>
           </div>
-          <div className="text-xs text-gray-400 whitespace-nowrap">
+          <div className="text-xs text-white whitespace-nowrap">
             {startTime}
           </div>
           {isLive && (
@@ -99,7 +99,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         <div className="flex items-center justify-around my-2 sm:my-3">
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={match?.homeTeam?.logo || ""}
+              src={match?.homeTeam?.logo ?? ""}
               alt={match?.homeTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />
@@ -126,7 +126,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 
           <div className="flex flex-col items-center text-center w-2/5">
             <img
-              src={match?.awayTeam?.logo || ""}
+              src={match?.awayTeam?.logo ?? ""}
               alt={match?.awayTeam?.name}
               className="w-10 h-10 sm:w-12 sm:h-12 xl:w-16 xl:h-16 object-contain mb-1"
             />

@@ -3,7 +3,8 @@ import Match, { IMatch } from "../models/match.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
-
+const baseURL = "http://localhost:8080";
+// const baseURL = "https://sv.hoiquan.live";
 // Remove or comment out this custom interface.
 // interface MulterRequest extends Request {
 //   files?: {
@@ -68,13 +69,13 @@ export const createMatch: RequestHandler[] = [
             label: link.label,
             url: link.url, // Treat url as a string (URL) only
             image: streamLinkImages[index]
-              ? `http://localhost:8080/static/${path.basename(
+              ? `${baseURL}/static/${path.basename(
                   streamLinkImages[index].path
                 )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage: streamLinkCommentatorImages[index]
-              ? `http://localhost:8080/static/${path.basename(
+              ? `${baseURL}/static/${path.basename(
                   streamLinkCommentatorImages[index].path
                 )}`
               : link.commentatorImage || undefined,
@@ -102,15 +103,11 @@ export const createMatch: RequestHandler[] = [
         isHot: body.isHot === "true",
         mainCommentator: body.mainCommentator || undefined,
         mainCommentatorImage: mainCommentatorImage
-          ? `http://localhost:8080/static/${path.basename(
-              mainCommentatorImage.path
-            )}`
+          ? `${baseURL}/static/${path.basename(mainCommentatorImage.path)}`
           : undefined,
         secondaryCommentator: body.secondaryCommentator || undefined,
         secondaryCommentatorImage: secondaryCommentatorImage
-          ? `http://localhost:8080/static/${path.basename(
-              secondaryCommentatorImage.path
-            )}`
+          ? `${baseURL}/static/${path.basename(secondaryCommentatorImage.path)}`
           : undefined,
       };
 
@@ -256,7 +253,7 @@ export const updateMatch: RequestHandler[] = [
 
       // Add old streamLinks files to oldFiles if they are being replaced
       for (const link of match.streamLinks) {
-        if (link.image?.startsWith("http://localhost:8080/static/")) {
+        if (link.image?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -265,9 +262,7 @@ export const updateMatch: RequestHandler[] = [
             )
           );
         }
-        if (
-          link.commentatorImage?.startsWith("http://localhost:8080/static/")
-        ) {
+        if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -288,13 +283,13 @@ export const updateMatch: RequestHandler[] = [
             label: link.label,
             url: link.url, // Treat url as a string (URL) only
             image: streamLinkImages[index]
-              ? `http://localhost:8080/static/${path.basename(
+              ? `${baseURL}/static/${path.basename(
                   streamLinkImages[index].path
                 )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage: streamLinkCommentatorImages[index]
-              ? `http://localhost:8080/static/${path.basename(
+              ? `${baseURL}/static/${path.basename(
                   streamLinkCommentatorImages[index].path
                 )}`
               : link.commentatorImage || undefined,
@@ -306,11 +301,7 @@ export const updateMatch: RequestHandler[] = [
       // Handle mainCommentatorImage
       let newMainCommentatorImage = match.mainCommentatorImage;
       if (mainCommentatorImage) {
-        if (
-          match.mainCommentatorImage?.startsWith(
-            "http://localhost:8080/static/"
-          )
-        ) {
+        if (match.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -319,15 +310,11 @@ export const updateMatch: RequestHandler[] = [
             )
           );
         }
-        newMainCommentatorImage = `http://localhost:8080/static/${path.basename(
+        newMainCommentatorImage = `${baseURL}/static/${path.basename(
           mainCommentatorImage.path
         )}`;
       } else if (body.mainCommentatorImage === "") {
-        if (
-          match.mainCommentatorImage?.startsWith(
-            "http://localhost:8080/static/"
-          )
-        ) {
+        if (match.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -342,11 +329,7 @@ export const updateMatch: RequestHandler[] = [
       // Handle secondaryCommentatorImage
       let newSecondaryCommentatorImage = match.secondaryCommentatorImage;
       if (secondaryCommentatorImage) {
-        if (
-          match.secondaryCommentatorImage?.startsWith(
-            "http://localhost:8080/static/"
-          )
-        ) {
+        if (match.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -355,15 +338,11 @@ export const updateMatch: RequestHandler[] = [
             )
           );
         }
-        newSecondaryCommentatorImage = `http://localhost:8080/static/${path.basename(
+        newSecondaryCommentatorImage = `${baseURL}/static/${path.basename(
           secondaryCommentatorImage.path
         )}`;
       } else if (body.secondaryCommentatorImage === "") {
-        if (
-          match.secondaryCommentatorImage?.startsWith(
-            "http://localhost:8080/static/"
-          )
-        ) {
+        if (match.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -455,12 +434,12 @@ export const deleteMatch = async (
     // Optionally, delete associated files here
     const oldFiles: string[] = [];
     for (const link of deletedMatch.streamLinks) {
-      if (link.image?.startsWith("http://localhost:8080/static/")) {
+      if (link.image?.startsWith(`${baseURL}/static/`)) {
         oldFiles.push(
           path.join(__dirname, "../../assets/images", path.basename(link.image))
         );
       }
-      if (link.commentatorImage?.startsWith("http://localhost:8080/static/")) {
+      if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
         oldFiles.push(
           path.join(
             __dirname,
@@ -470,11 +449,7 @@ export const deleteMatch = async (
         );
       }
     }
-    if (
-      deletedMatch.mainCommentatorImage?.startsWith(
-        "http://localhost:8080/static/"
-      )
-    ) {
+    if (deletedMatch.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
       oldFiles.push(
         path.join(
           __dirname,
@@ -484,9 +459,7 @@ export const deleteMatch = async (
       );
     }
     if (
-      deletedMatch.secondaryCommentatorImage?.startsWith(
-        "http://localhost:8080/static/"
-      )
+      deletedMatch.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)
     ) {
       oldFiles.push(
         path.join(
