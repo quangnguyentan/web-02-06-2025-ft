@@ -368,36 +368,42 @@ const SportsNavbar: React.FC = () => {
   };
 
   return (
-    <div className="hidden md:flex bg-[#22252D] px-3 py-4 gap-12 overflow-x-auto shadow-xl">
+    <div className="flex  md:flex-row bg-[#22252D] px-2 md:px-3 py-3 md:py-4 gap-6 md:gap-8 overflow-x-auto md:overflow-x-hidden shadow-xl">
       {sportData?.map((category) => (
         <div
           key={category._id}
           onClick={() => handleSportClick(category)}
-          className={`group relative flex items-center gap-2 pb-2 pt-4 text-sm font-medium cursor-pointer
-          transition-all duration-300
-          ${
-            selectedSportsNavbarPage === category.name
-              ? "text-current-color"
-              : "text-gray-200 hover:text-white"
-          }`}
+          className={`group relative flex items-center flex-shrink-0 gap-1 md:gap-2 pb-1 md:pb-2 pt-2 md:pt-4 text-xs md:text-sm font-medium cursor-pointer
+        transition-all duration-300
+        ${
+          selectedSportsNavbarPage === category.name
+            ? "text-current-color"
+            : "text-gray-200 hover:text-white"
+        }`}
         >
-          <img src={category?.icon} className="w-4 h-4" alt={category?.name} />
-          <span>{category.name}</span>
+          <div className="flex items-center justify-start gap-2 md:gap-2">
+            <img
+              src={category?.icon}
+              className="w-3 h-3 md:w-4 md:h-4"
+              alt={category?.name}
+            />
+            <span className="whitespace-nowrap">{category.name}</span>
+          </div>
           <span
             className={`
-            absolute bottom-0 left-1/2 h-[2px] bg-current-color transition-all duration-300 ease-in-out
-            ${
-              selectedSportsNavbarPage === category.name
-                ? "w-full -translate-x-1/2"
-                : "w-0 group-hover:w-full group-hover:-translate-x-1/2"
-            }
-          `}
+          absolute bottom-0 left-1/2 h-[1px] md:h-[2px] bg-current-color transition-all duration-300 ease-in-out
+          ${
+            selectedSportsNavbarPage === category.name
+              ? "w-full -translate-x-1/2"
+              : "w-0 group-hover:w-full group-hover:-translate-x-1/2"
+          }
+        `}
           />
           {matchData?.some(
             (match) =>
               match.sport?.slug === category.slug && match.status === "LIVE"
           ) && (
-            <span className="ml-1 text-[7px] bg-red-500 text-white px-2 rounded-xl absolute right-[-10px] top-[0px]">
+            <span className="ml-1 text-[6px] md:text-[7px] font-bold bg-red-500 text-white px-1 md:px-2 rounded-full md:rounded-full absolute right-[-5px] md:right-[-10px] top-0 md:top-[0px] animate-pulse">
               LIVE
             </span>
           )}

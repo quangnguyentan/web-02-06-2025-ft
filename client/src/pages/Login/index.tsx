@@ -137,7 +137,7 @@ const Login = ({
                 className={
                   isMobile
                     ? "--width-100 !rounded-xl h-10 placeholder:text-base !text-base  no-arrows"
-                    : "--width-100 !rounded-xl  no-arrows"
+                    : "--width-100 !rounded-xl  no-arrows "
                 }
                 placeholder="Số điện thoại"
               />
@@ -168,8 +168,8 @@ const Login = ({
               <button
                 className={
                   isMobile
-                    ? "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block h-8 !text-base"
-                    : "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block"
+                    ? "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block h-8 !text-base !rounded-xl"
+                    : "--btn --btn-dark !bg-blue-500 hover:!bg-blue-600 --btn-block !rounded-xl"
                 }
               >
                 Đăng nhập

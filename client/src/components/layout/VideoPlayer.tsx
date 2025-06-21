@@ -26,7 +26,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   mimeType,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Default to muted for autoplay
   const [volume, setVolume] = useState(0.75);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -58,6 +58,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
+      video.autoplay = true; // Enable autoplay
+      video.muted = true; // Mute for autoplay policy
+      video.play().catch((err) => {
+        setError(`Autoplay failed: ${err.message}. User interaction required.`);
+      });
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
       });
@@ -74,6 +79,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLive(hls.levels.some((level) => level.details?.live));
+        video.autoplay = true; // Enable autoplay
+        video.muted = true; // Mute for autoplay policy
+        video.play().catch((err) => {
+          setError(
+            `Autoplay failed: ${err.message}. User interaction required.`
+          );
+        });
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -101,6 +113,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         hlsRef.current = null;
       }
       video.src = videoUrl;
+      video.autoplay = true; // Enable autoplay
+      video.muted = true; // Mute for autoplay policy
+      video.play().catch((err) => {
+        setError(`Autoplay failed: ${err.message}. User interaction required.`);
+      });
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
         if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
@@ -239,7 +256,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       >
         <iframe
           className="absolute inset-0 w-full h-full"
-          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=0&controls=1&rel=0`}
+          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=1&controls=1&rel=0&mute=1`} // Enable autoplay and mute
           title={videoTitle}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -274,6 +291,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setIsMuted(videoRef.current.muted);
           }
         }}
+        autoPlay // Add autoplay attribute
       >
         {videoUrl && (
           <source

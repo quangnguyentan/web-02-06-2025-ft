@@ -71,6 +71,7 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
           </Suspense>
         ),
       },
+
       {
         path: "/ket-qua/:slug",
         element: (
