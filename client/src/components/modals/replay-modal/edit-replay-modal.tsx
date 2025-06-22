@@ -265,7 +265,7 @@ export const EditReplayModal = () => {
         );
         setReplay(updatedList);
         onClose();
-        setSelectedPage("Replays");
+        setSelectedPage("Phát lại");
         form.reset();
       }
     } catch (error: any) {
@@ -629,12 +629,20 @@ export const EditReplayModal = () => {
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button
-                onClick={handleClose}
-                className="text-black rounded-[4px]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
+                className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
               >
                 Đóng
               </Button>
-              <Button disabled={isLoading} type="submit">
+
+              <Button
+                disabled={isLoading}
+                type="submit"
+                className="bg-blue-600 text-white hover:bg-blue-700 rounded-[4px]"
+              >
                 Cập nhật
               </Button>
             </DialogFooter>

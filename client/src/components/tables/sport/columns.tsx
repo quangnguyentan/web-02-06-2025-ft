@@ -35,7 +35,7 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Môn thể thao",
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
@@ -79,13 +79,16 @@ export const getColumns = (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="flex items-center gap-2 w-full"
         >
-          Order
+          Thứ tự hiển thị
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="px-4">{row.getValue("order")}</div>,
+    cell: ({ row }) => (
+      <div className="px-4 text-center">{row.getValue("order")}</div>
+    ),
   },
   {
     id: "actions",

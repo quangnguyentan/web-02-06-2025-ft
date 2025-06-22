@@ -18,6 +18,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 }) => {
   const navigate = useNavigate();
   const { setSelectedSportsNavbarPage } = useSelectedPageContext();
+
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -46,6 +47,13 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       : match?.sport?.name === "Cầu lông"
       ? badminton
       : "";
+  const commentator = match.streamLinks?.[0]?.commentator;
+  const commentatorName =
+    typeof commentator === "object" && commentator?._id
+      ? commentator.username ||
+        `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
+        "Unknown Commentator"
+      : "Unknown Commentator";
   return (
     <div
       onClick={() => {
@@ -147,17 +155,17 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
           {match?.streamLinks?.[0]?.commentatorImage && (
             <img
               src={match?.streamLinks[0]?.commentatorImage}
-              alt={match?.streamLinks[0]?.commentator}
+              alt={commentatorName}
               className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
             />
           )}
           {match?.streamLinks?.[0]?.commentator && (
             <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[90px] sm:max-w-[120px]">
-              {match?.streamLinks[0]?.commentator}
+              {commentatorName}
             </span>
           )}
         </div>
-        <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] text-white hover:text-white text-xs sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
+        <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
           Xem Ngay
         </a>
       </div>

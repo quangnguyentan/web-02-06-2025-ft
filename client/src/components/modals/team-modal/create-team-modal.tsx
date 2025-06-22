@@ -128,7 +128,7 @@ export const CreateTeamModal = () => {
         toast.success(`Đã tạo ${values.name} thành công`);
         onClose();
         addTeam(res.data);
-        setSelectedPage("Teams");
+        setSelectedPage("Đội bóng");
         form.reset();
       }
     } catch (error: any) {
@@ -251,7 +251,10 @@ export const CreateTeamModal = () => {
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
                 className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
                 type="button"
                 disabled={isLoading}

@@ -8,6 +8,7 @@ import * as React from "react";
 import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { Replay } from "@/types/replay.types";
 import { useNavigate } from "react-router-dom";
+import { useSelectedPageContext } from "@/hooks/use-context";
 
 interface ResultsPageProps {
   availableDates: DateTabInfo[];
@@ -20,14 +21,21 @@ interface ResultsPageProps {
 const ResultsBreadcrumbs: React.FC = () => {
   const nameSlug = localStorage.getItem("selectedSportsNavbarPage");
   const navigate = useNavigate();
-
+  const { setSelectedSportsNavbarPage, setSelectedPage } =
+    useSelectedPageContext();
   return (
     <nav
       className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
       aria-label="Breadcrumb"
     >
       <div
-        onClick={() => navigate("/")}
+        onClick={() => {
+          localStorage.removeItem("selectedSportsNavbarPage");
+          setSelectedSportsNavbarPage("");
+          localStorage.setItem("selectedPage", "TRANG CHỦ");
+          setSelectedPage("TRANG CHỦ");
+          navigate("/"); // Navigate to homepage
+        }}
         className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
       >
         <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ

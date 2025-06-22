@@ -4,6 +4,8 @@ import NavigationLink from "./navigation-link";
 import logo_v3 from "@/assets/user/logo-v3.png";
 import ProjectNavigation from "./project-navigation";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 const containerVariants = {
   close: {
@@ -28,6 +30,7 @@ type ItemType = {
 };
 
 const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
+  const { userData } = useSelector((state: RootState) => state.user);
   const { selectedPage, setSelectedPage } = useSelectedPageContext();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -79,7 +82,7 @@ const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
                 color: "#b66dff",
               }}
             >
-              ADMIN PANEL
+              {userData?.role === "ADMIN" ? "ADMIN PANEL" : "CONTROL PANEL"}
             </h6>
             {/* <button
               className="p-1 rounded-full flex"

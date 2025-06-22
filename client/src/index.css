@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+.no-arrows {
+  @apply appearance-none;
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.no-arrows::-webkit-inner-spin-button,
+.no-arrows::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 .slick-track {
   margin-left: 0 !important;
 }

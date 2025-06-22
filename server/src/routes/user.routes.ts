@@ -6,6 +6,7 @@ import { verifyAccessToken } from "../middlewares/verifyToken";
 const router = Router();
 const storage = multer.memoryStorage()
 const upload = multer({ storage })
+import { upload as uploadImage } from "../middlewares/multer";
 
 router.get("/current", verifyAccessToken, getCurrent);
 router.get("/", getUsers);
@@ -19,7 +20,7 @@ router.put(
     upload.fields([{ name: "avatar", maxCount: 1 }]),
     updateProfileOrPassword
 );
-router.put("/:id", verifyAccessToken, updateUser);
+router.put("/:id", verifyAccessToken, uploadImage.single("avatar"), updateUser);
 router.delete("/:id", verifyAccessToken, deleteUser);
 
 export default router;

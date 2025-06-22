@@ -89,9 +89,10 @@ instance.interceptors.response.use(
 
     if (error.response) {
       console.error("API error:", error.response.data);
-      return Promise.reject(
-        new Error(error.response.data.message || "Request failed")
-      );
+      return Promise.reject({
+        status: error.response.status,
+        data: error.response.data,
+      });
     } else if (error.request) {
       console.error("Network error:", error.message);
       return Promise.reject(new Error("Network error"));

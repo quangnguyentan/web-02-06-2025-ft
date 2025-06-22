@@ -6,6 +6,10 @@ import dotenv from "dotenv";
 import sendMail from "../utils/sendMail";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
+import { splitName } from "../utils/helper";
+import path from "path";
+const baseURL = "http://localhost:8080";
+// const baseURL = "https://sv.hoiquan.live";
 dotenv.config();
 interface FileUploadResult {
   url: string;
@@ -44,17 +48,21 @@ export const updateUser = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
-  const { phone, role, firstname, lastname, level, password } = req.body;
-  console.log(phone, role, firstname, lastname, level);
+  const { phone, password, typeLogin, username, role } = req.body;
+  const avatarFile = req.file;
   if (!id) throw new Error("Missing exercise id");
-  if (!phone || !role || !firstname || !lastname || !level || !password) {
-    res.status(400).json({
-      success: false,
-      rs: "Missing inputs",
-    });
-    return;
+  const { firstName, lastName } = splitName(username);
+  let logoUrl: string | undefined;
+  if (avatarFile) {
+    logoUrl = `${baseURL}/static/${path.basename(avatarFile.path)}`;
   }
-  const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+
+  const user = await User.findByIdAndUpdate(id, {
+    ...req?.body,
+    firstname: firstName,
+    lastname: lastName,
+    avatar: logoUrl,
+  }, { new: true });
   res.status(200).json({
     success: user ? true : false,
     rs: user ? user : "User not found",

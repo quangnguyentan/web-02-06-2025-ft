@@ -106,6 +106,26 @@ const AppContent: React.FC = () => {
   return (
     <Suspense fallback={<Loader />}>
       <HeroSection />
+      <div className="hidden md:flex flex-col items-center justify-center gap-2 py-4 overflow-x-auto">
+        <span className="text-center text-white text-sm md:text-lg md:font-semibold">
+          HOIQUANTV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online
+          nhanh nhất - Hội Quán TV
+        </span>
+        <span className="text-center text-white text-sm md:text-sm">
+          HoiQuanTV là kênh cập nhật link xem trực tiếp bóng đá, bóng chuyền,
+          bóng rổ và các môn thể thao khác cho Fan hâm mộ Việt Nam và Quốc tế
+          qua kết nối Internet. Xem thể thao trực tuyến với trên HoiQuanTV
+        </span>
+      </div>
+      <div className="flex md:hidden items-center gap-2 py-4 overflow-x-auto scrollable-x w-full ">
+        <span className="text-center text-white text-sm font-semibold flex-shrink-0">
+          HOIQUANTV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online
+          nhanh nhất - Hội Quán TV. HoiQuanTV là kênh cập nhật link xem trực
+          tiếp bóng đá, bóng chuyền, bóng rổ và các môn thể thao khác cho Fan
+          hâm mộ Việt Nam và Quốc tế qua kết nối Internet. Xem thể thao trực
+          tuyến với trên HoiQuanTV
+        </span>
+      </div>
       <main className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
         <SportSection
           title="TÂM ĐIỂM THỂ THAO"

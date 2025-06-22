@@ -31,7 +31,7 @@ export const DeleteReplayModal = () => {
         );
         setReplay(updatedList); // ✅ cập nhật danh sách sau khi xóa
         onClose();
-        setSelectedPage("Replays");
+        setSelectedPage("Phát lại");
       }
     } catch (err) {
       console.error("Failed to delete course:", err);
@@ -62,7 +62,10 @@ export const DeleteReplayModal = () => {
 
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClose();
+            }}
             className="text-black rounded-[4px]"
             disabled={isLoading}
           >

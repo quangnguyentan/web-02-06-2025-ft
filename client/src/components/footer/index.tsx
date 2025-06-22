@@ -59,7 +59,7 @@ const FooterInfo: React.FC = () => {
           </div>
         ))}
         <div className="border-t border-slate-700 pt-6 !text-center !text-xs">
-          &copy; {new Date().getFullYear()} HoiQuanTV Clone. For demonstration
+          &copy; {new Date().getFullYear()} HoiQuanTV. For demonstration
           purposes only.
         </div>
       </div>

@@ -8,12 +8,13 @@ import { Match } from "@/types/match.types";
 import { Team } from "@/types/team.types";
 import { League } from "@/types/league.types";
 import { Sport } from "@/types/sport.types";
-
+import { User } from "@/types/user.types";
 export const getColumns = (
   onOpen: (type: ModalType, data?: ModalData) => void,
   leagues: League[], // <--- Thêm tham số leagues
   teams: Team[], // <--- Thêm tham số teams
-  sports: Sport[] // <--- Thêm tham số sports
+  sports: Sport[], // <--- Thêm tham số sports
+  users: User[] // Add users parameter
 ): ColumnDef<Match>[] => [
   {
     id: "select",
@@ -42,7 +43,7 @@ export const getColumns = (
   },
   {
     accessorKey: "title",
-    header: "Title",
+    header: "Tiêu đề",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("title")}</div>
     ),
@@ -66,7 +67,7 @@ export const getColumns = (
   },
   {
     accessorKey: "homeTeam",
-    header: "Home Team Name",
+    header: "Tên đội nhà",
     cell: ({ row }) => {
       const teamData = row.original.homeTeam;
       let teamName = "N/A";
@@ -85,7 +86,7 @@ export const getColumns = (
   },
   {
     accessorKey: "scores",
-    header: "Home Team Score",
+    header: "Kết quả đội nhà",
     cell: ({ row }) => (
       <div className="capitalize">
         {row.original.scores?.homeScore ?? "N/A"}
@@ -94,7 +95,7 @@ export const getColumns = (
   },
   {
     accessorKey: "awayTeam",
-    header: "Away Team Name",
+    header: "Tên đội khách",
     cell: ({ row }) => {
       const teamData = row.original.awayTeam;
       let teamName = "N/A";
@@ -113,7 +114,7 @@ export const getColumns = (
   },
   {
     accessorKey: "scores",
-    header: "Away Team Score",
+    header: "Kết quả đội khách",
     cell: ({ row }) => (
       <div className="capitalize">
         {row.original.scores?.awayScore ?? "N/A"}
@@ -122,7 +123,7 @@ export const getColumns = (
   },
   {
     accessorKey: "league",
-    header: "League Name",
+    header: "Tên giải đấu",
     cell: ({ row }) => {
       const leagueData = row.original.league;
       let leagueName = "N/A";
@@ -143,26 +144,28 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Sport name",
+    header: "Môn thể thao",
     cell: ({ row }) => {
       const sportData = row.original.sport;
-      let sportName = "N/A";
+      let sportName = "Không có môn thể thao";
       if (
         typeof sportData === "object" &&
         sportData !== null &&
         "name" in sportData
       ) {
-        sportName = (sportData as Sport).name ?? "N/A";
+        sportName = (sportData as Sport).name ?? "Không có môn thể thao";
       } else if (typeof sportData === "string") {
         const foundSport = sports.find((s) => s._id === sportData);
-        sportName = foundSport ? foundSport.name ?? "N/A" : "ID: " + sportData;
+        sportName = foundSport
+          ? foundSport.name ?? "Không có môn thể thao"
+          : "ID: " + sportData;
       }
       return <div className="capitalize">{sportName}</div>;
     },
   },
   {
     accessorKey: "startTime",
-    header: "Start Time",
+    header: "Thời gian bắt đầu",
     // Định dạng lại thời gian nếu cần thiết, ví dụ:
     cell: ({ row }) => {
       const startTime = row.getValue("startTime") as string;
@@ -183,14 +186,26 @@ export const getColumns = (
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Trạng thái",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
+      <div className="capitalize">
+        {row.getValue("status") === "UPCOMING"
+          ? "Sắp diễn ra"
+          : row.getValue("status") === "LIVE"
+          ? "Đang diễn ra"
+          : row.getValue("status") === "FINISHED"
+          ? "Đã kết thúc"
+          : row.getValue("status") === "POSTPONED"
+          ? "Trận đấu bị hoãn"
+          : row.getValue("status") === "CANCELLED"
+          ? "Trận đấu bị hủy"
+          : "N/A"}
+      </div>
     ),
   },
   {
     accessorKey: "isHot",
-    header: "Hot Match",
+    header: "Trận đấu tâm điểm",
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "N/A";
@@ -213,51 +228,62 @@ export const getColumns = (
 
   {
     id: "streamLabel",
-    header: "Stream Label",
+    header: "Tên luồng phát sóng",
     accessorFn: (row) =>
-      row.streamLinks?.map((link) => link.label).join(", ") || "N/A",
+      row.streamLinks?.map((link) => link.label).join(", ") ||
+      "Không có tên luồng phát sóng",
     cell: ({ getValue }) => (
       <div className="capitalize">{getValue() as string}</div>
     ),
   },
   {
     id: "commentator",
-    header: "Commentator",
+    header: "Bình luận viên",
     accessorFn: (row) =>
-      row.streamLinks?.map((link) => link.commentator).join(", ") || "N/A",
+      row.streamLinks
+        ?.map((link) => {
+          if (typeof link.commentator === "object" && link.commentator?._id) {
+            return link.commentator.username || "N/A";
+          } else if (typeof link.commentator === "string") {
+            const foundUser = users.find((u) => u._id === link.commentator);
+            return foundUser ? foundUser.username : "ID: " + link.commentator;
+          }
+          return "N/A";
+        })
+        .join(", ") || "Không có bình luận viên",
     cell: ({ getValue }) => (
       <div className="capitalize">{getValue() as string}</div>
     ),
   },
-
   {
     id: "commentatorImage",
-    header: "Commentator Image",
+    header: "Ảnh bình luận viên",
     accessorFn: (row) =>
-      row.streamLinks?.map((link) => link.commentatorImage).join(", ") || "N/A",
+      row.streamLinks?.map((link) => link.commentatorImage).join(", ") ||
+      "Không có ảnh bình luận viên",
     cell: ({ getValue }) => {
-      return getValue() ? (
+      return getValue() !== "Không có ảnh bình luận viên" ? (
         <div className="flex items-center justify-center">
           <img
             src={getValue() as string}
-            alt="Team Logo"
+            alt="Ảnh bình luận viên"
             className="w-10 h-10 object-contain rounded-full " // Thay đổi kích thước và bo tròn nếu cần
           />
         </div>
       ) : (
-        "N/A"
+        "Không có ảnh bình luận viên"
       );
     },
   },
   {
     id: "streamUrl",
-    header: "Stream URL",
+    header: "Đường dẫn luồng phát sóng",
     accessorFn: (row) =>
       row.streamLinks?.map((link) => link.url).join(", ") || "N/A",
     cell: ({ row }) => {
       const streamLinks = row.original.streamLinks;
       if (!streamLinks || streamLinks.length === 0) {
-        return <div className="text-gray-500">N/A</div>;
+        return <div className="text-gray-500">Không có đường dẫn</div>;
       }
       return (
         <div className="flex flex-wrap gap-1">

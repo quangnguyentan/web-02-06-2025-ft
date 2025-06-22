@@ -1,7 +1,7 @@
 import { UserIcon, LiveIcon } from "./Icon";
 import * as React from "react";
 import { Match } from "@/types/match.types";
-import { FootballIcon, TennisIcon, BasketballIcon } from "./Icon"; // Add sport-specific icons
+import { FootballIcon, TennisIcon, BasketballIcon } from "./Icon";
 import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
 import football from "@/assets/user/football-min1.jpg";
@@ -10,9 +10,9 @@ import boxing from "@/assets/user/boxing-min.jpg";
 import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
 import badminton from "@/assets/user/badminton-min.png";
-
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
+
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
   switch (sportId) {
@@ -28,13 +28,13 @@ const getSportIcon = (sportId: string | undefined) => {
 const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
   const navigate = useNavigate();
   const { setSelectedSportsNavbarPage } = useSelectedPageContext();
+
   const isLive = match.status === "LIVE";
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
-    // year: "2-digit",
     hour12: false,
   });
   const targetUrl = `/truc-tiep/${match.slug}/${match?.sport?.slug}`;
@@ -57,6 +57,15 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       : match?.sport?.name === "Cầu lông"
       ? badminton
       : "";
+
+  const commentator = match.streamLinks?.[0]?.commentator;
+  const commentatorName =
+    typeof commentator === "object" && commentator?._id
+      ? commentator.username ||
+        `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
+        "Unknown Commentator"
+      : "Unknown Commentator";
+
   return (
     <div
       onClick={() => {
@@ -75,23 +84,15 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
       }}
     >
-      {/* Overlay to ensure readability */}
-      {/* <div className="absolute inset-0 bg-black/50"></div> */}
       {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
         match?.sport?.name ?? ""
       ) && (
         <div
           className="absolute inset-0 bg-black bg-opacity-90"
-          style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
+          style={{ zIndex: 1 }}
         ></div>
       )}
 
-      {/* Header: League Name & Live Status */}
-      {/* <div
-        className={`p-2 flex justify-between items-center relative z-10 ${
-          isLive ? "bg-red-700/80" : "bg-slate-700/50"
-        }`}
-      > */}
       <div
         className={`p-2 flex justify-between items-center relative z-10 ${
           isLive ? "bg-red-700/80" : ""
@@ -119,10 +120,8 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         )}
       </div>
 
-      {/* Main Content: Teams & Score/Time */}
       <div className="p-2 sm:p-3 flex-grow flex flex-col items-center relative z-10">
         <div className="flex items-center justify-around w-full mb-2">
-          {/* Team A */}
           <div className="flex flex-col items-center text-center">
             <img
               src={match.homeTeam?.logo || ""}
@@ -134,7 +133,6 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             </span>
           </div>
 
-          {/* Score or VS */}
           <div className="text-center">
             {match.status && match.scores ? (
               <div className="text-lg sm:text-xl font-bold text-white">
@@ -150,7 +148,6 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             </div>
           </div>
 
-          {/* Team B */}
           <div className="flex flex-col items-center text-center">
             <img
               src={match.awayTeam?.logo || ""}
@@ -164,37 +161,35 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         </div>
       </div>
 
-      {/* Footer: Commentator & Buttons */}
       <div
         className="p-2 border-t border-slate-700/50 relative z-10"
         style={{
           boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
       >
-        {/* <div className="p-2 brelative z-10"> */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-1.5 overflow-hidden">
             {match.streamLinks?.[0]?.commentatorImage ? (
               <img
                 src={match.streamLinks[0].commentatorImage}
-                alt={match.streamLinks[0].commentator}
+                alt={commentatorName}
                 className="w-5 h-5 rounded-full flex-shrink-0"
               />
             ) : (
               <UserIcon className="w-5 h-5 text-slate-500 flex-shrink-0" />
             )}
             <span className="text-xs sm:text-sm text-sky-400 truncate">
-              {match.streamLinks?.[0]?.commentator || "N/A"}
+              {commentatorName}
             </span>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <a className="flex-1 bg-blue-600 hover:bg-blue-500 text-white hover:text-gray-800 text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm">
+          <a className="flex-1 bg-blue-600 hover:bg-blue-500 text-white hover:text-gray-800 sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm">
             Xem Ngay
           </a>
           <a
             href="#"
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm"
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm"
           >
             Đặt Cược
           </a>

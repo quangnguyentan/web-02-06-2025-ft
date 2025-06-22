@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { getCurrent } from "./stores/actions/userAction";
 import type { RootState, AppDispatch } from "./store";
 import { setNavigate } from "./lib/navigate";
+import { Loader } from "./components/layout/Loader";
 function App() {
   const { isLoggedIn, current } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
@@ -62,19 +63,7 @@ function App() {
   // }, []);
 
   return (
-    <Suspense
-      fallback={
-        <div id="load">
-          <div>G</div>
-          <div>N</div>
-          <div>I</div>
-          <div>D</div>
-          <div>A</div>
-          <div>O</div>
-          <div>L</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<Loader />}>
       <Routes>
         {filteredRoutes.map((route) => {
           const isAdminRoute = route.role?.includes("ADMIN");

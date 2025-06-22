@@ -31,7 +31,7 @@ export const DeleteLeagueModal = () => {
         );
         setLeague(updatedList);
         onClose();
-        setSelectedPage("Leagues");
+        setSelectedPage("Giải đấu");
       }
     } catch (err) {
       console.error("Failed to delete course:", err);
@@ -62,7 +62,10 @@ export const DeleteLeagueModal = () => {
 
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClose();
+            }}
             className="text-black rounded-[4px]"
             disabled={isLoading}
           >

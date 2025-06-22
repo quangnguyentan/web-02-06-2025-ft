@@ -39,7 +39,7 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Tên giải đấu",
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
@@ -61,7 +61,7 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Sport name",
+    header: "Môn thể thao",
     cell: ({ row }) => {
       const sportData = row.original.sport; // Lấy dữ liệu sport thô
 
@@ -72,11 +72,13 @@ export const getColumns = (
         "name" in sportData
       ) {
         // Nếu là object và có thuộc tính 'name'
-        sportName = (sportData as Sport).name ?? "N/A";
+        sportName = (sportData as Sport).name ?? "Không có môn thể thao";
       } else if (typeof sportData === "string") {
         // Nếu là string (ID), tìm tên từ mảng sports được truyền vào
         const foundSport = sports.find((s) => s._id === sportData);
-        sportName = foundSport ? foundSport.name ?? "N/A" : "ID: " + sportData; // Fallback to ID if not found
+        sportName = foundSport
+          ? foundSport.name ?? "Không có môn thể thao"
+          : "ID: " + sportData; // Fallback to ID if not found
       }
 
       return <div className="capitalize">{sportName}</div>;
@@ -84,13 +86,13 @@ export const getColumns = (
   },
   {
     accessorKey: "logo",
-    header: "Logo",
+    header: "Ảnh đại diện",
     cell: ({ row }) => {
       const logoUrl = row.getValue("logo") as string;
       return logoUrl ? (
         <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
       ) : (
-        "N/A"
+        "Không có ảnh đại diện"
       );
     },
   },

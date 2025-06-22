@@ -9,7 +9,8 @@ import {
 } from "../controllers/auth.controller";
 import User from "../models/user.model";
 const router = Router();
-router.post("/register", register);
+import { upload } from "../middlewares/multer";
+router.post("/register", upload.single("avatar"), register);
 router.post("/login", login);
 router.get(
   "/google",

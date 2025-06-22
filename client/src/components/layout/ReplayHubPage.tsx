@@ -10,6 +10,8 @@ import {
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import { Replay } from "@/types/replay.types";
+import { useSelectedPageContext } from "@/hooks/use-context";
+import { useNavigate } from "react-router-dom";
 
 interface ReplayHubPageProps {
   featuredBroadcasts?: FeaturedBroadcastItem[];
@@ -18,21 +20,33 @@ interface ReplayHubPageProps {
   sidebarReplays?: Replay[];
 }
 
-const ReplayHubBreadcrumbs: React.FC = () => (
-  <nav
-    className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
-    aria-label="Breadcrumb"
-  >
-    <a
-      href="#"
-      className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs"
+const ReplayHubBreadcrumbs: React.FC = () => {
+  const navigate = useNavigate();
+
+  const { setSelectedSportsNavbarPage, setSelectedPage } =
+    useSelectedPageContext();
+  return (
+    <nav
+      className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
+      aria-label="Breadcrumb"
     >
-      <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
-    </a>
-    <ChevronRightIcon className="w-3 h-3 text-gray-500" />
-    <span className="text-gray-200 font-medium">Xem Lại</span>
-  </nav>
-);
+      <div
+        onClick={() => {
+          localStorage.removeItem("selectedSportsNavbarPage");
+          setSelectedSportsNavbarPage("");
+          localStorage.setItem("selectedPage", "TRANG CHỦ");
+          setSelectedPage("TRANG CHỦ");
+          navigate("/"); // Navigate to homepage
+        }}
+        className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
+      >
+        <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ
+      </div>
+      <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+      <span className="text-gray-200 font-medium">Xem Lại</span>
+    </nav>
+  );
+};
 
 const Pagination: React.FC<{
   currentPage: number;

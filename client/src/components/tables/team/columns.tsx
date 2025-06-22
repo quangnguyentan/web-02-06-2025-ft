@@ -39,7 +39,7 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Sport name",
+    header: "Môn thể thao",
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "N/A";
@@ -61,7 +61,7 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Tên đội bóng",
     cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
   },
   {
@@ -83,7 +83,7 @@ export const getColumns = (
   },
   {
     accessorKey: "logo",
-    header: "Logo",
+    header: "Ảnh đại diện",
     cell: ({ row }) => {
       const logoUrl = row.getValue("logo") as string;
       return logoUrl ? (

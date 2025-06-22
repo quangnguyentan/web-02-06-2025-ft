@@ -21,49 +21,49 @@ interface MenuItem {
 }
 
 const Home = () => {
-  const { isLoggedIn, current } = useSelector((state: RootState) => state.auth);
+  const { current } = useSelector((state: RootState) => state.auth);
   console.log(current);
   const allItems: MenuItem[] = [
     {
       id: 1,
-      name: "Users",
+      name: "Người dùng",
       icon: <UsersIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
     },
     {
       id: 2,
-      name: "Sports",
+      name: "Môn thể thao",
       icon: (
         <GlobeAsiaAustraliaIcon className="stroke-white stroke-[1] min-w-5 w-5" />
       ),
     },
     {
       id: 3,
-      name: "Leagues",
+      name: "Giải đấu",
       icon: (
         <CalendarDateRangeIcon className="stroke-white stroke-[1] min-w-5 w-5" />
       ),
     },
     {
       id: 4,
-      name: "Teams",
+      name: "Đội bóng",
       icon: <UserGroupIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
     },
     {
       id: 5,
-      name: "Matches",
+      name: "Trận đấu",
       icon: <BanknotesIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
     },
     {
       id: 6,
-      name: "Replays",
+      name: "Phát lại",
       icon: <ArrowPathIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
     },
   ];
   // Sử dụng React.useMemo để lọc các mục dựa trên vai trò của người dùng
   const filteredNavItems = React.useMemo(() => {
-    if (current === "COMMMENTATOR") {
+    if (current === "COMMENTATOR") {
       // Nếu là COMMENTATOR, chỉ hiện mục "Matches"
-      return allItems.filter((item) => item.name === "Matches");
+      return allItems.filter((item) => item.name === "Trận đấu");
     } else if (current === "ADMIN") {
       // Nếu là ADMIN, hiện tất cả các mục
       return allItems;
@@ -73,7 +73,7 @@ const Home = () => {
     return [];
   }, [current]); // Dependency array: chỉ tính toán lại khi `current` thay đổi
   const initialPageName =
-    filteredNavItems?.length > 0 ? filteredNavItems[0]?.name : "Users";
+    filteredNavItems?.length > 0 ? filteredNavItems[0]?.name : "Người dùng";
   return (
     <SelectedPageProvider initialPage={initialPageName}>
       <main className="w-full h-screen flex flex-col relative bg-white overflow-hidden ">

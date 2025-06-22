@@ -1,5 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import Match, { IMatch } from "../models/match.model";
+import User from "../models/user.model";
+
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
@@ -22,8 +24,6 @@ export const createMatch: RequestHandler[] = [
   upload.fields([
     { name: "streamLinkImages", maxCount: 10 },
     { name: "streamLinkCommentatorImages", maxCount: 10 },
-    { name: "mainCommentatorImage", maxCount: 1 },
-    { name: "secondaryCommentatorImage", maxCount: 1 },
   ]),
   async (req: Request, res: Response): Promise<void> => {
     try {
@@ -32,11 +32,9 @@ export const createMatch: RequestHandler[] = [
       // Access req.files and assert its type
       const files = req.files as
         | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-            mainCommentatorImage?: Express.Multer.File[];
-            secondaryCommentatorImage?: Express.Multer.File[];
-          }
+          streamLinkImages?: Express.Multer.File[];
+          streamLinkCommentatorImages?: Express.Multer.File[];
+        }
         | undefined;
 
       // Parse streamLinks
@@ -54,34 +52,45 @@ export const createMatch: RequestHandler[] = [
 
       // Process uploaded files
       const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages =
-        files?.streamLinkCommentatorImages || [];
-      const mainCommentatorImage = files?.mainCommentatorImage?.[0];
-      const secondaryCommentatorImage = files?.secondaryCommentatorImage?.[0];
+      const streamLinkCommentatorImages = files?.streamLinkCommentatorImages || [];
 
-      // Map streamLinks with uploaded files
-      const processedStreamLinks = streamLinks.map(
-        (link: any, index: number) => {
+      // Map streamLinks with uploaded files and update User.image
+      const processedStreamLinks = await Promise.all(
+        streamLinks.map(async (link: any, index: number) => {
           if (!link.label || !link.url) {
             throw new Error("URL và nhãn stream link là bắt buộc");
           }
+
+          let commentatorImageUrl: string | undefined;
+          if (streamLinkCommentatorImages[index]) {
+            commentatorImageUrl = `${baseURL}/static/${path.basename(
+              streamLinkCommentatorImages[index].path
+            )}`;
+
+            // Update User.image if commentator exists
+            if (link.commentator) {
+              const user = await User.findByIdAndUpdate(
+                link.commentator,
+                { avatar: commentatorImageUrl },
+                { new: true, runValidators: true }
+              );
+              if (!user) {
+                console.warn(`User not found for commentator ID: ${link.commentator}`);
+              }
+            }
+          }
+
           return {
             label: link.label,
-            url: link.url, // Treat url as a string (URL) only
+            url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(
-                  streamLinkImages[index].path
-                )}`
+              ? `${baseURL}/static/${path.basename(streamLinkImages[index].path)}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage: streamLinkCommentatorImages[index]
-              ? `${baseURL}/static/${path.basename(
-                  streamLinkCommentatorImages[index].path
-                )}`
-              : link.commentatorImage || undefined,
+            commentatorImage: commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
-        }
+        })
       );
 
       // Prepare match data
@@ -101,14 +110,6 @@ export const createMatch: RequestHandler[] = [
           : { homeScore: 0, awayScore: 0 },
         streamLinks: processedStreamLinks,
         isHot: body.isHot === "true",
-        mainCommentator: body.mainCommentator || undefined,
-        mainCommentatorImage: mainCommentatorImage
-          ? `${baseURL}/static/${path.basename(mainCommentatorImage.path)}`
-          : undefined,
-        secondaryCommentator: body.secondaryCommentator || undefined,
-        secondaryCommentatorImage: secondaryCommentatorImage
-          ? `${baseURL}/static/${path.basename(secondaryCommentatorImage.path)}`
-          : undefined,
       };
 
       const newMatch = new Match(matchData);
@@ -119,7 +120,8 @@ export const createMatch: RequestHandler[] = [
         .populate("homeTeam", "name logo")
         .populate("awayTeam", "name logo")
         .populate("league", "name logo")
-        .populate("sport", "name icon slug");
+        .populate("sport", "name icon slug")
+        .populate("streamLinks.commentator", "name image");
 
       res.status(201).json(populatedMatch);
     } catch (error: any) {
@@ -149,6 +151,7 @@ export const getAllMatches = async (
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
       .populate("sport", "name icon slug")
+      .populate("streamLinks.commentator", "username avatar")
       .sort({ startTime: -1 }); // Sắp xếp trận mới nhất lên đầu
 
     res.status(200).json(matches);
@@ -168,8 +171,8 @@ export const getMatchById = async (
       .populate("homeTeam", "name logo")
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
-      .populate("sport", "name icon slug");
-
+      .populate("sport", "name icon slug")
+      .populate("streamLinks.commentator", "username avatar")
     if (!match) {
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
       return;
@@ -189,7 +192,9 @@ export const getMatchBySlug = async (
       .populate("homeTeam", "name logo")
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
-      .populate("sport", "name icon slug");
+      .populate("sport", "name icon slug")
+      .populate("streamLinks.commentator", "username avatar");
+
 
     if (!match) {
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
@@ -207,8 +212,6 @@ export const updateMatch: RequestHandler[] = [
   upload.fields([
     { name: "streamLinkImages", maxCount: 10 },
     { name: "streamLinkCommentatorImages", maxCount: 10 },
-    { name: "mainCommentatorImage", maxCount: 1 },
-    { name: "secondaryCommentatorImage", maxCount: 1 },
   ]),
   async (req: Request, res: Response): Promise<void> => {
     try {
@@ -221,11 +224,9 @@ export const updateMatch: RequestHandler[] = [
       const body = req.body;
       const files = req.files as
         | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-            mainCommentatorImage?: Express.Multer.File[];
-            secondaryCommentatorImage?: Express.Multer.File[];
-          }
+          streamLinkImages?: Express.Multer.File[];
+          streamLinkCommentatorImages?: Express.Multer.File[];
+        }
         | undefined;
 
       // Parse streamLinks
@@ -243,23 +244,14 @@ export const updateMatch: RequestHandler[] = [
 
       // Process uploaded files
       const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages =
-        files?.streamLinkCommentatorImages || [];
-      const mainCommentatorImage = files?.mainCommentatorImage?.[0];
-      const secondaryCommentatorImage = files?.secondaryCommentatorImage?.[0];
+      const streamLinkCommentatorImages = files?.streamLinkCommentatorImages || [];
 
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
-
-      // Add old streamLinks files to oldFiles if they are being replaced
       for (const link of match.streamLinks) {
         if (link.image?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(link.image)
-            )
+            path.join(__dirname, "../../assets/images", path.basename(link.image))
           );
         }
         if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
@@ -273,86 +265,44 @@ export const updateMatch: RequestHandler[] = [
         }
       }
 
-      // Map streamLinks with uploaded files
-      const processedStreamLinks = streamLinks.map(
-        (link: any, index: number) => {
+      // Map streamLinks with uploaded files and update User.image
+      const processedStreamLinks = await Promise.all(
+        streamLinks.map(async (link: any, index: number) => {
           if (!link.label || !link.url) {
             throw new Error("URL và nhãn stream link là bắt buộc");
           }
+
+          let commentatorImageUrl: string | undefined;
+          if (streamLinkCommentatorImages[index]) {
+            commentatorImageUrl = `${baseURL}/static/${path.basename(
+              streamLinkCommentatorImages[index].path
+            )}`;
+
+            // Update User.image if commentator exists
+            if (link.commentator) {
+              const user = await User.findByIdAndUpdate(
+                link.commentator,
+                { avatar: commentatorImageUrl },
+                { new: true, runValidators: true }
+              );
+              if (!user) {
+                console.warn(`User not found for commentator ID: ${link.commentator}`);
+              }
+            }
+          }
+
           return {
             label: link.label,
-            url: link.url, // Treat url as a string (URL) only
+            url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(
-                  streamLinkImages[index].path
-                )}`
+              ? `${baseURL}/static/${path.basename(streamLinkImages[index].path)}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage: streamLinkCommentatorImages[index]
-              ? `${baseURL}/static/${path.basename(
-                  streamLinkCommentatorImages[index].path
-                )}`
-              : link.commentatorImage || undefined,
+            commentatorImage: commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
-        }
+        })
       );
-
-      // Handle mainCommentatorImage
-      let newMainCommentatorImage = match.mainCommentatorImage;
-      if (mainCommentatorImage) {
-        if (match.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
-          oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(match.mainCommentatorImage)
-            )
-          );
-        }
-        newMainCommentatorImage = `${baseURL}/static/${path.basename(
-          mainCommentatorImage.path
-        )}`;
-      } else if (body.mainCommentatorImage === "") {
-        if (match.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
-          oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(match.mainCommentatorImage)
-            )
-          );
-        }
-        newMainCommentatorImage = undefined;
-      }
-
-      // Handle secondaryCommentatorImage
-      let newSecondaryCommentatorImage = match.secondaryCommentatorImage;
-      if (secondaryCommentatorImage) {
-        if (match.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)) {
-          oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(match.secondaryCommentatorImage)
-            )
-          );
-        }
-        newSecondaryCommentatorImage = `${baseURL}/static/${path.basename(
-          secondaryCommentatorImage.path
-        )}`;
-      } else if (body.secondaryCommentatorImage === "") {
-        if (match.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)) {
-          oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(match.secondaryCommentatorImage)
-            )
-          );
-        }
-        newSecondaryCommentatorImage = undefined;
-      }
 
       // Prepare update data
       const updateData: Partial<IMatch> = {
@@ -374,13 +324,8 @@ export const updateMatch: RequestHandler[] = [
           body.isHot === "true"
             ? true
             : body.isHot === "false"
-            ? false
-            : match.isHot,
-        mainCommentator: body.mainCommentator || match.mainCommentator,
-        mainCommentatorImage: newMainCommentatorImage,
-        secondaryCommentator:
-          body.secondaryCommentator || match.secondaryCommentator,
-        secondaryCommentatorImage: newSecondaryCommentatorImage,
+              ? false
+              : match.isHot,
       };
 
       // Update match
@@ -395,7 +340,8 @@ export const updateMatch: RequestHandler[] = [
         .populate("homeTeam", "name logo")
         .populate("awayTeam", "name logo")
         .populate("league", "name logo")
-        .populate("sport", "name icon slug");
+        .populate("sport", "name icon slug")
+        .populate("streamLinks.commentator", "username avatar");
 
       if (!updatedMatch) {
         res.status(404).json({ message: "Không tìm thấy trận đấu" });
@@ -449,26 +395,7 @@ export const deleteMatch = async (
         );
       }
     }
-    if (deletedMatch.mainCommentatorImage?.startsWith(`${baseURL}/static/`)) {
-      oldFiles.push(
-        path.join(
-          __dirname,
-          "../../assets/images",
-          path.basename(deletedMatch.mainCommentatorImage)
-        )
-      );
-    }
-    if (
-      deletedMatch.secondaryCommentatorImage?.startsWith(`${baseURL}/static/`)
-    ) {
-      oldFiles.push(
-        path.join(
-          __dirname,
-          "../../assets/images",
-          path.basename(deletedMatch.secondaryCommentatorImage)
-        )
-      );
-    }
+
     for (const filePath of oldFiles) {
       try {
         await fs.unlink(filePath);

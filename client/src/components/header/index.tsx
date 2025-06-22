@@ -14,6 +14,7 @@ import {
   BilliardsIcon,
   TVIcon,
 } from "../layout/Icon";
+import logo from "@/assets/user/Logo hoi quan khong nen.png";
 import * as React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Backdrop from "@mui/material/Backdrop";
@@ -76,8 +77,11 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: isMobile ? "100%" : 900,
+    width: isMobile ? "100%" : 1200,
     p: 4,
+    ouline: "none",
+    border: "none", // Remove border from Box
+    backgroundColor: "transparent", // Make background transparent
   };
 
   const navItems: NavItem[] = React.useMemo(() => {
@@ -141,9 +145,17 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   return (
     <div className="bg-[#1E2027] text-gray-300 flex items-center justify-between p-2 relative">
       <img
-        src="https://via.placeholder.com/120x32/FFFFFF/1A202C?text=THAPCAM"
+        onClick={() => {
+          navigate("/");
+          setSelectedPage("TRANG CHỦ");
+          localStorage.setItem("selectedPage", "TRANG CHỦ");
+          setSelectedSportsNavbarPage("");
+          localStorage.removeItem("selectedSportsNavbarPage");
+          localStorage.setItem("previousSection", "home");
+        }}
+        src={logo}
         alt="HoiQuanTV Logo"
-        className="h-8 sm:h-10 mr-2 md:mr-6"
+        className="h-[50px] md:h-[70px] mr-2 md:mr-6 w-20 md:w-36 object-cover cursor-pointer"
       />
       <div>
         <nav className="hidden md:flex items-center">

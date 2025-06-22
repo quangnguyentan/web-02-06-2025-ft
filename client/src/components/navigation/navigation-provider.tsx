@@ -10,7 +10,7 @@ import { User } from "@/types/user.types";
 
 export const SelectedPageProvider = ({
   children,
-  initialPage = "Users",
+  initialPage = "Người dùng",
   inititalSportsNavbarPage = "eSports",
 }: {
   children: ReactNode;

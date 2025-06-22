@@ -29,7 +29,7 @@ export const DeleteTeamModal = () => {
         const updatedList = team.filter((item) => item._id !== teamDelete._id);
         setTeam(updatedList);
         onClose();
-        setSelectedPage("Teams");
+        setSelectedPage("Đội bóng");
       }
     } catch (err) {
       console.error("Failed to delete course:", err);
@@ -60,7 +60,10 @@ export const DeleteTeamModal = () => {
 
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClose();
+            }}
             className="text-black rounded-[4px]"
             disabled={isLoading}
           >

@@ -23,8 +23,12 @@ interface ApiResponse {
 export interface authActionProps {
   typeLogin?: string;
   username?: string;
-  phone: string;
-  password: string;
+  phone?: string;
+  password?: string;
+  role?: string;
+  tokenLogin?: string;
+  avatar?: string;
+
 }
 
 interface GetCurrentFulfilledAction {
@@ -101,33 +105,33 @@ export const handleTokenExpiry = () => async (dispatch: Dispatch) => {
 };
 export const loginSuccessAction =
   (id: unknown, tokenLogin: unknown) =>
-  async (dispatch: Dispatch<AuthAction>) => {
-    try {
-      const response = (await apiLoginSuccess(
-        id,
-        tokenLogin
-      )) as unknown as ApiResponse;
-      if (response?.data) {
-        dispatch({
-          type: actionType.LOGIN_SUCCESS,
-          token: response?.data?.token,
-          role: response?.data.role,
-        });
-      } else {
+    async (dispatch: Dispatch<AuthAction>) => {
+      try {
+        const response = (await apiLoginSuccess(
+          id,
+          tokenLogin
+        )) as unknown as ApiResponse;
+        if (response?.data) {
+          dispatch({
+            type: actionType.LOGIN_SUCCESS,
+            token: response?.data?.token,
+            role: response?.data.role,
+          });
+        } else {
+          dispatch({
+            type: actionType.LOGIN_SUCCESS,
+            token: null,
+            role: null,
+          });
+        }
+      } catch (error) {
         dispatch({
           type: actionType.LOGIN_SUCCESS,
           token: null,
-          role: null,
+          msg: error,
         });
       }
-    } catch (error) {
-      dispatch({
-        type: actionType.LOGIN_SUCCESS,
-        token: null,
-        msg: error,
-      });
-    }
-  };
+    };
 export const logout = () => {
   return async (dispatch: Dispatch) => {
     try {

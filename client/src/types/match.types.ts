@@ -1,11 +1,13 @@
 import { League } from "./league.types";
 import { Sport } from "./sport.types";
 import { Team } from "./team.types";
+import { User } from "./user.types";
 interface IStreamLink {
+  _id?: string; // Optional ID for the stream link
   label?: string;
   url?: string;
   image?: string; // Hình ảnh đại diện cho link stream
-  commentator?: string;
+  commentator?: User | string;
   commentatorImage?: string;
   priority?: number;
 }
@@ -25,10 +27,6 @@ export type Match = {
   };
   streamLinks?: IStreamLink[];
   isHot?: boolean;
-  mainCommentator?: string; // BLV chính của trận đấu
-  mainCommentatorImage?: string; // Hình ảnh BLV chính
-  secondaryCommentator?: string; // BLV phụ của trận đấu
-  secondaryCommentatorImage?: string; // Hình ảnh BLV phụ
 };
 export enum MatchStatusType {
   UPCOMING = "UPCOMING",

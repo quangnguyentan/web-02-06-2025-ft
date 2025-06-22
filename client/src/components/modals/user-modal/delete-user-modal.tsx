@@ -25,11 +25,11 @@ export const DeleteUserModal = () => {
     try {
       const res = await apiDeleteUserById(userDelete._id);
       if (res) {
-        toast.success(`Đã xóa ${userDelete.email} thành công`);
+        toast.success(`Đã xóa ${userDelete.username} thành công`);
         const updatedList = user.filter((item) => item._id !== userDelete._id);
         setUser(updatedList);
         onClose();
-        setSelectedPage("Users");
+        setSelectedPage("Người dùng");
       }
     } catch (err) {
       console.error("Failed to delete course:", err);
@@ -60,7 +60,10 @@ export const DeleteUserModal = () => {
 
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClose();
+            }}
             className="text-black rounded-[4px]"
             disabled={isLoading}
           >

@@ -44,6 +44,8 @@ import { registerLocale, setDefaultLocale } from "react-datepicker";
 import { vi } from "date-fns/locale/vi";
 import { useDropzone } from "react-dropzone";
 import { PlusCircle, XCircle } from "lucide-react";
+import { apiGetAllUser } from "@/services/user.services";
+import { User } from "@/types/user.types";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
@@ -106,20 +108,6 @@ const formSchema = z.object({
         .optional(),
     })
     .optional(),
-  mainCommentator: z.string().optional(),
-  mainCommentatorImage: z
-    .instanceof(File)
-    .refine((file) => !file || /image\/(jpg|jpeg|png)/.test(file.type), {
-      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-    })
-    .optional(),
-  secondaryCommentator: z.string().optional(),
-  secondaryCommentatorImage: z
-    .instanceof(File)
-    .refine((file) => !file || /image\/(jpg|jpeg|png)/.test(file.type), {
-      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-    })
-    .optional(),
   isHot: z.boolean().optional(),
   streamLinks: z.array(streamLinkSchema).optional(),
 });
@@ -129,6 +117,7 @@ interface StreamLinkFieldProps {
   form: any;
   remove: (index: number) => void;
   isLoading: boolean;
+  users: User[];
 }
 
 const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
@@ -136,6 +125,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
   form,
   remove,
   isLoading,
+  users,
 }) => {
   const onDropImage = useCallback(
     (acceptedFiles: File[]) => {
@@ -298,13 +288,30 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Bình luận viên (Link này)</FormLabel>
-            <FormControl>
-              <Input
-                disabled={isLoading}
-                placeholder="Ví dụ: Quang Huy"
-                {...field}
-              />
-            </FormControl>
+            <Select
+              disabled={isLoading}
+              onValueChange={field.onChange}
+              value={field.value || ""}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn bình luận viên" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent className="bg-white text-black h-[220px]">
+                {users?.length > 0 ? (
+                  users?.map((user) => (
+                    <SelectItem key={user?._id} value={user?._id ?? ""}>
+                      {user?.username}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="p-2 text-gray-500">
+                    Không có bình luận viên nào
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -393,6 +400,7 @@ export const EditMatchModal = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
   const [sports, setSports] = useState<Sport[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -406,10 +414,6 @@ export const EditMatchModal = () => {
       startTime: new Date(),
       status: MatchStatusType.UPCOMING,
       scores: { homeScore: 0, awayScore: 0 },
-      mainCommentator: "",
-      mainCommentatorImage: undefined,
-      secondaryCommentator: "",
-      secondaryCommentatorImage: undefined,
       isHot: false,
       streamLinks: [],
     },
@@ -422,73 +426,25 @@ export const EditMatchModal = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  const onDropMainCommentatorImage = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles[0]) {
-        form.setValue("mainCommentatorImage", acceptedFiles[0], {
-          shouldValidate: true,
-        });
-      }
-    },
-    [form]
-  );
-
-  const {
-    getRootProps: getMainCommentatorImageRootProps,
-    getInputProps: getMainCommentatorImageInputProps,
-    isDragActive: isMainCommentatorImageDragActive,
-  } = useDropzone({
-    onDrop: onDropMainCommentatorImage,
-    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
-    maxFiles: 1,
-    maxSize: 10 * 1024 * 1024,
-    onDropRejected: (fileRejections) => {
-      const error =
-        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
-      toast.error(error);
-    },
-  });
-
-  const onDropSecondaryCommentatorImage = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles[0]) {
-        form.setValue("secondaryCommentatorImage", acceptedFiles[0], {
-          shouldValidate: true,
-        });
-      }
-    },
-    [form]
-  );
-
-  const {
-    getRootProps: getSecondaryCommentatorImageRootProps,
-    getInputProps: getSecondaryCommentatorImageInputProps,
-    isDragActive: isSecondaryCommentatorImageDragActive,
-  } = useDropzone({
-    onDrop: onDropSecondaryCommentatorImage,
-    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
-    maxFiles: 1,
-    maxSize: 10 * 1024 * 1024,
-    onDropRejected: (fileRejections) => {
-      const error =
-        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
-      toast.error(error);
-    },
-  });
-
   useEffect(() => {
     if (!isModalOpen) return;
 
     const fetchData = async () => {
       try {
-        const [teamsRes, leaguesRes, sportsRes] = await Promise.all([
+        const [teamsRes, leaguesRes, sportsRes, usersRes] = await Promise.all([
           apiGetAllTeams(),
           apiGetAllLeagues(),
           apiGetAllSports(),
+          apiGetAllUser(),
         ]);
         setTeams(teamsRes.data);
         setLeagues(leaguesRes.data);
         setSports(sportsRes.data);
+        setUsers(
+          usersRes.data?.rs?.filter(
+            (user: User) => user?.role === "COMMENTATOR"
+          ) || []
+        );
       } catch (error) {
         toast.error("Lỗi khi tải dữ liệu");
         console.error(error);
@@ -515,17 +471,18 @@ export const EditMatchModal = () => {
           homeScore: matchToEdit.scores?.homeScore ?? 0,
           awayScore: matchToEdit.scores?.awayScore ?? 0,
         },
-        mainCommentator: matchToEdit.mainCommentator || "",
-        mainCommentatorImage: undefined,
-        secondaryCommentator: matchToEdit.secondaryCommentator || "",
-        secondaryCommentatorImage: undefined,
         isHot: matchToEdit.isHot || false,
         streamLinks:
           matchToEdit.streamLinks?.map((link) => ({
             label: link.label || "",
             url: link.url || "",
             image: link.image || undefined,
-            commentator: link.commentator || "",
+            commentator:
+              typeof link.commentator === "object" && link.commentator?._id
+                ? link.commentator._id
+                : typeof link.commentator === "string"
+                ? link.commentator
+                : "",
             commentatorImage: link.commentatorImage || undefined,
             priority: link.priority || 1,
           })) || [],
@@ -581,32 +538,6 @@ export const EditMatchModal = () => {
       if (values.isHot !== undefined) {
         formData.append("isHot", values.isHot.toString());
       }
-      if (values.mainCommentator) {
-        formData.append("mainCommentator", values.mainCommentator);
-      }
-      if (values.secondaryCommentator) {
-        formData.append("secondaryCommentator", values.secondaryCommentator);
-      }
-      if (values.mainCommentatorImage instanceof File) {
-        formData.append("mainCommentatorImage", values.mainCommentatorImage);
-      } else if (
-        !values.mainCommentatorImage &&
-        matchToEdit.mainCommentatorImage
-      ) {
-        formData.append("mainCommentatorImage", "");
-      }
-      if (values.secondaryCommentatorImage instanceof File) {
-        formData.append(
-          "secondaryCommentatorImage",
-          values.secondaryCommentatorImage
-        );
-      } else if (
-        !values.secondaryCommentatorImage &&
-        matchToEdit.secondaryCommentatorImage
-      ) {
-        formData.append("secondaryCommentatorImage", "");
-      }
-
       const validStreamLinks =
         values.streamLinks?.filter((link) => link.label && link.url) || [];
       const processedLinks = validStreamLinks.map((link, index) => ({
@@ -643,7 +574,7 @@ export const EditMatchModal = () => {
           item._id === res.data._id ? res.data : item
         );
         setMatch(updatedList);
-        setSelectedPage("Matches");
+        setSelectedPage("Trận đấu");
         form.reset();
       }
     } catch (error: any) {
@@ -658,13 +589,6 @@ export const EditMatchModal = () => {
     form.reset();
     onClose();
   };
-
-  const hasMainCommentatorImage =
-    matchToEdit?.mainCommentatorImage &&
-    typeof matchToEdit.mainCommentatorImage === "string";
-  const hasSecondaryCommentatorImage =
-    matchToEdit?.secondaryCommentatorImage &&
-    typeof matchToEdit.secondaryCommentatorImage === "string";
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
@@ -939,151 +863,6 @@ export const EditMatchModal = () => {
               </div>
               <FormField
                 control={form.control}
-                name="mainCommentator"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bình luận viên chính (Không bắt buộc)</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder="Nhập tên bình luận viên chính"
-                        type="text"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="mainCommentatorImage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Ảnh bình luận viên chính (Không bắt buộc)
-                    </FormLabel>
-                    <FormControl>
-                      <div>
-                        {hasMainCommentatorImage && !field.value ? (
-                          <div className="relative w-24 h-24 rounded-full overflow-hidden mb-2">
-                            <img
-                              src={matchToEdit.mainCommentatorImage}
-                              alt="Main Commentator"
-                              className="object-cover w-full h-full"
-                            />
-                            <Button
-                              type="button"
-                              onClick={() =>
-                                form.setValue("mainCommentatorImage", undefined)
-                              }
-                              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                              size="sm"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : null}
-                        <div
-                          {...getMainCommentatorImageRootProps()}
-                          className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
-                            isMainCommentatorImageDragActive
-                              ? "border-blue-500"
-                              : "border-gray-300"
-                          }`}
-                        >
-                          <input {...getMainCommentatorImageInputProps()} />
-                          {field.value ? (
-                            <p className="text-blue-600">{field.value.name}</p>
-                          ) : (
-                            <p className="!text-sm">
-                              Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="secondaryCommentator"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bình luận viên phụ (Không bắt buộc)</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder="Nhập tên bình luận viên phụ"
-                        type="text"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="secondaryCommentatorImage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Ảnh bình luận viên phụ (Không bắt buộc)
-                    </FormLabel>
-                    <FormControl>
-                      <div>
-                        {hasSecondaryCommentatorImage && !field.value ? (
-                          <div className="relative w-24 h-24 rounded-full overflow-hidden mb-2">
-                            <img
-                              src={matchToEdit.secondaryCommentatorImage}
-                              alt="Secondary Commentator"
-                              className="object-cover w-full h-full"
-                            />
-                            <Button
-                              type="button"
-                              onClick={() =>
-                                form.setValue(
-                                  "secondaryCommentatorImage",
-                                  undefined
-                                )
-                              }
-                              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                              size="sm"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : null}
-                        <div
-                          {...getSecondaryCommentatorImageRootProps()}
-                          className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
-                            isSecondaryCommentatorImageDragActive
-                              ? "border-blue-500"
-                              : "border-gray-300"
-                          }`}
-                        >
-                          <input
-                            {...getSecondaryCommentatorImageInputProps()}
-                          />
-                          {field.value ? (
-                            <p className="text-blue-600">{field.value.name}</p>
-                          ) : (
-                            <p className="!text-sm">
-                              Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="isHot"
                 render={({ field }) => (
                   <FormItem className="flex items-center space-x-2">
@@ -1110,6 +889,7 @@ export const EditMatchModal = () => {
                     form={form}
                     remove={remove}
                     isLoading={isLoading}
+                    users={users}
                   />
                 ))}
                 <Button
@@ -1133,14 +913,21 @@ export const EditMatchModal = () => {
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button
-                onClick={handleClose}
-                className="text-black rounded-[4px]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
+                className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
                 type="button"
                 disabled={isLoading}
               >
                 Đóng
               </Button>
-              <Button disabled={isLoading} type="submit">
+              <Button
+                disabled={isLoading}
+                type="submit"
+                className="bg-blue-600 text-white hover:bg-blue-700 rounded-[4px]"
+              >
                 Cập nhật
               </Button>
             </DialogFooter>

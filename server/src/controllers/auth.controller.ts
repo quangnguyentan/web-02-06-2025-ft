@@ -5,13 +5,15 @@ import { v4 as uuidv4 } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { splitName } from "../utils/helper";
-
+import path from "path";
+const baseURL = "http://localhost:8080";
+// const baseURL = "https://sv.hoiquan.live";
 dotenv.config();
 //method post = path(delele, post, put,get )
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { phone, password, typeLogin, username } = req.body;
-    console.log(username);
+    const { phone, password, typeLogin, username, role } = req.body;
+    const avatarFile = req.file;
     if (!phone || !password || !username) {
       res.status(400).json({
         success: false,
@@ -31,18 +33,25 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     if (existingUser) {
       res.status(409).json({
         err: 0,
-        msg: "User has existed",
+        msg: "Số điện thoại đã được đăng ký",
       });
       return;
     }
+    let logoUrl: string | undefined;
+    if (avatarFile) {
+      logoUrl = `${baseURL}/static/${path.basename(avatarFile.path)}`;
+    }
+
     const newUser = await User.create({
       ...req.body,
       firstname: firstName,
       lastname: lastName,
+      avatar: logoUrl,
     });
     await newUser.save();
     res.status(200).json({
       success: newUser ? true : false,
+      newUser,
       mes: newUser
         ? "Register is successfully. Please go login~"
         : "Something went wrong",
@@ -95,7 +104,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   } else {
     res.status(400).json({
       err: 0,
-      msg: "Incorrect email or password",
+      msg: "Số điện thoại hoặc mật khẩu không đúng",
     });
   }
 };

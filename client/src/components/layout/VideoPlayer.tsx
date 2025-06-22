@@ -6,7 +6,6 @@ import {
   SpeakerWaveIconSolid,
   SpeakerXMarkIconSolid,
   ArrowsPointingOutIconSolid,
-  Cog6ToothIconSolid,
 } from "./Icon";
 import * as React from "react";
 import { Cog8ToothIcon } from "@heroicons/react/24/solid";

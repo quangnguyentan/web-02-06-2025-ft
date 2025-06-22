@@ -11,12 +11,12 @@ const TableProvider = () => {
 
   return (
     <>
-      {selectedPage === "Users" && <UserTable />}
-      {selectedPage === "Sports" && <SportTable />}
-      {selectedPage === "Leagues" && <LeagueTable />}
-      {selectedPage === "Matches" && <MatchTable />}
-      {selectedPage === "Teams" && <TeamTable />}
-      {selectedPage === "Replays" && <ReplayTable />}
+      {selectedPage === "Người dùng" && <UserTable />}
+      {selectedPage === "Môn thể thao" && <SportTable />}
+      {selectedPage === "Giải đấu" && <LeagueTable />}
+      {selectedPage === "Trận đấu" && <MatchTable />}
+      {selectedPage === "Đội bóng" && <TeamTable />}
+      {selectedPage === "Phát lại" && <ReplayTable />}
     </>
   );
 };

@@ -53,8 +53,7 @@ const Public = () => {
     <DataProvider>
       <div
         ref={containerRef}
-        className="bg-white text-brand-text overflow-y-auto h-screen "
-        style={{}}
+        className="bg-slate-700 text-brand-text overflow-y-auto h-screen "
       >
         <div className="flex flex-col min-h-screen bg-[#1E2027]">
           {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}

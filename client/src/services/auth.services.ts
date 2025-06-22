@@ -1,6 +1,6 @@
 import axiosConfig from "../axios";
 import { authActionProps } from "../stores/actions/authAction";
-export const apiRegister = async (data: authActionProps) => {
+export const apiRegister = async (data: any) => {
   try {
     const response = await axiosConfig({
       method: "POST",
@@ -8,6 +8,7 @@ export const apiRegister = async (data: authActionProps) => {
       data,
       withCredentials: true,
     });
+
     return response;
   } catch (error) {
     console.error("Error during registration:", error);

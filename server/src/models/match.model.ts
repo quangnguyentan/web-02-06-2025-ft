@@ -17,7 +17,7 @@ interface IStreamLink {
   label: string;
   url: string;
   image?: string;
-  commentator?: string;
+  commentator?: Types.ObjectId;
   commentatorImage?: string;
   priority: number;
 }
@@ -37,10 +37,6 @@ export interface IMatch extends Document {
   };
   streamLinks: IStreamLink[];
   isHot: boolean;
-  mainCommentator?: string; // BLV chính của trận đấu
-  mainCommentatorImage?: string; // Hình ảnh BLV chính
-  secondaryCommentator?: string; // BLV phụ của trận đấu
-  secondaryCommentatorImage?: string; // Hình ảnh BLV phụ
 }
 
 const matchSchema = new Schema<IMatch>(
@@ -51,6 +47,7 @@ const matchSchema = new Schema<IMatch>(
     awayTeam: { type: Schema.Types.ObjectId, ref: "Team", required: true },
     league: { type: Schema.Types.ObjectId, ref: "League", required: true },
     sport: { type: Schema.Types.ObjectId, ref: "Sport", required: true },
+
     startTime: { type: Date, required: true, index: true },
     status: {
       type: String,
@@ -67,16 +64,13 @@ const matchSchema = new Schema<IMatch>(
         label: { type: String, required: true },
         url: { type: String, required: true },
         image: { type: String },
-        commentator: { type: String },
+        commentator: { type: Schema.Types.ObjectId, ref: "User" },
         commentatorImage: { type: String },
         priority: { type: Number, default: 1 },
       },
     ],
     isHot: { type: Boolean, default: false },
-    mainCommentator: { type: String },
-    mainCommentatorImage: { type: String },
-    secondaryCommentator: { type: String },
-    secondaryCommentatorImage: { type: String },
+
   },
   {
     timestamps: true,

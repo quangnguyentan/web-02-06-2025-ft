@@ -33,23 +33,23 @@ export const getColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "email",
+    accessorKey: "phone",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Số điện thoại
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue("phone")}</div>,
   },
   {
     accessorKey: "fullname",
-    header: () => <div className="">Fullname</div>,
+    header: () => <div className="">Họ và tên</div>,
     cell: ({ row }) => {
       const user = row.original as User;
 
@@ -60,22 +60,24 @@ export const getColumns = (
   },
   {
     accessorKey: "role",
-    header: "Role",
+    header: "Vai trò",
     cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
   },
   {
-    accessorKey: "level",
-    header: "Level",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("level")}</div>
-    ),
-  },
-  {
     accessorKey: "avatar",
-    header: "Avatar",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("avatar")}</div>
-    ),
+    header: "Ảnh đại diện",
+    cell: ({ row }) => {
+      const avatarUrl = row.getValue("avatar") as string;
+      return avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt="Ảnh đại diện"
+          className="w-10 h-10 object-contain rounded-full"
+        />
+      ) : (
+        "Không có ảnh đại diện"
+      );
+    },
   },
   {
     id: "actions",

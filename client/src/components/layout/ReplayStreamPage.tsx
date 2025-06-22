@@ -17,14 +17,21 @@ interface ReplayStreamPageProps {
 
 const ReplayStreamBreadcrumbs: React.FC<{ replay: Replay }> = ({ replay }) => {
   const navigate = useNavigate();
-  const { setSelectedSportsNavbarPage } = useSelectedPageContext();
+  const { setSelectedSportsNavbarPage, setSelectedPage } =
+    useSelectedPageContext();
   return (
     <nav
       className="text-xs text-gray-400 mb-2 px-1 flex items-center space-x-0.5 pt-4"
       aria-label="Breadcrumb"
     >
       <div
-        onClick={() => navigate("/")}
+        onClick={() => {
+          navigate("/");
+          localStorage.removeItem("selectedSportsNavbarPage");
+          setSelectedSportsNavbarPage("");
+          localStorage.setItem("selectedPage", "TRANG CHỦ");
+          setSelectedPage("TRANG CHỦ");
+        }}
         className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
       >
         <HomeIconSolid className="w-3.5 h-3.5 mr-1" /> Trang chủ

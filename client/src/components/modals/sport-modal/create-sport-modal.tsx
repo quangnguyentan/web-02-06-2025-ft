@@ -97,7 +97,7 @@ export const CreateSportModal = () => {
         toast.success(`Đã tạo ${values.name} thành công`);
         onClose();
         addSport(res.data);
-        setSelectedPage("Sports");
+        setSelectedPage("Môn thể thao");
         form.reset();
       }
     } catch (error: any) {
@@ -213,7 +213,10 @@ export const CreateSportModal = () => {
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
                 className="text-black rounded-[4px] bg-gray-200 hover:bg-gray-300"
                 type="button"
                 disabled={isLoading}

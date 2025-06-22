@@ -41,7 +41,7 @@ export const getColumns = (
   },
   {
     accessorKey: "title",
-    header: "Title",
+    header: "Tiêu đề",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("title")}</div>
     ),
@@ -65,7 +65,7 @@ export const getColumns = (
   },
   {
     accessorKey: "description",
-    header: "Description",
+    header: "Mô tả",
     cell: ({ row }) => (
       <div className="max-w-xs truncate">{row.getValue("description")}</div> // Thêm truncate cho mô tả dài
     ),
@@ -91,7 +91,7 @@ export const getColumns = (
   },
   {
     accessorKey: "thumbnail",
-    header: "Thumbnail",
+    header: "Ảnh đại diện",
     cell: ({ row }) => {
       const thumbnailUrl = row.getValue("thumbnail") as string;
       return thumbnailUrl ? (
@@ -107,7 +107,7 @@ export const getColumns = (
   },
   {
     accessorKey: "match",
-    header: "Match Title", // Đổi tên header cho rõ ràng hơn
+    header: "Trận đấu", // Đổi tên header cho rõ ràng hơn
     cell: ({ row }) => {
       const matchData = row.original.match;
       let matchTitle = "N/A";
@@ -128,7 +128,7 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Sport Name", // Đổi tên header cho rõ ràng hơn
+    header: "Môn thể thao", // Đổi tên header cho rõ ràng hơn
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "N/A";
@@ -157,14 +157,14 @@ export const getColumns = (
 
   {
     accessorKey: "duration",
-    header: "Duration (s)", // Thêm đơn vị nếu cần
+    header: "Thời lượng video (s)", // Thêm đơn vị nếu cần
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("duration")}</div>
     ),
   },
   {
     accessorKey: "publishDate",
-    header: "Publish Date",
+    header: "Ngày xuất bản",
     // Định dạng lại thời gian nếu cần thiết, ví dụ:
     cell: ({ row }) => {
       const pushlistDate = row.getValue("publishDate") as string;
@@ -185,7 +185,7 @@ export const getColumns = (
   },
   {
     accessorKey: "views",
-    header: "Views",
+    header: "Lượt xem",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("views")}</div>
     ),

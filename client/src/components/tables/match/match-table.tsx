@@ -41,6 +41,8 @@ import { Match } from "@/types/match.types"; // Import Match type
 import { League } from "@/types/league.types"; // Import League type
 import { Team } from "@/types/team.types"; // Import Team type
 import { Sport } from "@/types/sport.types"; // Import Sport type
+import { User } from "@/types/user.types";
+import { apiGetAllUser } from "@/services/user.services";
 
 // Define a custom ColumnMeta type with width
 interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
@@ -53,12 +55,15 @@ export function MatchTable() {
   const [leagues, setLeagues] = React.useState<League[]>([]); // State để lưu danh sách leagues
   const [teams, setTeams] = React.useState<Team[]>([]); // State để lưu danh sách teams
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
-
+  const [users, setUsers] = React.useState<User[]>([]); // Add users state
   // Type the columns with the custom meta
   const columns = React.useMemo(
     () =>
-      getColumns(onOpen, leagues, teams, sports) as ColumnDef<Match, unknown>[],
-    [onOpen, leagues, teams, sports]
+      getColumns(onOpen, leagues, teams, sports, users) as ColumnDef<
+        Match,
+        unknown
+      >[],
+    [onOpen, leagues, teams, sports, users]
   );
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -96,22 +101,28 @@ export function MatchTable() {
   const fetchMatchRelatedData = async () => {
     try {
       // 1. Fetch all leagues, teams, and sports concurrently
-      const [leaguesRes, teamsRes, sportsRes, matchesRes] = await Promise.all([
-        apiGetAllLeagues(),
-        apiGetAllTeams(),
-        apiGetAllSports(),
-        apiGetAllMatches(), // Fetch matches last, so other data is ready for populating
-      ]);
+      const [leaguesRes, teamsRes, sportsRes, usersRes, matchesRes] =
+        await Promise.all([
+          apiGetAllLeagues(),
+          apiGetAllTeams(),
+          apiGetAllSports(),
+          apiGetAllUser(),
+          apiGetAllMatches(), // Fetch matches last, so other data is ready for populating
+        ]);
 
       const allLeagues = leaguesRes.data || [];
       const allTeams = teamsRes.data || [];
       const allSports = sportsRes.data || [];
+      const allUsers =
+        usersRes.data?.rs?.filter(
+          (user: User) => user?.role === "COMMENTATOR"
+        ) || [];
       const fetchedMatches = matchesRes.data || [];
 
       setLeagues(allLeagues);
       setTeams(allTeams);
       setSports(allSports);
-
+      setUsers(allUsers);
       // 2. Populate league, team1, team2, and sport fields for each match if they are just IDs
       const populatedMatches: Match[] = fetchedMatches.map((m: Match) => {
         const populatedMatch = { ...m };
@@ -167,7 +178,22 @@ export function MatchTable() {
             icon: "",
           };
         }
-
+        if (populatedMatch.streamLinks) {
+          populatedMatch.streamLinks = populatedMatch.streamLinks.map(
+            (link) => {
+              if (typeof link.commentator === "string") {
+                const foundUser = allUsers.find(
+                  (u: User) => u._id === link.commentator
+                );
+                return {
+                  ...link,
+                  commentator: foundUser || link.commentator, // Keep as User object if found, else keep string
+                };
+              }
+              return link;
+            }
+          );
+        }
         return populatedMatch;
       });
       setMatch(populatedMatches); // Cập nhật state match với dữ liệu đã populate

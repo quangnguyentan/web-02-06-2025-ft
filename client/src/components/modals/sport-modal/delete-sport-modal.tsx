@@ -29,7 +29,7 @@ export const DeleteSportModal = () => {
         const updatedList = sports.filter((item) => item._id !== sport._id);
         setSports(updatedList); // ✅ cập nhật danh sách sau khi xóa
         onClose();
-        setSelectedPage("Sports");
+        setSelectedPage("Môn thể thao");
       }
     } catch (err) {
       console.error("Failed to delete course:", err);
@@ -60,7 +60,10 @@ export const DeleteSportModal = () => {
 
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClose();
+            }}
             className="text-black rounded-[4px]"
             disabled={isLoading}
           >

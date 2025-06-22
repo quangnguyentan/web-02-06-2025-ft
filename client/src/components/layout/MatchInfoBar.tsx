@@ -7,6 +7,13 @@ interface MatchInfoBarProps {
 }
 
 const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
+  const commentator = match.streamLinks?.[0]?.commentator;
+  const commentatorName =
+    typeof commentator === "object" && commentator?._id
+      ? commentator.username ||
+        `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
+        "Unknown Commentator"
+      : "Unknown Commentator";
   return (
     <div className="bg-slate-800 p-3 my-1 rounded-lg shadow">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -39,7 +46,7 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
         </div>
         <a
           // href={match.betUrl || "#"}
-          className="bg-yellow-500 hover:bg-yellow-600 !text-xs cursor-pointer  text-slate-900 font-medium py-2 px-4 rounded text-sm shadow-md whitespace-nowrap transition-colors self-start sm:self-center"
+          className="bg-yellow-500 hover:bg-yellow-600 !text-xs cursor-pointer  text-slate-900 font-medium py-2 px-4 rounded shadow-md whitespace-nowrap transition-colors self-start sm:self-center"
         >
           CƯỢC UY TÍN 100%
         </a>
@@ -49,15 +56,13 @@ const MatchInfoBar: React.FC<MatchInfoBarProps> = ({ match }) => {
           {match?.streamLinks?.[0]?.commentatorImage && (
             <img
               src={match?.streamLinks?.[0]?.commentatorImage}
-              alt={match?.streamLinks?.[0]?.commentator}
+              alt={commentatorName}
               className="w-5 h-5 rounded-full mr-1.5"
             />
           )}
           <span>
             Bình luận viên: {""}
-            <span className="text-sky-400 font-medium">
-              {match?.streamLinks?.[0]?.commentator}
-            </span>
+            <span className="text-sky-400 font-medium">{commentatorName}</span>
           </span>
         </div>
       )}

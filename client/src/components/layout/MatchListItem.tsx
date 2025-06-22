@@ -4,6 +4,13 @@ import { Match } from "@/types/match.types";
 import { useNavigate } from "react-router-dom";
 const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
   const navigate = useNavigate();
+  const commentator = match.streamLinks?.[0]?.commentator;
+  const commentatorName =
+    typeof commentator === "object" && commentator?._id
+      ? commentator.username ||
+        `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
+        "Unknown Commentator"
+      : "Unknown Commentator";
   return (
     <div
       onClick={() => {
@@ -61,14 +68,14 @@ const MatchListItem: React.FC<{ match: Match }> = ({ match }) => {
         {match?.streamLinks?.[0]?.commentatorImage ? (
           <img
             src={match?.streamLinks?.[0]?.commentatorImage}
-            alt={match?.streamLinks?.[0]?.commentator}
+            alt={commentatorName}
             className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
           />
         ) : (
           <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
         )}
         <span className="text-[11px] sm:text-xs text-sky-400 truncate hover:text-sky-300 cursor-pointer">
-          {match?.streamLinks?.[0]?.commentator || "N/A"}
+          {commentatorName}
         </span>
       </div>
 

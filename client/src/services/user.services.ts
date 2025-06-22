@@ -45,7 +45,7 @@ export const apiDeleteUserById = async (id: string) => {
     throw error;
   }
 };
-export const apiUpdateUser = async (id: string, data: User) => {
+export const apiUpdateUser = async (id: string, data: FormData) => {
   try {
     const response = await axiosConfig({
       method: "PUT",

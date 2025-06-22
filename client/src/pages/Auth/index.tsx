@@ -1,10 +1,9 @@
 import { useState } from "react";
-import "./index.css";
-import Login from "../Login";
-import Register from "../Register";
 import Reset from "../Reset";
+import Authentication from "../Login-Authentication";
+import RegistrationAuthentication from "../Registration-Authentication";
 interface AuthProps {
-  handleClose: () => void; // handleClose is a function that takes no arguments and returns nothing
+  handleClose: () => void;
 }
 const Auth = ({ handleClose }: AuthProps) => {
   const [auth, setAuth] = useState({
@@ -34,30 +33,28 @@ const Auth = ({ handleClose }: AuthProps) => {
     window.open(`http://localhost:8080/api/auth/${type}`, "_self");
   };
   return (
-    <section className="--flex-center bg-white">
-      <div className="container box">
-        {auth.login && (
-          <Login
-            onClose={handleClose}
-            onRegister={handleRegister}
-            onReset={handleReset}
-            onShowPassword={showPassword}
-            onTogglePassword={handleTogglePassword}
-            onClickTypeLogin={handleClickTypeLogin}
-          />
-        )}
-        {auth.register && (
-          <Register
-            onClose={handleClose}
-            onLogin={handleLogin}
-            onShowPassword={showPassword}
-            onTogglePassword={handleTogglePassword}
-            onClickTypeLogin={handleClickTypeLogin}
-          />
-        )}
-        {auth.reset && <Reset onLogin={handleLogin} />}
-      </div>
-    </section>
+    <div>
+      {auth.login && (
+        <Authentication
+          onClose={handleClose}
+          onRegister={handleRegister}
+          onReset={handleReset}
+          onShowPassword={showPassword}
+          onTogglePassword={handleTogglePassword}
+          onClickTypeLogin={handleClickTypeLogin}
+        />
+      )}
+      {auth.register && (
+        <RegistrationAuthentication
+          onClose={handleClose}
+          onLogin={handleLogin}
+          onShowPassword={showPassword}
+          onTogglePassword={handleTogglePassword}
+          onClickTypeLogin={handleClickTypeLogin}
+        />
+      )}
+      {auth.reset && <Reset onLogin={handleLogin} />}
+    </div>
   );
 };
 

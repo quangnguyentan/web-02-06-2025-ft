@@ -13,7 +13,13 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         return "";
     }
   };
-
+  const commentator = match.streamLinks?.[0]?.commentator;
+  const commentatorName =
+    typeof commentator === "object" && commentator?._id
+      ? commentator.username ||
+        `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
+        "Unknown Commentator"
+      : "Unknown Commentator";
   return (
     <div className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0 relative">
       <div className="w-[15%] sm:w-[12%] text-xs text-gray-400 pr-2">
@@ -75,7 +81,7 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         {match?.streamLinks?.[0]?.commentatorImage ? (
           <img
             src={match?.streamLinks?.[0]?.commentatorImage}
-            alt={match?.streamLinks?.[0]?.commentator}
+            alt={commentatorName}
             className="w-5 h-5 rounded-full hidden sm:block"
           />
         ) : (
@@ -85,7 +91,7 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         )}
         {match?.streamLinks?.[0]?.commentator && (
           <span className="text-sky-400 truncate hover:text-sky-300 cursor-pointer">
-            {match?.streamLinks?.[0]?.commentator}
+            {commentatorName}
           </span>
         )}
 

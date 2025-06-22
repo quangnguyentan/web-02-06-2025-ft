@@ -25,7 +25,7 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
   return (
     // <div className="bg-slate-800 p-2 sm:p-3 rounded-lg shadow mt-3 sm:mt-0">
     <div className="rounded-lg shadow">
-      <div className="space-y-5 max-h-[320px] sm:max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="space-y-5 max-h-[320px] sm:max-h-[800px] overflow-y-auto pr-1 custom-scrollbar">
         {/* Added max-h and pr for scrollbar spacing */}
         {titleHidden && (
           <div className="flex items-center space-x-2 px-2 w-full">

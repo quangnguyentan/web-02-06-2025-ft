@@ -93,10 +93,10 @@ export function UserTable() {
     <div className="w-full shadow-lg drop-shadow-lg bg-white rounded-lg">
       <div className="flex items-center py-4 px-6 justify-between">
         <Input
-          placeholder="Tìm kiếm bằng email"
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Tìm kiếm bằng số điện thoại"
+          value={(table.getColumn("phone")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("phone")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
