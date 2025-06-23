@@ -169,9 +169,10 @@ export const getColumns = (
     // Định dạng lại thời gian nếu cần thiết, ví dụ:
     cell: ({ row }) => {
       const startTime = row.getValue("startTime") as string;
+      const date = new Date(startTime);
       return (
         <div className="capitalize">
-          {new Date(startTime).toLocaleString("vi-VN", {
+          {date?.toLocaleString("vi-VN", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -179,6 +180,7 @@ export const getColumns = (
             minute: "2-digit",
             second: "2-digit",
             hour12: false,
+            timeZone: "Asia/Ho_Chi_Minh",
           })}
         </div>
       ); // Ví dụ định dạng

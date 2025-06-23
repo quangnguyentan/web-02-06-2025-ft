@@ -1,13 +1,12 @@
 import slugify from "slugify";
 import unidecode from "unidecode";
-export function formatDuration(minutes: any) {
-  // Lấy số nguyên phút
-  const totalSeconds = Math.round(minutes * 60); // Chuyển phút thành giây
-  const hours = Math.floor(totalSeconds / 3600); // Tính giờ
-  const remainingMinutes = Math.floor((totalSeconds % 3600) / 60); // Tính phút còn lại
-  const seconds = totalSeconds % 60; // Tính giây còn lại
 
-  // Định dạng chuỗi
+export function formatDuration(minutes: any) {
+  const totalSeconds = Math.round(minutes * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
   if (hours > 0) {
     return `${hours}:${remainingMinutes.toString().padStart(2, "0")}:${seconds
       .toString()
@@ -15,6 +14,7 @@ export function formatDuration(minutes: any) {
   }
   return `${remainingMinutes}:${seconds.toString().padStart(2, "0")}`;
 }
+
 export function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
@@ -32,22 +32,23 @@ export const formatDate = (date: string | Date) =>
   });
 
 export const formatDateFull = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
-  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getUTCFullYear(); // Sử dụng UTC để tránh lệch múi giờ
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Tháng UTC
+  const day = String(date.getUTCDate()).padStart(2, "0"); // Ngày UTC
   return `${year}-${month}-${day}`;
 };
+
 export const adjustToVietnamTime = (date: Date): Date => {
   const vietnamDate = new Date(date);
-  vietnamDate.setHours(vietnamDate.getHours()); // Điều chỉnh từ UTC sang UTC+07:00
+  vietnamDate.setUTCHours(vietnamDate.getUTCHours() + 7); // Điều chỉnh từ UTC sang UTC+07:00
   return vietnamDate;
 };
 
 export const createSlug = (name: string): string => {
   const asciiString = unidecode(name);
   return slugify(asciiString, {
-    lower: true, // Convert to lowercase
-    strict: true, // Remove special characters
-    trim: true, // Trim leading/trailing spaces
+    lower: true,
+    strict: true,
+    trim: true,
   });
 };

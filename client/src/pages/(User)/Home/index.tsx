@@ -33,8 +33,8 @@ const sportIconMap: Record<string, React.ReactNode> = {
 const AppContent: React.FC = () => {
   const { matchData, replayData, loading } = useData();
   const [sports, setSports] = React.useState<Sport[]>([]);
-  const today = new Date();
-  const vietnamToday = adjustToVietnamTime(today);
+  const today = new Date(); // Lấy thời gian hiện tại
+  const vietnamToday = adjustToVietnamTime(today); // Điều chỉnh sang UTC+07:00
 
   // Fetch sports data
   React.useEffect(() => {
@@ -54,8 +54,9 @@ const AppContent: React.FC = () => {
     (slug: string) => {
       return matchData.filter((match) => {
         if (!match?.startTime) return false;
-        const matchDate = new Date(match.startTime);
-        const matchDay = formatDateFull(matchDate);
+        const matchDate = new Date(match.startTime); // Chuyển startTime thành Date
+        const adjustedMatchDate = adjustToVietnamTime(matchDate); // Điều chỉnh sang UTC+07:00
+        const matchDay = formatDateFull(adjustedMatchDate);
         const todayDay = formatDateFull(vietnamToday);
         return (
           match?.sport &&
