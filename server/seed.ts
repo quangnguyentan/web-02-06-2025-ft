@@ -62,21 +62,9 @@ const createSlug = (name: string): string => {
     .replace(/\s+/g, "-");
 };
 
-// Hàm tạo slug duy nhất bằng cách thêm timestamp nếu cần
-const generateUniqueSlug = async (baseSlug: string): Promise<string> => {
-  let uniqueSlug = baseSlug;
-  let counter = 0;
-  while (await Match.exists({ slug: uniqueSlug })) {
-    uniqueSlug = `${baseSlug}-${Date.now()}-${counter}`;
-    counter++;
-    if (counter > 10) break; // Giới hạn số lần thử để tránh vòng lặp vô hạn
-  }
-  return uniqueSlug;
-};
-
 // Hàm ánh xạ trạng thái API sang MatchStatus enum
 const mapStatus = (startTime: string): MatchStatus => {
-  const now = new Date(); // Sử dụng thời gian thực tế
+  const now = new Date(); // Sử dụng thời gian thực tế (07:24 PM +07, 23/06/2025)
   const matchTime = new Date(startTime);
   if (matchTime > now) return MatchStatus.UPCOMING;
   if (
@@ -184,7 +172,7 @@ const processApiData = async (matches: ApiMatch[]) => {
 
     for (const matchData of matches) {
       console.log(
-        `Processing match: ${matchData.title}, referenceId: ${matchData.referenceId}`
+        `Processing match: ${matchData.title}, referenceId: ${matchData.referenceId}, slug: ${matchData.slug}`
       ); // Debug log
       const league = await League.findOne({
         slug: createSlug(matchData.tournamentName),
@@ -199,15 +187,17 @@ const processApiData = async (matches: ApiMatch[]) => {
         username: matchData.commentator?.username,
       });
 
-      let match = await Match.findOne({ referenceId: matchData.referenceId });
+      // Kiểm tra cả referenceId và slug để tránh tạo trùng
+      let match = await Match.findOne({
+        $or: [{ referenceId: matchData.referenceId }, { slug: matchData.slug }],
+      });
 
       if (!match) {
-        // Tạo mới nếu không tìm thấy referenceId
-        const slugToUse = await generateUniqueSlug(matchData.slug);
+        // Tạo mới chỉ khi không có referenceId hoặc slug trong DB
         match = await Match.create({
           referenceId: matchData.referenceId,
           title: matchData.title,
-          slug: slugToUse,
+          slug: matchData.slug, // Sử dụng slug từ API
           homeTeam: homeTeam?._id,
           awayTeam: awayTeam?._id,
           league: league?._id,
@@ -226,10 +216,10 @@ const processApiData = async (matches: ApiMatch[]) => {
           isHot: matchData.isHot,
         });
         console.log(
-          `Created Match: ${matchData.title} with slug: ${slugToUse}`
+          `Created Match: ${matchData.title} with slug: ${matchData.slug}`
         );
       } else {
-        // Kiểm tra và cập nhật nếu có thay đổi
+        // Cập nhật nếu có thay đổi
         const newStatus = mapStatus(matchData.startTime);
         const currentStreamLinks = match.streamLinks.map((link) => ({
           label: link.label,
@@ -250,8 +240,7 @@ const processApiData = async (matches: ApiMatch[]) => {
 
         const hasChanged =
           match.title !== matchData.title ||
-          match.startTime.getTime() !==
-            new Date(matchData.startTime).getTime() ||
+          match.startTime.getTime() !== new Date(matchData.startTime).getTime() ||
           match.status !== newStatus ||
           match.isHot !== matchData.isHot ||
           JSON.stringify(currentStreamLinks) !== JSON.stringify(newStreamLinks);
@@ -307,7 +296,7 @@ export async function startPolling() {
     const matches: ApiMatch[] = response.data.data;
     await processApiData(matches);
 
-    cron.schedule("*/5 * * * * *", async () => {
+    cron.schedule("*/60 * * * * *", async () => {
       try {
         console.log("Polling API...");
         const response = await axios.get(
