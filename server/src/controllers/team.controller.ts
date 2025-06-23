@@ -3,8 +3,8 @@ import Team, { ITeam } from "../models/team.model";
 import Sport from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 
 // @desc    Tạo một đội mới
 // @route   POST /api/teams

@@ -8,8 +8,8 @@ import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import { splitName } from "../utils/helper";
 import path from "path";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 dotenv.config();
 interface FileUploadResult {
   url: string;

@@ -4,8 +4,8 @@ import Match from "../models/match.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 // REMEMBER: Your global type definition in src/types/express.d.ts is crucial for this to work.
 // Ensure it contains:
 /*
@@ -42,9 +42,9 @@ export const createReplay: RequestHandler[] = [
       // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
-            videoUrl?: Express.Multer.File[];
-            thumbnail?: Express.Multer.File[];
-          }
+          videoUrl?: Express.Multer.File[];
+          thumbnail?: Express.Multer.File[];
+        }
         | undefined;
 
       // Validate match
@@ -195,9 +195,9 @@ export const updateReplay: RequestHandler[] = [
       // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
-            videoUrl?: Express.Multer.File[];
-            thumbnail?: Express.Multer.File[];
-          }
+          videoUrl?: Express.Multer.File[];
+          thumbnail?: Express.Multer.File[];
+        }
         | undefined;
 
       // Validate match if provided
@@ -242,8 +242,8 @@ export const updateReplay: RequestHandler[] = [
           body.isShown === "true"
             ? true
             : body.isShown === "false"
-            ? false
-            : existingReplay.isShown,
+              ? false
+              : existingReplay.isShown,
       };
 
       // Handle video upload

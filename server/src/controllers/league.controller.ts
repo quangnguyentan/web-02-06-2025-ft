@@ -3,8 +3,8 @@ import League, { ILeague } from "../models/league.model";
 import Sport from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 // @desc    Tạo một giải đấu mới
 // @route   POST /api/leagues
 export const createLeague = async (

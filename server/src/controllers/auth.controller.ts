@@ -6,8 +6,8 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { splitName } from "../utils/helper";
 import path from "path";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 dotenv.config();
 //method post = path(delele, post, put,get )
 export const register = async (req: Request, res: Response): Promise<void> => {

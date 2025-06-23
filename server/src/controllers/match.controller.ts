@@ -5,8 +5,8 @@ import User from "../models/user.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
-const baseURL = "http://localhost:8080";
-// const baseURL = "https://sv.hoiquan.live";
+// const baseURL = "http://localhost:8080";
+const baseURL = "https://sv.hoiquan.live";
 // Remove or comment out this custom interface.
 // interface MulterRequest extends Request {
 //   files?: {
@@ -32,9 +32,9 @@ export const createMatch: RequestHandler[] = [
       // Access req.files and assert its type
       const files = req.files as
         | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-          }
+          streamLinkImages?: Express.Multer.File[];
+          streamLinkCommentatorImages?: Express.Multer.File[];
+        }
         | undefined;
 
       // Parse streamLinks
@@ -84,8 +84,8 @@ export const createMatch: RequestHandler[] = [
             url: link.url,
             image: streamLinkImages[index]
               ? `${baseURL}/static/${path.basename(
-                  streamLinkImages[index].path
-                )}`
+                streamLinkImages[index].path
+              )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage:
@@ -228,9 +228,9 @@ export const updateMatch: RequestHandler[] = [
       const body = req.body;
       const files = req.files as
         | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-          }
+          streamLinkImages?: Express.Multer.File[];
+          streamLinkCommentatorImages?: Express.Multer.File[];
+        }
         | undefined;
 
       // Parse streamLinks
@@ -303,8 +303,8 @@ export const updateMatch: RequestHandler[] = [
             url: link.url,
             image: streamLinkImages[index]
               ? `${baseURL}/static/${path.basename(
-                  streamLinkImages[index].path
-                )}`
+                streamLinkImages[index].path
+              )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage:
@@ -338,8 +338,8 @@ export const updateMatch: RequestHandler[] = [
           body.isHot === "true"
             ? true
             : body.isHot === "false"
-            ? false
-            : match.isHot,
+              ? false
+              : match.isHot,
       };
 
       // Update match
