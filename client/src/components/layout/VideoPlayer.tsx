@@ -33,6 +33,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [showSettings, setShowSettings] = useState(false); // State for settings menu
+  const [qualityLevels, setQualityLevels] = useState<
+    { id: number; height: number }[]
+  >([]); // Store available quality levels
+  const [currentLevel, setCurrentLevel] = useState(-1); // -1 for auto
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -58,8 +63,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
-      video.autoplay = true; // Enable autoplay
-      video.muted = true; // Mute for autoplay policy
+      video.autoplay = true;
+      video.muted = true;
       video.play().catch((err) => {
         setError(`Autoplay failed: ${err.message}. User interaction required.`);
       });
@@ -79,13 +84,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLive(hls.levels.some((level) => level.details?.live));
-        video.autoplay = true; // Enable autoplay
-        video.muted = true; // Mute for autoplay policy
+        // Populate quality levels (480p, 720p, 1080p, etc.)
+        setQualityLevels(
+          hls.levels.map((level, index) => ({
+            id: index,
+            height: level.height || 720,
+          }))
+        );
+        video.autoplay = true;
+        video.muted = true;
         video.play().catch((err) => {
           setError(
             `Autoplay failed: ${err.message}. User interaction required.`
           );
         });
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+        setCurrentLevel(data.level);
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -113,8 +129,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         hlsRef.current = null;
       }
       video.src = videoUrl;
-      video.autoplay = true; // Enable autoplay
-      video.muted = true; // Mute for autoplay policy
+      video.autoplay = true;
+      video.muted = true;
       video.play().catch((err) => {
         setError(`Autoplay failed: ${err.message}. User interaction required.`);
       });
@@ -161,10 +177,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
-        videoRef.current.play().catch(() => {
-          setError("Playback was blocked. Please try again.");
-        });
-        setIsPlaying(true);
+        videoRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((err) => {
+            setError(`Playback failed: ${err.message}`);
+          });
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -197,14 +217,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (videoRef.current && !isLive && !youTubeVideoId) {
-      const newTime = parseFloat(e.target.value);
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  };
-
   const handleFullscreen = () => {
     if (playerRef.current) {
       if (!document.fullscreenElement) {
@@ -218,7 +230,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleSettings = () => {
-    console.log("Open settings");
+    setShowSettings(!showSettings);
+  };
+
+  const handleQualityChange = (levelId: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = levelId;
+      setCurrentLevel(levelId);
+      setShowSettings(false);
+    }
   };
 
   const handleMouseEnter = () => {
@@ -256,7 +276,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       >
         <iframe
           className="absolute inset-0 w-full h-full"
-          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=1&controls=1&rel=0&mute=1`} // Enable autoplay and mute
+          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=1&controls=1&rel=0&mute=1`}
           title={videoTitle}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -291,7 +311,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setIsMuted(videoRef.current.muted);
           }
         }}
-        autoPlay // Add autoplay attribute
+        autoPlay
       >
         {videoUrl && (
           <source
@@ -330,18 +350,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
-        {!isLive && (
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleProgressChange}
-            className="w-full h-1.5 mb-2 accent-red-500 cursor-pointer"
-            aria-label="Video progress"
-          />
-        )}
-
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -385,7 +393,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 relative">
             <button
               onClick={handleSettings}
               aria-label="Settings"
@@ -393,6 +401,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             >
               <Cog8ToothIcon className="w-6 h-6" />
             </button>
+            {showSettings && qualityLevels.length > 0 && (
+              <div className="absolute bottom-10 right-0 bg-black/90 text-white rounded-md shadow-lg p-2 z-10">
+                <ul className="space-y-1">
+                  <li>
+                    <button
+                      onClick={() => handleQualityChange(-1)}
+                      className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
+                        currentLevel === -1 ? "bg-red-500/70" : ""
+                      }`}
+                    >
+                      Auto
+                    </button>
+                  </li>
+                  {qualityLevels.map((level) => (
+                    <li key={level.id}>
+                      <button
+                        onClick={() => handleQualityChange(level.id)}
+                        className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
+                          currentLevel === level.id ? "bg-red-500/70" : ""
+                        }`}
+                      >
+                        {level.height}p
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <button
               onClick={handleFullscreen}
               aria-label="Fullscreen"

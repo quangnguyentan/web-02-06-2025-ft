@@ -211,7 +211,7 @@ export const EditUserModal = () => {
                       <SelectContent>
                         {["phone"].map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type}
+                            {type === "phone" ? "Số điện thoại" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -240,7 +240,11 @@ export const EditUserModal = () => {
                       <SelectContent>
                         {Object.values(RoleType).map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type.toLowerCase()}
+                            {type === "USER"
+                              ? "Người dùng"
+                              : type === "ADMIN"
+                              ? "Quản trị viên"
+                              : "Bình luận viên"}
                           </SelectItem>
                         ))}
                       </SelectContent>

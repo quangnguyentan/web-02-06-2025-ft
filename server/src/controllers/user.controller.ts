@@ -57,12 +57,16 @@ export const updateUser = async (
     logoUrl = `${baseURL}/static/${path.basename(avatarFile.path)}`;
   }
 
-  const user = await User.findByIdAndUpdate(id, {
-    ...req?.body,
-    firstname: firstName,
-    lastname: lastName,
-    avatar: logoUrl,
-  }, { new: true });
+  const user = await User.findByIdAndUpdate(
+    id,
+    {
+      ...req?.body,
+      firstname: firstName,
+      lastname: lastName,
+      avatar: logoUrl,
+    },
+    { new: true }
+  );
   res.status(200).json({
     success: user ? true : false,
     rs: user ? user : "User not found",
@@ -394,10 +398,8 @@ export const createUser = async (
       typeLogin,
       role,
       level: Number(level) || 0,
-      total_score: Number(total_score) || 0,
       address: address ?? "",
       gender,
-      enrolledCoursesCount: Number(enrolledCoursesCount) || 0,
       avatar: avatar ?? "",
       refreshToken: "", // Default
     };
@@ -416,10 +418,8 @@ export const createUser = async (
       typeLogin: user.typeLogin,
       role: user.role,
       level: user.level,
-      total_score: user.total_score,
       address: user.address,
       gender: user.gender,
-      enrolledCoursesCount: user.enrolledCoursesCount,
       phone: user.phone,
       avatar: user.avatar,
     };

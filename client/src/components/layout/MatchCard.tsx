@@ -4,13 +4,14 @@ import { Match } from "@/types/match.types";
 import { useNavigate } from "react-router-dom";
 import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
-import football from "@/assets/user/football-min1.jpg";
+import football from "@/assets/user/football-min.jpg";
 import volleyball from "@/assets/user/volleyball-min.jpg";
 import boxing from "@/assets/user/boxing-min.jpg";
 import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import badminton from "@/assets/user/badminton-min.png";
+import badminton from "@/assets/user/badminton-min.jpg";
+import bida from "@/assets/user/bi-da.jpg";
 
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
@@ -46,6 +47,8 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       ? esport
       : match?.sport?.name === "Cầu lông"
       ? badminton
+      : match?.sport?.name === "Bi-a"
+      ? bida
       : "";
   const commentator = match.streamLinks?.[0]?.commentator;
   const commentatorName =
@@ -76,32 +79,33 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
       }}
     >
-      {/* Overlay to ensure readability */}
-      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
+      {/* {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
         match?.sport?.name ?? ""
       ) && (
         <div
-          className="absolute inset-0 bg-black bg-opacity-90"
+          className="absolute inset-0 bg-black bg-opacity-100"
           style={{ zIndex: 1 }} // Đảm bảo overlay nằm dưới nội dung
         ></div>
-      )}
+      )} */}
 
       <div className="p-2 sm:p-3  relative z-10">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center space-x-1 text-xs text-gray-400">
-            <FootballIcon className="w-4 h-4 text-yellow-400" />
-            <span className="truncate max-w-[90px] sm:max-w-[140px] text-white">
+            {/* <FootballIcon className="w-4 h-4 text-yellow-400" /> */}
+            <span className="truncate max-w-[60px] sm:max-w-[140px] text-white sm:text-sm font-medium">
               {match.league?.name ?? match?.title}
             </span>
           </div>
-          <div className="text-xs text-white whitespace-nowrap">
+          {isLive && (
+            <div className="absolute translate-x-1/2 w-full right-4 z-10">
+              <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded font-bold uppercase">
+                LIVE
+              </span>
+            </div>
+          )}
+          <div className="text-xs text-white whitespace-nowrap sm:text-sm font-medium truncate">
             {startTime}
           </div>
-          {isLive && (
-            <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded font-semibold">
-              LIVE
-            </span>
-          )}
         </div>
 
         <div className="flex items-center justify-around my-2 sm:my-3">
@@ -121,10 +125,9 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
               <span className="text-xs md:text-xl font-bold text-white">
                 {match?.scores?.homeScore} - {match?.scores?.awayScore}
               </span>
-              <div className="text-xs text-yellow-400 mt-1 font-medium">
-                {/* {isLive ? "LIVE" : match?.status} */}
+              {/* <div className="text-xs text-yellow-400 mt-1 font-medium">
                 {isLive && "LIVE"}
-              </div>
+              </div> */}
             </div>
           ) : (
             <span className="text-gray-400 text-base sm:text-lg font-semibold px-2">
@@ -146,7 +149,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
       </div>
 
       <div
-        className="p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-10"
+        className="p-2 sm:p-2 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-10"
         style={{
           boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
@@ -160,14 +163,26 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             />
           )}
           {match?.streamLinks?.[0]?.commentator && (
-            <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[90px] sm:max-w-[120px]">
+            <span className="text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">
               {commentatorName}
             </span>
           )}
         </div>
-        <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
-          Xem Ngay
-        </a>
+        <div className="flex items-center gap-2">
+          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
+            Xem Ngay
+          </a>
+          <a
+            className=" bg-green-500 hover:bg-green-600  text-white  sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // window.open("https://b.thapcam73.life/", "_blank");
+            }}
+          >
+            Đặt Cược
+          </a>
+        </div>
       </div>
     </div>
   );

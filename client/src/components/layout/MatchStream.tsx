@@ -10,7 +10,7 @@ import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useNavigate } from "react-router-dom";
-
+import wait_football from "@/assets/user/wait_football.webp";
 interface MatchStreamPageProps {
   match: Match;
   relatedMatches: Match[];
@@ -65,6 +65,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
   relatedMatches,
   replaySuggestions,
 }) => {
+  console.log("match", match);
   return (
     <div className="flex flex-col min-h-screen w-full">
       <main
@@ -88,7 +89,11 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
             <VideoPlayer
               videoUrl={`${match?.streamLinks?.[0]?.url}`}
               videoTitle={`${match?.homeTeam?.name} vs ${match?.awayTeam?.name}`}
-              posterUrl="https://picsum.photos/seed/baseballgame/1280/720" // Placeholder poster
+              posterUrl={
+                match?.streamLinks?.[0]?.image
+                  ? match?.streamLinks?.[0]?.image
+                  : wait_football
+              } // Placeholder poster
             />
             <div className="hidden md:block">
               <MatchInfoBar match={match} />

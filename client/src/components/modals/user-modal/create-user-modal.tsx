@@ -219,10 +219,10 @@ export const CreateUserModal = () => {
                           <SelectValue placeholder="Chọn loại đăng nhập" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[80px]">
                         {["phone"].map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type}
+                            {type === "phone" ? "Số điện thoại" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -248,10 +248,14 @@ export const CreateUserModal = () => {
                           <SelectValue placeholder="Chọn vai trò" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white text-black h-[120px]">
                         {Object.values(RoleType).map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type.toLowerCase()}
+                            {type === "USER"
+                              ? "Người dùng"
+                              : type === "ADMIN"
+                              ? "Quản trị viên"
+                              : "Bình luận viên"}
                           </SelectItem>
                         ))}
                       </SelectContent>

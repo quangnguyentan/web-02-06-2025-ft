@@ -40,13 +40,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import { vi } from "date-fns/locale/vi";
 import { useDropzone } from "react-dropzone";
+import { createSlug } from "@/lib/helper";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Tiêu đề là bắt buộc" }),
-  slug: z.string().min(1, { message: "Slug là bắt buộc" }),
+  // slug: z.string().min(1, { message: "Slug là bắt buộc" }),
   description: z.string().optional(),
   videoUrl: z.union([
     z
@@ -90,7 +91,7 @@ export const EditReplayModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      slug: "",
+      // slug: "",
       description: "",
       videoUrl: "",
       thumbnail: "",
@@ -184,7 +185,7 @@ export const EditReplayModal = () => {
     if (data?.replay && isModalOpen) {
       form.reset({
         title: data.replay.title || "",
-        slug: data.replay.slug || "",
+        // slug: data.replay.slug || "",
         description: data.replay.description || "",
         videoUrl: data.replay.videoUrl || "",
         thumbnail: data.replay.thumbnail || "",
@@ -203,16 +204,16 @@ export const EditReplayModal = () => {
     }
   }, [isModalOpen, data?.replay, form]);
 
-  const watchTitle = form.watch("title");
-  useEffect(() => {
-    if (watchTitle) {
-      const newSlug = watchTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      form.setValue("slug", newSlug, { shouldValidate: true });
-    }
-  }, [watchTitle, form]);
+  // const watchTitle = form.watch("title");
+  // useEffect(() => {
+  //   if (watchTitle) {
+  //     const newSlug = watchTitle
+  //       .toLowerCase()
+  //       .replace(/[^a-z0-9]+/g, "-")
+  //       .replace(/^-+|-+$/g, "");
+  //     form.setValue("slug", newSlug, { shouldValidate: true });
+  //   }
+  // }, [watchTitle, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -229,7 +230,7 @@ export const EditReplayModal = () => {
 
       const formData = new FormData();
       formData.append("title", values.title);
-      formData.append("slug", values.slug);
+      formData.append("slug", createSlug(values?.title));
       if (values.description)
         formData.append("description", values.description);
       if (values.videoUrl instanceof File) {
@@ -310,7 +311,7 @@ export const EditReplayModal = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="slug"
                 render={({ field }) => (
@@ -327,7 +328,7 @@ export const EditReplayModal = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={form.control}
                 name="description"

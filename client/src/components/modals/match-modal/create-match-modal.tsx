@@ -48,17 +48,15 @@ import { PlusCircle, XCircle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiGetAllUser } from "@/services/user.services";
 import { User } from "@/types/user.types";
+import { createSlug } from "@/lib/helper";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
 // Updated streamLinkSchema: url is string only, image and commentatorImage are File or undefined
 const streamLinkSchema = z.object({
-  label: z.string().min(1, { message: "Nhãn liên kết là bắt buộc" }),
-  url: z
-    .string()
-    .url("URL không hợp lệ")
-    .min(1, { message: "URL liên kết là bắt buộc" }),
+  label: z.string().optional(),
+  url: z.string().optional(),
   image: z
     .instanceof(File)
     .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
@@ -66,12 +64,12 @@ const streamLinkSchema = z.object({
     })
     .optional(),
   commentator: z.string().optional(),
-  commentatorImage: z
-    .instanceof(File)
-    .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
-      message: "File ảnh không hợp lệ (.jpg, .jpeg, .png)",
-    })
-    .optional(),
+  // commentatorImage: z
+  //   .instanceof(File)
+  //   .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
+  //     message: "File ảnh không hợp lệ (.jpg, .jpeg, .png)",
+  //   })
+  //   .optional(),
   priority: z.coerce
     .number()
     .min(1, { message: "Ưu tiên phải là số không hợp lệ" })
@@ -80,7 +78,7 @@ const streamLinkSchema = z.object({
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Tiêu đề là bắt buộc" }),
-  slug: z.string().min(1, { message: "Slug là bắt buộc" }),
+  // slug: z.string().min(1, { message: "Slug là bắt buộc" }),
   homeTeam: z.string().min(1, { message: "Đội nhà là bắt buộc" }),
   awayTeam: z.string().min(1, { message: "Đội khách là bắt buộc" }),
   league: z.string().min(1, { message: "Giải đấu là bắt buộc" }),
@@ -292,7 +290,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
           </FormItem>
         )}
       />
-      <FormField
+      {/* <FormField
         control={form.control}
         name={`streamLinks.${index}.commentatorImage`}
         render={({ field }) => (
@@ -322,7 +320,7 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
             <FormMessage />
           </FormItem>
         )}
-      />
+      /> */}
       <FormField
         control={form.control}
         name={`streamLinks.${index}.priority`}
@@ -358,7 +356,7 @@ export const CreateMatchModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      slug: "",
+      // slug: "",
       homeTeam: "",
       awayTeam: "",
       league: "",
@@ -421,7 +419,8 @@ export const CreateMatchModal = () => {
 
       const formData = new FormData();
       formData.append("title", values.title);
-      formData.append("slug", values.slug);
+      formData.append("slug", createSlug(values.title));
+      // formData.append("slug", values.slug);
       formData.append("homeTeam", homeTeamData._id || "");
       formData.append("awayTeam", awayTeamData._id || "");
       formData.append("league", leagueData._id || "");
@@ -445,7 +444,7 @@ export const CreateMatchModal = () => {
         formData.append("isHot", values.isHot.toString());
       }
       const validStreamLinks =
-        values.streamLinks?.filter((link) => link.label && link.url) || [];
+        values.streamLinks?.filter((link) => link.commentator) || [];
       const processedLinks = validStreamLinks.map((link) => ({
         label: link.label,
         url: link.url, // Always a string URL
@@ -454,11 +453,11 @@ export const CreateMatchModal = () => {
             ? `file:image-${Math.random()}`
             : undefined,
         commentator: link.commentator || undefined,
-        commentatorImage:
-          link.commentatorImage instanceof File
-            ? `file:commentatorImage-${Math.random()}`
-            : undefined,
-        priority: link.priority || 1,
+        // commentatorImage:
+        //   link.commentatorImage instanceof File
+        //     ? `file:commentatorImage-${Math.random()}`
+        //     : undefined,
+        // priority: link.priority || 1,
       }));
 
       formData.append("streamLinks", JSON.stringify(processedLinks));
@@ -468,9 +467,9 @@ export const CreateMatchModal = () => {
         if (link.image instanceof File) {
           formData.append("streamLinkImages", link.image);
         }
-        if (link.commentatorImage instanceof File) {
-          formData.append("streamLinkCommentatorImages", link.commentatorImage);
-        }
+        // if (link.commentatorImage instanceof File) {
+        //   formData.append("streamLinkCommentatorImages", link.commentatorImage);
+        // }
       });
 
       const res = await apiCreateMatch(formData);
@@ -527,7 +526,7 @@ export const CreateMatchModal = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="slug"
                 render={({ field }) => (
@@ -544,7 +543,7 @@ export const CreateMatchModal = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={form.control}
                 name="homeTeam"
@@ -798,7 +797,7 @@ export const CreateMatchModal = () => {
                       url: "",
                       image: undefined,
                       commentator: "",
-                      commentatorImage: undefined,
+                      // commentatorImage: undefined,
                       priority: 1,
                     })
                   }

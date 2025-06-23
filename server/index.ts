@@ -5,7 +5,7 @@ import { initRoutes } from "./src/routes/index.routes";
 import path from "path";
 import { connectDB } from "./src/configs/connectDB";
 import cookieParser from "cookie-parser";
-
+import { startPolling } from "./seed";
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT ?? 5000;
@@ -44,8 +44,14 @@ app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
   if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
     res.status(204).end(); // Proper preflight response
     return;
   }
@@ -64,7 +70,9 @@ app.use(
       res.header("Access-Control-Allow-Origin", origin);
       res.header("Access-Control-Allow-Credentials", "true");
     }
-    res.status(err.name === "NotAllowedError" ? 403 : 500).json({ error: err.message });
+    res
+      .status(err.name === "NotAllowedError" ? 403 : 500)
+      .json({ error: err.message });
   }
 );
 
@@ -87,4 +95,5 @@ initRoutes(app);
 connectDB();
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  // startPolling();
 });

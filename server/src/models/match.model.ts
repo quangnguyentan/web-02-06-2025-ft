@@ -61,8 +61,8 @@ const matchSchema = new Schema<IMatch>(
     },
     streamLinks: [
       {
-        label: { type: String, required: true },
-        url: { type: String, required: true },
+        label: { type: String },
+        url: { type: String },
         image: { type: String },
         commentator: { type: Schema.Types.ObjectId, ref: "User" },
         commentatorImage: { type: String },
@@ -70,7 +70,6 @@ const matchSchema = new Schema<IMatch>(
       },
     ],
     isHot: { type: Boolean, default: false },
-
   },
   {
     timestamps: true,

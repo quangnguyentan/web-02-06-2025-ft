@@ -156,7 +156,7 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     }
     return grouped;
   }, [categorizedReplays, paginatedReplays]);
-
+  console.log(highlightedEvent);
   return (
     <div className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
       <main className="w-full pt-2">
@@ -187,7 +187,7 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
                   />
                 </div>
               </div>
-              <div className="lg:w-1/4 flex-shrink-0">
+              <div className="lg:w-1/4 flex-shrink-0 ">
                 <div>
                   <ReplaySuggestionsPanel
                     replays={sidebarReplays || []}

@@ -33,16 +33,17 @@ import { apiCreateTeam } from "@/services/team.services";
 import { apiGetAllSports } from "@/services/sport.services";
 import { Sport } from "@/types/sport.types";
 import { useDropzone } from "react-dropzone";
+import { createSlug } from "@/lib/helper";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Tên đội là bắt buộc" }),
-  slug: z
-    .string()
-    .min(1, { message: "Slug là bắt buộc" })
-    .regex(/^[a-z0-9-]+$/i, {
-      message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
-    })
-    .transform((val) => val.toLowerCase()),
+  // slug: z
+  //   .string()
+  //   .min(1, { message: "Slug là bắt buộc" })
+  //   .regex(/^[a-z0-9-]+$/i, {
+  //     message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
+  //   })
+  //   .transform((val) => val.toLowerCase()),
   logo: z
     .instanceof(File)
     .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
@@ -62,7 +63,7 @@ export const CreateTeamModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      slug: "",
+      // slug: "",
       logo: undefined,
       sport: "",
     },
@@ -117,12 +118,11 @@ export const CreateTeamModal = () => {
 
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("slug", values.slug);
+      formData.append("slug", createSlug(values?.name));
       formData.append("sport", values.sport);
       if (values.logo) {
         formData.append("logo", values.logo);
       }
-
       const res = await apiCreateTeam(formData);
       if (res?.data) {
         toast.success(`Đã tạo ${values.name} thành công`);
@@ -174,7 +174,7 @@ export const CreateTeamModal = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="slug"
                 render={({ field }) => (
@@ -192,7 +192,7 @@ export const CreateTeamModal = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={form.control}
                 name="logo"

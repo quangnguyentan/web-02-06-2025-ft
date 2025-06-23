@@ -39,25 +39,35 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import { vi } from "date-fns/locale/vi";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, FileRejection, DropEvent } from "react-dropzone";
+import { createSlug } from "@/lib/helper";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Tiêu đề là bắt buộc" }),
-  slug: z.string().min(1, { message: "Slug là bắt buộc" }),
+  // slug: z.string().min(1, { message: "Slug là bắt buộc" }),
   description: z.string().optional(),
   videoUrl: z
     .instanceof(File)
-    .refine((file) => file && /video\/(mp4|mov|avi)/.test(file.type), {
+    .refine((file) => file && /video\/(mp4|mov|avi)/i.test(file.type), {
       message: "Vui lòng chọn file video hợp lệ (.mp4, .mov, .avi)",
     }),
   thumbnail: z
-    .instanceof(File)
-    .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
-      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-    })
+    .union([
+      z
+        .instanceof(File)
+        .refine(
+          (file) => file && /image\/(jpe?g|png|gif|bmp|webp)/i.test(file.type),
+          {
+            message:
+              "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png, .gif, .bmp, .webp)",
+          }
+        ),
+      z.string(),
+      z.literal(""),
+    ])
     .optional(),
   match: z.string().min(1, { message: "Trận đấu là bắt buộc" }),
   sport: z.string().min(1, { message: "Môn thể thao là bắt buộc" }),
@@ -82,10 +92,10 @@ export const CreateReplayModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      slug: "",
+      // slug: "",
       description: "",
       videoUrl: undefined,
-      thumbnail: undefined,
+      thumbnail: "",
       match: "",
       sport: "",
       duration: undefined,
@@ -99,9 +109,25 @@ export const CreateReplayModal = () => {
   const isLoading = form.formState.isSubmitting;
 
   const onDropVideo = useCallback(
-    (acceptedFiles: File[]) => {
+    (
+      acceptedFiles: File[],
+      fileRejections: FileRejection[],
+      event: DropEvent
+    ) => {
+      console.log(
+        "Video Drop - Accepted:",
+        acceptedFiles.map((f) => ({ name: f.name, type: f.type, size: f.size }))
+      );
+      console.log(
+        "Video Drop - Rejected:",
+        fileRejections.map((r) => ({ file: r.file.name, errors: r.errors }))
+      );
       if (acceptedFiles[0]) {
         form.setValue("videoUrl", acceptedFiles[0], { shouldValidate: true });
+      } else if (fileRejections.length > 0) {
+        toast.error(
+          `File video không hợp lệ: ${fileRejections[0].errors[0].message}`
+        );
       }
     },
     [form]
@@ -121,6 +147,7 @@ export const CreateReplayModal = () => {
     maxFiles: 1,
     maxSize: 100 * 1024 * 1024,
     onDropRejected: (fileRejections) => {
+      console.log("Video Drop Rejected:", fileRejections);
       const error =
         fileRejections[0]?.errors[0]?.message || "File video không hợp lệ";
       toast.error(error);
@@ -128,9 +155,25 @@ export const CreateReplayModal = () => {
   });
 
   const onDropThumbnail = useCallback(
-    (acceptedFiles: File[]) => {
+    (
+      acceptedFiles: File[],
+      fileRejections: FileRejection[],
+      event: DropEvent
+    ) => {
+      console.log(
+        "Thumbnail Drop - Accepted:",
+        acceptedFiles.map((f) => ({ name: f.name, type: f.type, size: f.size }))
+      );
+      console.log(
+        "Thumbnail Drop - Rejected:",
+        fileRejections.map((r) => ({ file: r.file.name, errors: r.errors }))
+      );
       if (acceptedFiles[0]) {
         form.setValue("thumbnail", acceptedFiles[0], { shouldValidate: true });
+      } else if (fileRejections.length > 0) {
+        toast.error(
+          `File ảnh không hợp lệ: ${fileRejections[0].errors[0].message}`
+        );
       }
     },
     [form]
@@ -142,10 +185,13 @@ export const CreateReplayModal = () => {
     isDragActive: isThumbnailDragActive,
   } = useDropzone({
     onDrop: onDropThumbnail,
-    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
+    accept: {
+      "image/*": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"],
+    },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024,
     onDropRejected: (fileRejections) => {
+      console.log("Thumbnail Drop Rejected:", fileRejections);
       const error =
         fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
       toast.error(error);
@@ -174,6 +220,23 @@ export const CreateReplayModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      console.log("Submitted Values:", {
+        ...values,
+        thumbnail: values.thumbnail
+          ? {
+              type: typeof values.thumbnail,
+              value:
+                values.thumbnail instanceof File
+                  ? {
+                      name: values.thumbnail.name,
+                      type: values.thumbnail.type,
+                      size: values.thumbnail.size,
+                    }
+                  : values.thumbnail,
+            }
+          : null,
+      });
+
       const match = matches.find((m) => m._id === values.match);
       if (!match) {
         toast.error("Trận đấu không hợp lệ");
@@ -187,11 +250,15 @@ export const CreateReplayModal = () => {
 
       const formData = new FormData();
       formData.append("title", values.title);
-      formData.append("slug", values.slug);
+      formData.append("slug", createSlug(values?.title));
       if (values.description)
         formData.append("description", values.description);
       formData.append("videoUrl", values.videoUrl);
-      if (values.thumbnail) formData.append("thumbnail", values.thumbnail);
+      if (values.thumbnail && values.thumbnail instanceof File) {
+        formData.append("thumbnail", values.thumbnail);
+      } else if (typeof values.thumbnail === "string" && values.thumbnail) {
+        formData.append("thumbnail", values.thumbnail);
+      }
       formData.append("match", values.match);
       formData.append("sport", values.sport);
       if (values.duration !== undefined)
@@ -211,10 +278,12 @@ export const CreateReplayModal = () => {
         form.reset();
       }
     } catch (error: any) {
+      console.error("Submit Error:", error);
       const errorMessage =
-        error.response?.data?.message || "Lỗi khi tạo nội dung phát lại";
+        error.response?.data?.message ||
+        error.message ||
+        "Lỗi khi tạo nội dung phát lại";
       toast.error(errorMessage);
-      console.error(error);
     }
   };
 
@@ -252,7 +321,8 @@ export const CreateReplayModal = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+
+              {/* <FormField
                 control={form.control}
                 name="slug"
                 render={({ field }) => (
@@ -269,7 +339,8 @@ export const CreateReplayModal = () => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
+
               <FormField
                 control={form.control}
                 name="description"
@@ -333,11 +404,12 @@ export const CreateReplayModal = () => {
                         }`}
                       >
                         <input {...getThumbnailInputProps()} />
-                        {field.value ? (
+                        {field.value instanceof File ? (
                           <p className="text-blue-600">{field.value.name}</p>
                         ) : (
                           <p className="!text-sm">
-                            Kéo và thả file ảnh tại đây (.jpg, .png)
+                            Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png,
+                            .gif, .bmp, .webp)
                           </p>
                         )}
                       </div>
@@ -446,9 +518,6 @@ export const CreateReplayModal = () => {
                             placeholderText="Nhập ngày và giờ"
                             className="w-full p-2 border rounded placeholder:text-gray-500"
                             minDate={new Date()}
-                            // Remove selectsMultiple or set to false if allowed by context
-                            // If the error persists, comment out selectsMultiple temporarily
-                            // selectsMultiple={false}
                           />
                         )}
                       />
@@ -523,7 +592,6 @@ export const CreateReplayModal = () => {
               >
                 Đóng
               </Button>
-
               <Button
                 disabled={isLoading}
                 type="submit"

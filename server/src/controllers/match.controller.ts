@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from "express";
-import Match, { IMatch } from "../models/match.model";
+import Match, { IMatch, MatchStatus } from "../models/match.model";
 import User from "../models/user.model";
 
 import { upload } from "../middlewares/multer";
@@ -32,9 +32,9 @@ export const createMatch: RequestHandler[] = [
       // Access req.files and assert its type
       const files = req.files as
         | {
-          streamLinkImages?: Express.Multer.File[];
-          streamLinkCommentatorImages?: Express.Multer.File[];
-        }
+            streamLinkImages?: Express.Multer.File[];
+            streamLinkCommentatorImages?: Express.Multer.File[];
+          }
         | undefined;
 
       // Parse streamLinks
@@ -52,15 +52,12 @@ export const createMatch: RequestHandler[] = [
 
       // Process uploaded files
       const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages = files?.streamLinkCommentatorImages || [];
+      const streamLinkCommentatorImages =
+        files?.streamLinkCommentatorImages || [];
 
       // Map streamLinks with uploaded files and update User.image
       const processedStreamLinks = await Promise.all(
         streamLinks.map(async (link: any, index: number) => {
-          if (!link.label || !link.url) {
-            throw new Error("URL và nhãn stream link là bắt buộc");
-          }
-
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
             commentatorImageUrl = `${baseURL}/static/${path.basename(
@@ -75,7 +72,9 @@ export const createMatch: RequestHandler[] = [
                 { new: true, runValidators: true }
               );
               if (!user) {
-                console.warn(`User not found for commentator ID: ${link.commentator}`);
+                console.warn(
+                  `User not found for commentator ID: ${link.commentator}`
+                );
               }
             }
           }
@@ -84,15 +83,22 @@ export const createMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(streamLinkImages[index].path)}`
+              ? `${baseURL}/static/${path.basename(
+                  streamLinkImages[index].path
+                )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage: commentatorImageUrl || link.commentatorImage || undefined,
+            commentatorImage:
+              commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
         })
       );
-
+      // Determine status based on streamLinks
+      const hasValidStreamLinks = processedStreamLinks.some(
+        (link) =>
+          link.url && typeof link.url === "string" && link.url.trim() !== ""
+      );
       // Prepare match data
       const matchData: Partial<IMatch> = {
         title: body.title,
@@ -102,7 +108,7 @@ export const createMatch: RequestHandler[] = [
         league: body.league,
         sport: body.sport,
         startTime: body.startTime ? new Date(body.startTime) : undefined,
-        status: body.status,
+        status: hasValidStreamLinks ? MatchStatus.LIVE : MatchStatus.UPCOMING,
         scores: body.scores
           ? typeof body.scores === "string"
             ? JSON.parse(body.scores)
@@ -121,8 +127,7 @@ export const createMatch: RequestHandler[] = [
         .populate("awayTeam", "name logo")
         .populate("league", "name logo")
         .populate("sport", "name icon slug")
-        .populate("streamLinks.commentator", "name image");
-
+        .populate("streamLinks.commentator", "username avatar");
       res.status(201).json(populatedMatch);
     } catch (error: any) {
       console.error("Create match error:", error);
@@ -172,7 +177,7 @@ export const getMatchById = async (
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
       .populate("sport", "name icon slug")
-      .populate("streamLinks.commentator", "username avatar")
+      .populate("streamLinks.commentator", "username avatar");
     if (!match) {
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
       return;
@@ -194,7 +199,6 @@ export const getMatchBySlug = async (
       .populate("league", "name logo")
       .populate("sport", "name icon slug")
       .populate("streamLinks.commentator", "username avatar");
-
 
     if (!match) {
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
@@ -224,9 +228,9 @@ export const updateMatch: RequestHandler[] = [
       const body = req.body;
       const files = req.files as
         | {
-          streamLinkImages?: Express.Multer.File[];
-          streamLinkCommentatorImages?: Express.Multer.File[];
-        }
+            streamLinkImages?: Express.Multer.File[];
+            streamLinkCommentatorImages?: Express.Multer.File[];
+          }
         | undefined;
 
       // Parse streamLinks
@@ -244,14 +248,19 @@ export const updateMatch: RequestHandler[] = [
 
       // Process uploaded files
       const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages = files?.streamLinkCommentatorImages || [];
+      const streamLinkCommentatorImages =
+        files?.streamLinkCommentatorImages || [];
 
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
       for (const link of match.streamLinks) {
         if (link.image?.startsWith(`${baseURL}/static/`)) {
           oldFiles.push(
-            path.join(__dirname, "../../assets/images", path.basename(link.image))
+            path.join(
+              __dirname,
+              "../../assets/images",
+              path.basename(link.image)
+            )
           );
         }
         if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
@@ -268,10 +277,6 @@ export const updateMatch: RequestHandler[] = [
       // Map streamLinks with uploaded files and update User.image
       const processedStreamLinks = await Promise.all(
         streamLinks.map(async (link: any, index: number) => {
-          if (!link.label || !link.url) {
-            throw new Error("URL và nhãn stream link là bắt buộc");
-          }
-
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
             commentatorImageUrl = `${baseURL}/static/${path.basename(
@@ -286,7 +291,9 @@ export const updateMatch: RequestHandler[] = [
                 { new: true, runValidators: true }
               );
               if (!user) {
-                console.warn(`User not found for commentator ID: ${link.commentator}`);
+                console.warn(
+                  `User not found for commentator ID: ${link.commentator}`
+                );
               }
             }
           }
@@ -295,13 +302,20 @@ export const updateMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(streamLinkImages[index].path)}`
+              ? `${baseURL}/static/${path.basename(
+                  streamLinkImages[index].path
+                )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage: commentatorImageUrl || link.commentatorImage || undefined,
+            commentatorImage:
+              commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
         })
+      );
+      const hasValidStreamLinks = processedStreamLinks.some(
+        (link) =>
+          link.url && typeof link.url === "string" && link.url.trim() !== ""
       );
 
       // Prepare update data
@@ -313,7 +327,7 @@ export const updateMatch: RequestHandler[] = [
         league: body.league || match.league,
         sport: body.sport || match.sport,
         startTime: body.startTime ? new Date(body.startTime) : match.startTime,
-        status: body.status || match.status,
+        status: hasValidStreamLinks ? MatchStatus.LIVE : MatchStatus.UPCOMING,
         scores: body.scores
           ? typeof body.scores === "string"
             ? JSON.parse(body.scores)
@@ -324,8 +338,8 @@ export const updateMatch: RequestHandler[] = [
           body.isHot === "true"
             ? true
             : body.isHot === "false"
-              ? false
-              : match.isHot,
+            ? false
+            : match.isHot,
       };
 
       // Update match

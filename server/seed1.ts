@@ -1,16 +1,14 @@
-// seed.ts
 import mongoose from "mongoose";
 import axios from "axios";
-import cron from "node-cron";
+import { v4 as uuidv4 } from "uuid";
 import Sport from "./src/models/sport.model";
 import League from "./src/models/league.model";
 import Team from "./src/models/team.model";
 import Match, { MatchStatus } from "./src/models/match.model";
 import User from "./src/models/user.model";
 import Replay from "./src/models/replay.model";
-import { connectDB } from "./src/configs/connectDB";
 
-// Định nghĩa interface cho dữ liệu API
+// Định nghĩa interface cho dữ liệu API để dễ xử lý
 interface ApiMatch {
   id: number;
   type: string;
@@ -62,21 +60,9 @@ const createSlug = (name: string): string => {
     .replace(/\s+/g, "-");
 };
 
-// Hàm tạo slug duy nhất bằng cách thêm timestamp nếu cần
-const generateUniqueSlug = async (baseSlug: string): Promise<string> => {
-  let uniqueSlug = baseSlug;
-  let counter = 0;
-  while (await Match.exists({ slug: uniqueSlug })) {
-    uniqueSlug = `${baseSlug}-${Date.now()}-${counter}`;
-    counter++;
-    if (counter > 10) break; // Giới hạn số lần thử để tránh vòng lặp vô hạn
-  }
-  return uniqueSlug;
-};
-
 // Hàm ánh xạ trạng thái API sang MatchStatus enum
 const mapStatus = (startTime: string): MatchStatus => {
-  const now = new Date(); // Sử dụng thời gian thực tế
+  const now = new Date();
   const matchTime = new Date(startTime);
   if (matchTime > now) return MatchStatus.UPCOMING;
   if (
@@ -88,9 +74,25 @@ const mapStatus = (startTime: string): MatchStatus => {
   return MatchStatus.FINISHED;
 };
 
-// Hàm xử lý dữ liệu từ API
-const processApiData = async (matches: ApiMatch[]) => {
+// Hàm seed dữ liệu
+const seedData = async () => {
   try {
+    // Kết nối MongoDB
+    await mongoose.connect(
+      "mongodb+srv://tanquanga6k10:CpdAVLjkbtX5chAq@shopdientu.l5fgtvm.mongodb.net/hoiquantv?retryWrites=true&w=majority",
+      {
+        dbName: "hoiquantv",
+      }
+    );
+    console.log("Connected to MongoDB");
+
+    // Gọi API
+    const response = await axios.get(
+      "https://sv.bugiotv.xyz/internal/api/matches"
+    );
+    const matches: ApiMatch[] = response.data.data;
+
+    // 1. Tạo Sport (mặc định là Football)
     let sport = await Sport.findOne({ slug: "football" });
     if (!sport) {
       sport = await Sport.create({
@@ -102,6 +104,7 @@ const processApiData = async (matches: ApiMatch[]) => {
       console.log("Created Sport: Football");
     }
 
+    // 2. Tạo Users (Commentators)
     const commentators = new Set(
       matches
         .filter((match) => match.commentator)
@@ -128,7 +131,7 @@ const processApiData = async (matches: ApiMatch[]) => {
           firstname: commentator.nickname.split(" ").slice(0, -1).join(" "),
           lastname: commentator.nickname.split(" ").pop(),
           phone: "",
-          password: commentator.password,
+          password: commentator.password, // Mật khẩu đã được mã hóa từ API
           refreshToken: "",
           avatar: commentator.avatar,
           role: "COMMENTATOR",
@@ -142,6 +145,7 @@ const processApiData = async (matches: ApiMatch[]) => {
       }
     }
 
+    // 3. Tạo Leagues
     const leagues = new Set(
       matches.map((match) => ({
         name: match.tournamentName,
@@ -162,6 +166,7 @@ const processApiData = async (matches: ApiMatch[]) => {
       }
     }
 
+    // 4. Tạo Teams
     const teams = new Set(
       matches.flatMap((match) => [
         { name: match.homeClub.name, logo: match.homeClub.logoUrl },
@@ -182,10 +187,8 @@ const processApiData = async (matches: ApiMatch[]) => {
       }
     }
 
+    // 5. Tạo Matches
     for (const matchData of matches) {
-      console.log(
-        `Processing match: ${matchData.title}, referenceId: ${matchData.referenceId}`
-      ); // Debug log
       const league = await League.findOne({
         slug: createSlug(matchData.tournamentName),
       });
@@ -199,22 +202,21 @@ const processApiData = async (matches: ApiMatch[]) => {
         username: matchData.commentator?.username,
       });
 
-      let match = await Match.findOne({ referenceId: matchData.referenceId });
-
+      let match = await Match.findOne({ slug: matchData.slug });
       if (!match) {
-        // Tạo mới nếu không tìm thấy referenceId
-        const slugToUse = await generateUniqueSlug(matchData.slug);
         match = await Match.create({
-          referenceId: matchData.referenceId,
           title: matchData.title,
-          slug: slugToUse,
+          slug: matchData.slug,
           homeTeam: homeTeam?._id,
           awayTeam: awayTeam?._id,
           league: league?._id,
           sport: sport._id,
           startTime: new Date(matchData.startTime),
           status: mapStatus(matchData.startTime),
-          scores: { homeScore: 0, awayScore: 0 },
+          scores: {
+            homeScore: 0,
+            awayScore: 0,
+          },
           streamLinks: matchData.streams.map((stream) => ({
             label: stream.name,
             url: stream.sourceUrl,
@@ -225,52 +227,23 @@ const processApiData = async (matches: ApiMatch[]) => {
           })),
           isHot: matchData.isHot,
         });
-        console.log(
-          `Created Match: ${matchData.title} with slug: ${slugToUse}`
-        );
+        console.log(`Created Match: ${matchData.title}`);
       } else {
-        // Kiểm tra và cập nhật nếu có thay đổi
-        const newStatus = mapStatus(matchData.startTime);
-        const currentStreamLinks = match.streamLinks.map((link) => ({
-          label: link.label,
-          url: link.url,
-          image: link.image,
-          commentator: link.commentator?.toString(),
-          commentatorImage: link.commentatorImage,
-          priority: link.priority,
-        }));
-        const newStreamLinks = matchData.streams.map((stream) => ({
+        match.status = mapStatus(matchData.startTime);
+        match.streamLinks = matchData?.streams?.map((stream) => ({
           label: stream.name,
           url: stream.sourceUrl,
           image: `https://res.klook.com/image/upload/c_fill,w_1265,h_712/q_80/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/gjam3n7jvltkpo5wxktb.webp`,
-          commentator: commentator?._id?.toString(),
+          commentator: commentator?._id as mongoose.Types.ObjectId | undefined,
           commentatorImage: commentator?.avatar,
           priority: 1,
         }));
-
-        const hasChanged =
-          match.title !== matchData.title ||
-          match.startTime.getTime() !==
-            new Date(matchData.startTime).getTime() ||
-          match.status !== newStatus ||
-          match.isHot !== matchData.isHot ||
-          JSON.stringify(currentStreamLinks) !== JSON.stringify(newStreamLinks);
-
-        if (hasChanged) {
-          match.title = matchData.title;
-          match.startTime = new Date(matchData.startTime);
-          match.status = newStatus;
-          match.streamLinks = newStreamLinks as any; // Type assertion to match schema
-          match.isHot = matchData.isHot;
-          await match.save();
-          console.log(
-            `Updated Match: ${matchData.title} (Status: ${match.status} -> ${newStatus})`
-          );
-        } else {
-          console.log(`No changes for Match: ${matchData.title}`);
-        }
+        match.isHot = matchData.isHot;
+        await match.save();
+        console.log(`Updated Match: ${matchData.title}`);
       }
 
+      // 6. Tạo Replay (giả lập dữ liệu replay cho mỗi match)
       let replay = await Replay.findOne({ slug: `${matchData.slug}-replay` });
       if (!replay) {
         replay = await Replay.create({
@@ -283,45 +256,22 @@ const processApiData = async (matches: ApiMatch[]) => {
           sport: sport._id,
           commentator: matchData.commentator?.nickname,
           views: 0,
-          duration: 7200,
+          duration: 7200, // Giả lập thời lượng 2 giờ
           publishDate: new Date(matchData.startTime),
           isShown: true,
         });
         console.log(`Created Replay: ${matchData.title} - Replay`);
       }
     }
+
+    console.log("Seeding completed!");
   } catch (error: any) {
-    console.error("Error processing API data:", error.message);
-  }
-};
-
-// Hàm gọi API định kỳ
-export async function startPolling() {
-  try {
-    await connectDB(); // Sử dụng kết nối chung
-    console.log("Polling started");
-
-    const response = await axios.get(
-      "https://sv.bugiotv.xyz/internal/api/matches"
-    );
-    const matches: ApiMatch[] = response.data.data;
-    await processApiData(matches);
-
-    cron.schedule("*/5 * * * * *", async () => {
-      try {
-        console.log("Polling API...");
-        const response = await axios.get(
-          "https://sv.bugiotv.xyz/internal/api/matches"
-        );
-        const matches: ApiMatch[] = response.data.data;
-        await processApiData(matches);
-      } catch (error: any) {
-        console.error("Error polling API:", error.message);
-      }
-    });
-  } catch (error: any) {
-    console.error("Error starting polling:", error.message);
+    console.error("Error seeding data:", error.message);
+  } finally {
     await mongoose.connection.close();
     console.log("MongoDB connection closed");
   }
-}
+};
+
+// Chạy hàm seed
+seedData();

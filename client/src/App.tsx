@@ -65,7 +65,7 @@ function App() {
   return (
     <Suspense fallback={<Loader />}>
       <Routes>
-        {filteredRoutes.map((route) => {
+        {filteredRoutes?.map((route) => {
           const isAdminRoute = route.role?.includes("ADMIN");
           if (isAdminRoute) {
             return (

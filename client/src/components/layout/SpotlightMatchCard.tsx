@@ -4,14 +4,15 @@ import { Match } from "@/types/match.types";
 import { FootballIcon, TennisIcon, BasketballIcon } from "./Icon";
 import basketball from "@/assets/user/basketball-min.jpg";
 import tennis from "@/assets/user/tennis-min.jpg";
-import football from "@/assets/user/football-min1.jpg";
+import football from "@/assets/user/football-min.jpg";
 import volleyball from "@/assets/user/volleyball-min.jpg";
 import boxing from "@/assets/user/boxing-min.jpg";
 import race from "@/assets/user/race-min.jpg";
 import esport from "@/assets/user/esport-min.jpg";
-import badminton from "@/assets/user/badminton-min.png";
+import badminton from "@/assets/user/badminton-min.jpg";
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import bida from "@/assets/user/bi-da.jpg";
 
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
@@ -56,6 +57,8 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
       ? esport
       : match?.sport?.name === "Cầu lông"
       ? badminton
+      : match?.sport?.name === "Bi-a"
+      ? bida
       : "";
 
   const commentator = match.streamLinks?.[0]?.commentator;
@@ -84,14 +87,14 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
       }}
     >
-      {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
+      {/* {!["Bóng rổ", "Tennis", "Bóng chuyền"].includes(
         match?.sport?.name ?? ""
       ) && (
         <div
           className="absolute inset-0 bg-black bg-opacity-90"
           style={{ zIndex: 1 }}
         ></div>
-      )}
+      )} */}
 
       <div
         className={`p-2 flex justify-between items-center relative z-10 ${
@@ -99,7 +102,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
         }`}
       >
         <div className="flex items-center space-x-1.5 justify-center">
-          {match.league?.logo ? (
+          {/* {match.league?.logo ? (
             <img
               src={match.league.logo}
               alt={match.league.name}
@@ -107,7 +110,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             />
           ) : (
             getSportIcon(match?.sport?.slug)
-          )}
+          )} */}
           <span className="text-xs font-semibold text-white truncate">
             {match.league?.name || match.title}
           </span>
@@ -143,7 +146,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
                 VS
               </span>
             )}
-            <div className="text-xs sm:text-sm text-white mt-1">
+            <div className="text-xs sm:text-sm text-white mt-1  font-medium truncate">
               {startTime}
             </div>
           </div>
@@ -178,7 +181,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
             ) : (
               <UserIcon className="w-5 h-5 text-slate-500 flex-shrink-0" />
             )}
-            <span className="text-xs sm:text-sm text-sky-400 truncate">
+            <span className="text-xs sm:text-sm text-white truncate">
               {commentatorName}
             </span>
           </div>

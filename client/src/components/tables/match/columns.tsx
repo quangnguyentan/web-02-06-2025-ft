@@ -279,11 +279,16 @@ export const getColumns = (
     id: "streamUrl",
     header: "Đường dẫn luồng phát sóng",
     accessorFn: (row) =>
-      row.streamLinks?.map((link) => link.url).join(", ") || "N/A",
+      row.streamLinks?.map((link) => link.url).join(", ") ||
+      "Không có đường dẫn luồng phát sóng",
     cell: ({ row }) => {
       const streamLinks = row.original.streamLinks;
-      if (!streamLinks || streamLinks.length === 0) {
-        return <div className="text-gray-500">Không có đường dẫn</div>;
+      if (!streamLinks || streamLinks?.length === 0) {
+        return (
+          <div className="text-gray-500">
+            Không có đường dẫn luồng phát sóng
+          </div>
+        );
       }
       return (
         <div className="flex flex-wrap gap-1">

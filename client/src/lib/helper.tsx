@@ -1,3 +1,5 @@
+import slugify from "slugify";
+import unidecode from "unidecode";
 export function formatDuration(minutes: any) {
   // Lấy số nguyên phút
   const totalSeconds = Math.round(minutes * 60); // Chuyển phút thành giây
@@ -41,10 +43,11 @@ export const adjustToVietnamTime = (date: Date): Date => {
   return vietnamDate;
 };
 
-const createSlug = (name: string) => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
+export const createSlug = (name: string): string => {
+  const asciiString = unidecode(name);
+  return slugify(asciiString, {
+    lower: true, // Convert to lowercase
+    strict: true, // Remove special characters
+    trim: true, // Trim leading/trailing spaces
+  });
 };

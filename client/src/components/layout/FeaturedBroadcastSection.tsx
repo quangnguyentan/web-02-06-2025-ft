@@ -3,7 +3,8 @@ import {
   FeaturedBroadcastItem,
   HighlightedEventInfo,
 } from "@/types/replay.types";
-
+import { useNavigate } from "react-router-dom";
+import fullSports from "@/assets/user/full-sports.jpg";
 interface FeaturedBroadcastSectionProps {
   items: FeaturedBroadcastItem[];
   highlightedEvent: HighlightedEventInfo;
@@ -12,12 +13,24 @@ interface FeaturedBroadcastSectionProps {
 const FeaturedBroadcastSection: React.FC<FeaturedBroadcastSectionProps> = ({
   highlightedEvent,
 }) => {
+  const navigate = useNavigate();
   return (
-    <div className="rounded-lg shadow-xl">
+    <div
+      className="rounded-lg shadow-xl cursor-pointer"
+      onClick={() => {
+        if (highlightedEvent?.replay?.title) {
+          navigate(`/xem-lai/${highlightedEvent?.replay?.title}`);
+        }
+      }}
+    >
       <div className="relative rounded-md overflow-hidden shadow-md">
         <img
-          src={highlightedEvent?.replay?.thumbnail}
-          alt="Player highlight"
+          src={
+            highlightedEvent?.replay?.thumbnail
+              ? highlightedEvent?.replay?.thumbnail
+              : fullSports
+          }
+          alt="Ảnh nổi bật"
           className="
             w-full 
             h-[320px] 

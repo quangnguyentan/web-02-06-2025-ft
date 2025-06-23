@@ -61,7 +61,15 @@ export const getColumns = (
   {
     accessorKey: "role",
     header: "Vai trò",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("role")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {row.getValue("role") === "USER"
+          ? "Người dùng"
+          : row.getValue("role") === "ADMIN"
+          ? "Quản trị viên"
+          : "Bình luận viên"}
+      </div>
+    ),
   },
   {
     accessorKey: "avatar",
