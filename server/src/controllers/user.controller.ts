@@ -8,8 +8,8 @@ import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import { splitName } from "../utils/helper";
 import path from "path";
-// const baseURL = "http://localhost:8080";
-const baseURL = "https://sv.hoiquan.live";
+import { configURL } from "../configs/configURL";
+
 dotenv.config();
 interface FileUploadResult {
   url: string;
@@ -54,7 +54,7 @@ export const updateUser = async (
   const { firstName, lastName } = splitName(username);
   let logoUrl: string | undefined;
   if (avatarFile) {
-    logoUrl = `${baseURL}/static/${path.basename(avatarFile.path)}`;
+    logoUrl = `${configURL.baseURL}/static/${path.basename(avatarFile.path)}`;
   }
 
   const user = await User.findByIdAndUpdate(

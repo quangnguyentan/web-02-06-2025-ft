@@ -4,8 +4,8 @@ import Match from "../models/match.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
-// const baseURL = "http://localhost:8080";
-const baseURL = "https://sv.hoiquan.live";
+import { configURL } from "../configs/configURL";
+
 // REMEMBER: Your global type definition in src/types/express.d.ts is crucial for this to work.
 // Ensure it contains:
 /*
@@ -63,13 +63,13 @@ export const createReplay: RequestHandler[] = [
 
       // Handle video file
       // Accessing files.videoUrl[0] is now safe because of the check above
-      const videoUrl = `${baseURL}/static/${path.basename(
+      const videoUrl = `${configURL.baseURL}/static/${path.basename(
         files.videoUrl[0].path
       )}`;
 
       // Handle thumbnail file (optional)
       const thumbnailUrl = files?.thumbnail?.[0]
-        ? `${baseURL}/static/${path.basename(files.thumbnail[0].path)}`
+        ? `${configURL.baseURL}/static/${path.basename(files.thumbnail[0].path)}`
         : undefined;
 
       // Prepare replay data
@@ -249,10 +249,10 @@ export const updateReplay: RequestHandler[] = [
       // Handle video upload
       // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
       if (files?.videoUrl?.[0]) {
-        updateData.videoUrl = `${baseURL}/static/${path.basename(
+        updateData.videoUrl = `${configURL.baseURL}/static/${path.basename(
           files.videoUrl[0].path
         )}`;
-        if (existingReplay.videoUrl?.startsWith(`${baseURL}/static/`)) {
+        if (existingReplay.videoUrl?.startsWith(`${configURL.baseURL}/static/`)) {
           const filename = path.basename(existingReplay.videoUrl);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
@@ -265,16 +265,16 @@ export const updateReplay: RequestHandler[] = [
       // Handle thumbnail upload
       // Now 'files' is correctly typed, so 'files?.thumbnail' is valid
       if (files?.thumbnail?.[0]) {
-        updateData.thumbnail = `${baseURL}/static/${path.basename(
+        updateData.thumbnail = `${configURL.baseURL}/static/${path.basename(
           files.thumbnail[0].path
         )}`;
-        if (existingReplay.thumbnail?.startsWith(`${baseURL}/static/`)) {
+        if (existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/static/`)) {
           const filename = path.basename(existingReplay.thumbnail);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
       } else if (body.thumbnail === "") {
         updateData.thumbnail = undefined;
-        if (existingReplay.thumbnail?.startsWith(`${baseURL}/static/`)) {
+        if (existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/static/`)) {
           const filename = path.basename(existingReplay.thumbnail);
           oldFiles.push(path.join(__dirname, "../../assets/images", filename));
         }
@@ -349,7 +349,7 @@ export const deleteReplay = async (
     }
 
     // Delete video file if it exists
-    if (deletedReplay.videoUrl?.startsWith(`${baseURL}/static/`)) {
+    if (deletedReplay.videoUrl?.startsWith(`${configURL.baseURL}/static/`)) {
       const videoPath = path.join(
         __dirname,
         "../../assets/images",
@@ -364,7 +364,7 @@ export const deleteReplay = async (
     }
 
     // Delete thumbnail file if it exists
-    if (deletedReplay.thumbnail?.startsWith(`${baseURL}/static/`)) {
+    if (deletedReplay.thumbnail?.startsWith(`${configURL.baseURL}/static/`)) {
       const thumbnailPath = path.join(
         __dirname,
         "../../assets/images",

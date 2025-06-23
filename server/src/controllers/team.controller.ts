@@ -3,8 +3,8 @@ import Team, { ITeam } from "../models/team.model";
 import Sport from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
-// const baseURL = "http://localhost:8080";
-const baseURL = "https://sv.hoiquan.live";
+import { configURL } from "../configs/configURL";
+
 
 // @desc    Tạo một đội mới
 // @route   POST /api/teams
@@ -25,7 +25,7 @@ export const createTeam = async (
 
     let logoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `${baseURL}/static/${path.basename(logoFile.path)}`;
+      logoUrl = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
     }
 
     const newTeam: ITeam = new Team({
@@ -99,7 +99,7 @@ export const updateTeam = async (
 
     // Handle logo update
     if (logoFile) {
-      updateData.logo = `${baseURL}/static/${path.basename(logoFile.path)}`;
+      updateData.logo = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
     } else if (removeLogo === "true") {
       // Delete existing logo file if it exists
       const team = await Team.findById(req.params.id);

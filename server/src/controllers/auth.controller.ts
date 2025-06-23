@@ -6,8 +6,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { splitName } from "../utils/helper";
 import path from "path";
-// const baseURL = "http://localhost:8080";
-const baseURL = "https://sv.hoiquan.live";
+import { configURL } from "../configs/configURL";
 dotenv.config();
 //method post = path(delele, post, put,get )
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -39,7 +38,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
     let logoUrl: string | undefined;
     if (avatarFile) {
-      logoUrl = `${baseURL}/static/${path.basename(avatarFile.path)}`;
+      logoUrl = `${configURL.baseURL}/static/${path.basename(avatarFile.path)}`;
     }
 
     const newUser = await User.create({

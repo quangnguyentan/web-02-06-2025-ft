@@ -106,13 +106,13 @@ const processApiData = async (matches: ApiMatch[]) => {
     );
 
     for (const commentator of commentators) {
-      let user = await User.findOne({ username: commentator.username });
+      let user = await User.findOne({ username: commentator.nickname });
       if (!user) {
         user = await User.create({
           typeLogin: "phone",
           id: commentator.id.toString(),
           tokenLogin: "",
-          username: commentator.username,
+          username: commentator.nickname,
           firstname: commentator.nickname.split(" ").slice(0, -1).join(" "),
           lastname: commentator.nickname.split(" ").pop(),
           phone: "",

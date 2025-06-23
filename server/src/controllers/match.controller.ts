@@ -5,8 +5,8 @@ import User from "../models/user.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
-// const baseURL = "http://localhost:8080";
-const baseURL = "https://sv.hoiquan.live";
+import { configURL } from "../configs/configURL";
+
 // Remove or comment out this custom interface.
 // interface MulterRequest extends Request {
 //   files?: {
@@ -60,7 +60,7 @@ export const createMatch: RequestHandler[] = [
         streamLinks.map(async (link: any, index: number) => {
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${baseURL}/static/${path.basename(
+            commentatorImageUrl = `${configURL.baseURL}/static/${path.basename(
               streamLinkCommentatorImages[index].path
             )}`;
 
@@ -83,7 +83,7 @@ export const createMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(
+              ? `${configURL.baseURL}/static/${path.basename(
                 streamLinkImages[index].path
               )}`
               : link.image || undefined,
@@ -254,7 +254,7 @@ export const updateMatch: RequestHandler[] = [
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
       for (const link of match.streamLinks) {
-        if (link.image?.startsWith(`${baseURL}/static/`)) {
+        if (link.image?.startsWith(`${configURL.baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -263,7 +263,7 @@ export const updateMatch: RequestHandler[] = [
             )
           );
         }
-        if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
+        if (link.commentatorImage?.startsWith(`${configURL.baseURL}/static/`)) {
           oldFiles.push(
             path.join(
               __dirname,
@@ -279,7 +279,7 @@ export const updateMatch: RequestHandler[] = [
         streamLinks.map(async (link: any, index: number) => {
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${baseURL}/static/${path.basename(
+            commentatorImageUrl = `${configURL.baseURL}/static/${path.basename(
               streamLinkCommentatorImages[index].path
             )}`;
 
@@ -302,7 +302,7 @@ export const updateMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${baseURL}/static/${path.basename(
+              ? `${configURL.baseURL}/static/${path.basename(
                 streamLinkImages[index].path
               )}`
               : link.image || undefined,
@@ -394,12 +394,12 @@ export const deleteMatch = async (
     // Optionally, delete associated files here
     const oldFiles: string[] = [];
     for (const link of deletedMatch.streamLinks) {
-      if (link.image?.startsWith(`${baseURL}/static/`)) {
+      if (link.image?.startsWith(`${configURL.baseURL}/static/`)) {
         oldFiles.push(
           path.join(__dirname, "../../assets/images", path.basename(link.image))
         );
       }
-      if (link.commentatorImage?.startsWith(`${baseURL}/static/`)) {
+      if (link.commentatorImage?.startsWith(`${configURL.baseURL}/static/`)) {
         oldFiles.push(
           path.join(
             __dirname,
