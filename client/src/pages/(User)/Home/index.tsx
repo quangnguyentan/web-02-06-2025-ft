@@ -86,7 +86,8 @@ const AppContent: React.FC = () => {
     return matchData.filter((match) => {
       if (!match?.startTime) return false;
       const matchDate = new Date(match.startTime);
-      const matchDay = formatDateFull(matchDate);
+      const adjustedMatchDate = adjustToVietnamTime(matchDate);
+      const matchDay = formatDateFull(adjustedMatchDate);
       const todayDay = formatDateFull(vietnamToday);
       return (
         match?.isHot &&

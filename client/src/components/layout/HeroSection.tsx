@@ -19,7 +19,7 @@ const HeroSection: React.FC = () => {
         <img
           src={banner_hoiquan}
           alt="banner_container"
-          className="lg:w-full sm:w-[320px] h-full md:w-[420px] max-w-full mx-auto drop-shadow-lg object-cover"
+          className="lg:w-full max-sm:w-full sm:w-full h-full md:w-full max-w-full mx-auto drop-shadow-lg object-cover"
         />
       </div>
     </div>

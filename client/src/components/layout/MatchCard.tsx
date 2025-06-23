@@ -168,12 +168,27 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
+        <div className="hidden sm:flex items-center gap-2">
+          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-6 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
             Xem Ngay
           </a>
           <a
             className=" bg-green-500 hover:bg-green-600  text-white  sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // window.open("https://b.thapcam73.life/", "_blank");
+            }}
+          >
+            Đặt Cược
+          </a>
+        </div>
+        <div className="sm:hidden flex flex-col items-center gap-2 w-full">
+          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] font-semibold py-1  rounded transition-colors text-center w-full !text-xs">
+            Xem Ngay
+          </a>
+          <a
+            className=" bg-green-500 hover:bg-green-600  text-white  font-semibold py-1  rounded transition-colors text-center w-full !text-xs"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
