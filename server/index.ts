@@ -88,6 +88,7 @@ app.use(
     next();
   },
   express.static(path.join(__dirname, "./assets/images"))
+  // express.static(path.join(__dirname, "../../var/www/hoiquantv/assets/images"))
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
