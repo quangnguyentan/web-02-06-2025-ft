@@ -6,7 +6,7 @@ import belt from "@/assets/user/160t1800.gif";
 import * as React from "react";
 import { formatDateFull } from "@/lib/helper";
 import { Loader } from "@/components/layout/Loader";
-
+import { UserInteractionProvider } from "@/context/UserInteractionContext";
 // Lazy load components
 const MatchStreamPage = React.lazy(
   () => import("@/components/layout/MatchStream")
@@ -67,6 +67,7 @@ const Live: React.FC = () => {
             match={currentMatch} // TypeScript now knows currentMatch is definitely 'Match' here
             relatedMatches={relatedMatches}
             replaySuggestions={replaySuggestions}
+            autoPlay={true}
           />
         ) : (
           <Loader />

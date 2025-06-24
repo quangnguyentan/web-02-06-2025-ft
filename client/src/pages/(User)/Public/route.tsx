@@ -14,10 +14,7 @@ const ResultPage = lazy(() => import("../Result/index"));
 const ReplayPage = lazy(() => import("../Replay/index"));
 const XoiLacTVPage = lazy(() => import("../XoiLacTV/index"));
 const ReplayStreamPage = lazy(() => import("../ReplayStream/index"));
-
-import "./index.css";
 import { Loader } from "@/components/layout/Loader";
-
 // Wrapper component to decide between ReplayPage and ReplayStreamPage
 const ReplayRouteHandler: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();

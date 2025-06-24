@@ -50,14 +50,12 @@ const XoilacTvPage: React.FC<XoilacTvPageProps> = ({
       <HeroSection />
 
       <main
-        className="lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
-
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-   2xl:translate-x-[calc((100vw-1440px)/12)]
-    3xl:translate-x-[calc((100vw-1440px)/2)]"
+        className="w-full mx-auto 
+        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
+        lg:max-w-[1024px] 
+        xl:max-w-[1200px] 
+        2xl:max-w-[1440px] 
+        3xl:max-w-[1440px]"
       >
         {/* Margin to avoid overlap with side ads */}
         <XoilacTvBreadcrumbs />

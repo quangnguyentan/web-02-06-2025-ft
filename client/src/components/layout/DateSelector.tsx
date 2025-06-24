@@ -30,7 +30,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   };
 
   return (
-    <div className="p-2 rounded-t-md">
+    <div className="rounded-t-md">
       <div className="flex space-x-1 overflow-x-auto pb-1">
         {dates.map((dateTab) => (
           <button

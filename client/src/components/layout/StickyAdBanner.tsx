@@ -20,18 +20,16 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
     flex items-center
     justify-between
     shadow-lg
-    w-full h-auto 
-    
+   h-auto 
     sm:justify-center
     md:justify-between
 
-    lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
-
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-    2xl:translate-x-[calc((100vw-1440px)/2)]
+   w-full mx-auto 
+        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
+        lg:max-w-[1024px] 
+        xl:max-w-[1200px] 
+        2xl:max-w-[1440px] 
+        3xl:max-w-[1440px]
   `}
     >
       {!hiddenBanner && (

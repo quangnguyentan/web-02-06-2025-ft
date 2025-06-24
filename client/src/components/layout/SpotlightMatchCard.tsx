@@ -13,6 +13,7 @@ import badminton from "@/assets/user/badminton-min.jpg";
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import bida from "@/assets/user/bi-da.jpg";
+import { useUserInteraction } from "@/context/UserInteractionContext";
 
 const getSportIcon = (sportId: string | undefined) => {
   if (!sportId) return <FootballIcon className="w-6 h-6 text-yellow-400" />;
@@ -29,6 +30,7 @@ const getSportIcon = (sportId: string | undefined) => {
 const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
   const navigate = useNavigate();
   const { setSelectedSportsNavbarPage } = useSelectedPageContext();
+  const { setHasUserInteracted } = useUserInteraction();
 
   const isLive = match.status === "LIVE";
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
@@ -72,6 +74,7 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
   return (
     <div
       onClick={() => {
+        setHasUserInteracted(true);
         navigate(targetUrl);
         setSelectedSportsNavbarPage(match?.sport?.name ?? "");
         localStorage.setItem(

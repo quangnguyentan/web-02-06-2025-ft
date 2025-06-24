@@ -32,10 +32,21 @@ import { getColumns } from "./columns";
 import { useModal } from "@/hooks/use-model-store";
 import { apiGetAllSports } from "@/services/sport.services";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { useMediaQuery, useTheme } from "@mui/material";
 export function SportTable() {
   const { onOpen } = useModal();
   const columns = React.useMemo(() => getColumns(onOpen), [onOpen]);
   const { sports, setSports } = useSelectedPageContext();
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
+
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -63,7 +74,7 @@ export function SportTable() {
 
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });

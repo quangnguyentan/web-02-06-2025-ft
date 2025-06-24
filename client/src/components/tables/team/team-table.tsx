@@ -39,6 +39,7 @@ import { apiGetAllSports } from "@/services/sport.services"; // Import Sport API
 
 import { Team } from "@/types/team.types"; // Import Team type
 import { Sport } from "@/types/sport.types"; // Import Sport type
+import { useMediaQuery, useTheme } from "@mui/material";
 interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
   width?: string | number;
 }
@@ -46,7 +47,16 @@ export function TeamTable() {
   const { onOpen } = useModal();
   const { team, setTeam } = useSelectedPageContext();
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
 
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   // Chuyển onOpen và sports vào getColumns
   const columns = React.useMemo(
     () => getColumns(onOpen, sports) as ColumnDef<Sport, unknown>[],
@@ -80,7 +90,7 @@ export function TeamTable() {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });

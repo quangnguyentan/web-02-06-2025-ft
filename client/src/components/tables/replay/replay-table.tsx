@@ -39,6 +39,7 @@ import { Replay } from "@/types/replay.types";
 import { Match } from "@/types/match.types"; // Import Match type
 import { Sport } from "@/types/sport.types";
 import { apiGetAllSports } from "@/services/sport.services";
+import { useMediaQuery, useTheme } from "@mui/material";
 interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
   width?: string | number;
 }
@@ -48,7 +49,16 @@ export function ReplayTable() {
   const { replay, setReplay } = useSelectedPageContext();
   const [matches, setMatches] = React.useState<Match[]>([]); // State để lưu danh sách matches
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
 
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   // Chuyển onOpen và matches vào getColumns
   const columns = React.useMemo(
     () => getColumns(onOpen, matches, sports) as ColumnDef<Replay, unknown>[],
@@ -82,7 +92,7 @@ export function ReplayTable() {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });

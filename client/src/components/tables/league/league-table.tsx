@@ -37,12 +37,22 @@ import { apiGetAllLeagues } from "@/services/league.services";
 import { apiGetAllSports } from "@/services/sport.services"; // Import sports API
 import { League } from "@/types/league.types"; // Import League type
 import { Sport } from "@/types/sport.types"; // Import Sport type
+import { useMediaQuery, useTheme } from "@mui/material";
 
 export function LeagueTable() {
   const { onOpen } = useModal();
   const { league, setLeague } = useSelectedPageContext();
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
 
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   // Chuyển sports vào getColumns
   const columns = React.useMemo(
     () => getColumns(onOpen, sports),
@@ -76,7 +86,7 @@ export function LeagueTable() {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });

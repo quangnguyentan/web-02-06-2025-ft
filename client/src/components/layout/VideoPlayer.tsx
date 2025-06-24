@@ -9,6 +9,7 @@ import {
 } from "./Icon";
 import * as React from "react";
 import { Cog8ToothIcon } from "@heroicons/react/24/solid";
+import { useUserInteraction } from "@/context/UserInteractionContext";
 
 interface VideoPlayerProps {
   videoTitle?: string;
@@ -16,6 +17,7 @@ interface VideoPlayerProps {
   posterUrl?: string;
   isYouTubeStream?: boolean;
   mimeType?: string;
+  autoPlay?: boolean;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -24,6 +26,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   posterUrl,
   isYouTubeStream = false,
   mimeType,
+  autoPlay = false,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default to muted for autoplay
@@ -33,15 +36,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
-  const [showSettings, setShowSettings] = useState(false); // State for settings menu
+  const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
-  >([]); // Store available quality levels
-  const [currentLevel, setCurrentLevel] = useState(-1); // -1 for auto
+  >([]);
+  const [currentLevel, setCurrentLevel] = useState(-1);
+  const [showPlayPrompt, setShowPlayPrompt] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+
+  const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
   // Detect YouTube URL
   const isYouTubeUrl = videoUrl?.match(
@@ -49,55 +55,81 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   );
   const youTubeVideoId = isYouTubeUrl ? isYouTubeUrl[1] : null;
 
+  // Reset states when videoUrl changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setIsMuted(true);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsLive(false);
+    setError(null);
+    setShowPlayPrompt(false);
+    setQualityLevels([]);
+    setCurrentLevel(-1);
+  }, [videoUrl]);
+
   useEffect(() => {
     if (!videoRef.current || !videoUrl || youTubeVideoId) return;
 
     const video = videoRef.current;
+    video.playsInline = true;
     const isM3u8 = videoUrl.endsWith(".m3u8") && !isYouTubeStream;
     const isHlsSupported = Hls.isSupported();
     const isNativeHlsSupported = video.canPlayType(
       "application/vnd.apple.mpegurl"
     );
 
+    // Cleanup previous instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+    video.src = ""; // Clear previous source
+
     setError(null);
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
-      video.autoplay = true;
-      video.muted = true;
-      video.play().catch((err) => {
-        setError(`Autoplay failed: ${err.message}. User interaction required.`);
-      });
+      video.autoplay = autoPlay;
+      video.muted = !hasUserInteracted;
+      video.playsInline = true;
+      if (autoPlay) {
+        video.play().catch((err) => {
+          setError(
+            `Autoplay failed: ${err.message}. User interaction required.`
+          );
+          setShowPlayPrompt(true);
+        });
+      }
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
       });
     } else if (isM3u8 && isHlsSupported) {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
       const hls = new Hls();
       hlsRef.current = hls;
 
       hls.loadSource(videoUrl);
       hls.attachMedia(video);
+      video.playsInline = true;
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLive(hls.levels.some((level) => level.details?.live));
-        // Populate quality levels (480p, 720p, 1080p, etc.)
         setQualityLevels(
           hls.levels.map((level, index) => ({
             id: index,
             height: level.height || 720,
           }))
         );
-        video.autoplay = true;
-        video.muted = true;
-        video.play().catch((err) => {
-          setError(
-            `Autoplay failed: ${err.message}. User interaction required.`
-          );
-        });
+        video.autoplay = autoPlay;
+        video.muted = !hasUserInteracted;
+        if (autoPlay) {
+          video.play().catch((err) => {
+            setError(
+              `Autoplay failed: ${err.message}. User interaction required.`
+            );
+            setShowPlayPrompt(true);
+          });
+        }
       });
 
       hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
@@ -106,34 +138,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              setError("Network error. Retrying...");
-              hls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              setError("Media error. Attempting to recover...");
-              hls.recoverMediaError();
-              break;
-            default:
-              setError("Playback failed. Please try again.");
-              hls.destroy();
-              hlsRef.current = null;
-              break;
-          }
+          setError(`HLS Error: ${data.type}. Please try again.`);
+          hls.destroy();
+          hlsRef.current = null;
         }
       });
     } else {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
       video.src = videoUrl;
-      video.autoplay = true;
-      video.muted = true;
-      video.play().catch((err) => {
-        setError(`Autoplay failed: ${err.message}. User interaction required.`);
-      });
+      video.autoplay = autoPlay;
+      video.muted = !hasUserInteracted;
+      video.playsInline = true;
+      if (autoPlay) {
+        video.play().catch((err) => {
+          setError(
+            `Autoplay failed: ${err.message}. User interaction required.`
+          );
+          setShowPlayPrompt(true);
+        });
+      }
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
         if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
@@ -156,7 +178,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current.removeEventListener("error", () => {});
       }
     };
-  }, [videoUrl, isYouTubeStream, youTubeVideoId]);
+  }, [videoUrl, isYouTubeStream, youTubeVideoId, autoPlay, hasUserInteracted]);
 
   useEffect(() => {
     if (videoRef.current && !youTubeVideoId) {
@@ -177,13 +199,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
+        setIsMuted(false);
+        videoRef.current.muted = false;
         videoRef.current
           .play()
           .then(() => {
             setIsPlaying(true);
+            setShowPlayPrompt(false);
+            setHasUserInteracted(true);
           })
           .catch((err) => {
             setError(`Playback failed: ${err.message}`);
+            console.error("Play error:", err);
           });
       } else {
         videoRef.current.pause();
@@ -276,7 +303,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       >
         <iframe
           className="absolute inset-0 w-full h-full"
-          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=1&controls=1&rel=0&mute=1`}
+          src={`https://www.youtube-nocookie.com/embed/${youTubeVideoId}?autoplay=1&controls=1&rel=0`}
           title={videoTitle}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -311,7 +338,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setIsMuted(videoRef.current.muted);
           }
         }}
-        autoPlay
+        autoPlay={autoPlay}
       >
         {videoUrl && (
           <source
@@ -329,13 +356,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         Your browser does not support the video tag.
       </video>
 
-      {error && (
+      {error && !showPlayPrompt && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-red-500 text-center p-4">
           <p>{error}</p>
         </div>
       )}
 
-      {!isPlaying && posterUrl && !error && (
+      {showPlayPrompt && (
+        <button
+          onClick={togglePlay}
+          aria-label="Play video"
+          className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xl font-bold hover:bg-black/70 transition-colors"
+        >
+          Tap to Play
+        </button>
+      )}
+
+      {!isPlaying && posterUrl && !error && !showPlayPrompt && (
         <button
           onClick={togglePlay}
           aria-label="Play video"

@@ -15,7 +15,14 @@ const HeroSection: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-bg-[#323232] via-slate-900/70 to-transparent"></div> */}
 
       {/* Text Content */}
-      <div className="relative z-10 text-center h-full pt-1 flex flex-col items-center md:ml-3 ml-0 lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px]">
+      <div
+        className="relative z-10 h-full w-full mx-auto 
+        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
+        lg:max-w-[1024px] 
+        xl:max-w-[1200px] 
+        2xl:max-w-[1440px] 
+        3xl:max-w-[1440px]"
+      >
         <img
           src={banner_hoiquan}
           alt="banner_container"

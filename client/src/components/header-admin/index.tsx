@@ -50,7 +50,7 @@ const HeaderAdmin: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   }, []);
 
   return (
-    <header className="flex justify-end items-center p-4 bg-[#2ABBB2] text-white w-full absolute">
+    <header className="flex justify-end items-center p-4 bg-[#2ABBB2] text-white w-full absolute ">
       <div className="relative w-full" ref={wrapperRef}>
         <div className="flex items-center justify-between w-full sm:justify-end">
           <button

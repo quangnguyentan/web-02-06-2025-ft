@@ -26,7 +26,7 @@ const ScheduleBreadcrumbs: React.FC = () => {
     useSelectedPageContext();
   return (
     <nav
-      className="text-xs text-gray-400 mb-3 px-1 flex items-center space-x-1.5"
+      className="text-xs text-gray-400 mb-3 px-2 flex items-center space-x-1.5"
       aria-label="Breadcrumb"
     >
       <div
@@ -73,21 +73,19 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
   } mới nhất được HoiQuanTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại HoiQuanTV.`;
   return (
     <div
-      className="lg:max-w-[1024px]
-    xl:max-w-[1200px]
-    2xl:max-w-[1440px]
-
-    lg:translate-x-0
-    xl:translate-x-[calc((100vw-1200px)/2)]
-   2xl:translate-x-[calc((100vw-1440px)/12)]
-    3xl:translate-x-[calc((100vw-1440px)/2)]"
+      className="w-full mx-auto 
+        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
+        lg:max-w-[1024px] 
+        xl:max-w-[1200px] 
+        2xl:max-w-[1440px] 
+        3xl:max-w-[1440px]"
     >
       <main className="w-full py-2">
         {isHideBreadcrumbs ? null : <ScheduleBreadcrumbs />}
 
         <div className="flex flex-col lg:flex-row">
           {/* Left Column: Date Selector + Match List */}
-          <div className="w-full lg:w-3/4 pr-2 flex-shrink-0">
+          <div className="w-full lg:w-3/4 px-2 flex-shrink-0">
             <div className="p-3 sm:p-4 rounded-lg mb-4">
               <h1 className="text-lg sm:text-xl font-bold text-blue-400 mb-1">
                 {capitalizeFirstLetter(pageTitle)}

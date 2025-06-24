@@ -35,6 +35,7 @@ import { apiGetAllUser } from "@/services/user.services";
 import { useModal } from "@/hooks/use-model-store";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { User } from "@/types/user.types";
+import { useMediaQuery, useTheme } from "@mui/material";
 interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
   width?: string | number;
 }
@@ -52,6 +53,16 @@ export function UserTable() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const { user, setUser } = useSelectedPageContext();
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
+
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   const table = useReactTable({
     data: user,
     columns,
@@ -71,7 +82,7 @@ export function UserTable() {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });

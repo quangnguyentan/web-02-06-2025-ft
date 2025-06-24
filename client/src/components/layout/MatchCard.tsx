@@ -12,6 +12,7 @@ import esport from "@/assets/user/esport-min.jpg";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import badminton from "@/assets/user/badminton-min.jpg";
 import bida from "@/assets/user/bi-da.jpg";
+import { useUserInteraction } from "@/context/UserInteractionContext";
 
 const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   match,
@@ -19,7 +20,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
 }) => {
   const navigate = useNavigate();
   const { setSelectedSportsNavbarPage } = useSelectedPageContext();
-
+  const { setHasUserInteracted } = useUserInteraction();
   const startTime = new Date(match.startTime || "").toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -60,6 +61,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
   return (
     <div
       onClick={() => {
+        setHasUserInteracted(true);
         navigate(targetUrl);
         setSelectedSportsNavbarPage(match?.sport?.name ?? "");
         localStorage.setItem(

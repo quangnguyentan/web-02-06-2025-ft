@@ -43,6 +43,7 @@ import { Team } from "@/types/team.types"; // Import Team type
 import { Sport } from "@/types/sport.types"; // Import Sport type
 import { User } from "@/types/user.types";
 import { apiGetAllUser } from "@/services/user.services";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 // Define a custom ColumnMeta type with width
 interface CustomColumnMeta<TData, TValue> extends ColumnMeta<TData, TValue> {
@@ -57,6 +58,16 @@ export function MatchTable() {
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
   const [users, setUsers] = React.useState<User[]>([]); // Add users state
   // Type the columns with the custom meta
+  const theme = useTheme(); // Sử dụng theme từ MUI
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
+
+  // Đặt pageSize động dựa trên kích thước màn hình
+  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+
+  // Cập nhật pageSize khi kích thước màn hình thay đổi
+  React.useEffect(() => {
+    setPageSize(isMobile ? 3 : 5);
+  }, [isMobile]);
   const columns = React.useMemo(
     () =>
       getColumns(onOpen, leagues, teams, sports, users) as ColumnDef<
@@ -93,7 +104,7 @@ export function MatchTable() {
     },
     initialState: {
       pagination: {
-        pageSize: 5,
+        pageSize: pageSize,
       },
     },
   });
