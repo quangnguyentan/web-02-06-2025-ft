@@ -22,7 +22,6 @@ interface ReplayHubPageProps {
 
 const ReplayHubBreadcrumbs: React.FC = () => {
   const navigate = useNavigate();
-
   const { setSelectedSportsNavbarPage, setSelectedPage } =
     useSelectedPageContext();
   return (
@@ -36,7 +35,7 @@ const ReplayHubBreadcrumbs: React.FC = () => {
           setSelectedSportsNavbarPage("");
           localStorage.setItem("selectedPage", "TRANG CHỦ");
           setSelectedPage("TRANG CHỦ");
-          navigate("/"); // Navigate to homepage
+          navigate("/");
         }}
         className="hover:text-yellow-400 flex items-center text-xs text-white hover:text-xs cursor-pointer"
       >
@@ -54,12 +53,12 @@ const Pagination: React.FC<{
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalItems, onPageChange }) => {
   const itemsPerPage = [8, 12, 12]; // Page 1: 8, Page 2+: 12
-  let cumulativeItems = 3; // Start from index 3
+  let cumulativeItems = 4; // Start from index 0
   let totalPages = 1;
 
   for (let i = 0; cumulativeItems < totalItems; i++) {
     cumulativeItems += itemsPerPage[i] || itemsPerPage[itemsPerPage.length - 1];
-    totalPages = i + 2;
+    totalPages = i + 1;
   }
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -113,6 +112,7 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
   const pageDescription =
     "Trang Hoiquan TV cập nhật đầy đủ các video bóng đá, thể thao chất lượng nhất, được bình luận bằng tiếng Việt. Thêm vào đó còn có các tin tức thể thao mới nhất được cập nhật liên tục.";
   const [currentPage, setCurrentPage] = React.useState(1);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Flatten replays from all groups
   const allReplays = React.useMemo(() => {
@@ -123,12 +123,16 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
       ) || []
     );
   }, [categorizedReplays]);
-
+  React.useEffect(() => {
+    if (currentPage) {
+      containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.pathname, currentPage]);
   // Calculate start and end indices based on page
   const getPageIndices = (page: number) => {
-    let startIndex = 4; // Start from index 3
+    let startIndex = 4; // Start from index 0
     if (page === 1) {
-      return { start: startIndex, end: startIndex + 8 }; // 8 items (indices 3 to 10)
+      return { start: startIndex, end: startIndex + 8 }; // 8 items (indices 0 to 7)
     }
     for (let i = 2; i <= page; i++) {
       startIndex += i === 2 ? 8 : 12; // Page 1: 8, Page 2+: 12
@@ -145,20 +149,21 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
     const paginatedReplayIds = new Set(
       paginatedReplays.map((replay) => replay._id)
     );
-
     for (const group of categorizedReplays || []) {
       const groupReplays = group.replays.filter((replay) =>
         paginatedReplayIds.has(replay._id)
       );
-      if (groupReplays.length > 0) {
+      if (groupReplays?.length > 0) {
         grouped.push({ ...group, replays: groupReplays });
       }
     }
     return grouped;
   }, [categorizedReplays, paginatedReplays]);
-  console.log(highlightedEvent);
   return (
-    <div className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]">
+    <div
+      ref={containerRef}
+      className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/12)] 3xl:translate-x-[calc((100vw-1440px)/2)]"
+    >
       <main className="w-full pt-2">
         <ReplayHubBreadcrumbs />
         <FilterBarReplays />
@@ -187,15 +192,16 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
                   />
                 </div>
               </div>
-              <div className="lg:w-1/4 flex-shrink-0 ">
-                <div>
-                  <ReplaySuggestionsPanel
-                    replays={sidebarReplays || []}
-                    title="XEM LẠI BÓNG ĐÁ"
-                  />
-                </div>
+              <div className="lg:w-1/4 flex-shrink-0">
+                <ReplaySuggestionsPanel
+                  replays={sidebarReplays || []}
+                  title="XEM LẠI BÓNG ĐÁ"
+                />
               </div>
             </div>
+            {paginatedGroups?.map((group) => (
+              <CategoryReplaySection key={group.id} group={group} />
+            ))}
           </>
         ) : (
           <div className="flex flex-col lg:flex-row">
@@ -206,9 +212,6 @@ const ReplayHubPage: React.FC<ReplayHubPageProps> = ({
             </div>
           </div>
         )}
-        {paginatedGroups?.map((group) => (
-          <CategoryReplaySection key={group.id} group={group} />
-        ))}
         <Pagination
           currentPage={currentPage}
           totalItems={allReplays.length}

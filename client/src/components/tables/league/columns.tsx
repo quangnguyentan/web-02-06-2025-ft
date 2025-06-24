@@ -40,7 +40,11 @@ export const getColumns = (
   {
     accessorKey: "name",
     header: "Tên giải đấu",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize w-[150px] sm:w-auto">
+        {row.getValue("name")}
+      </div>
+    ),
   },
   {
     accessorKey: "slug",
@@ -56,7 +60,9 @@ export const getColumns = (
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase px-4">{row.getValue("slug")}</div>
+      <div className="lowercase px-4  w-[230px] sm:w-auto">
+        {row.getValue("slug")}
+      </div>
     ),
   },
   {
@@ -81,7 +87,7 @@ export const getColumns = (
           : "ID: " + sportData; // Fallback to ID if not found
       }
 
-      return <div className="capitalize">{sportName}</div>;
+      return <div className="capitalize w-[150px] sm:w-auto">{sportName}</div>;
     },
   },
   {
@@ -90,9 +96,11 @@ export const getColumns = (
     cell: ({ row }) => {
       const logoUrl = row.getValue("logo") as string;
       return logoUrl ? (
-        <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+        <div className=" w-[150px] sm:w-auto">
+          <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain " />
+        </div>
       ) : (
-        "Không có ảnh đại diện"
+        <div className=" w-[150px] sm:w-auto">Không có ảnh đại diện</div>
       );
     },
   },

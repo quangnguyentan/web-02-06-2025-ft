@@ -4,11 +4,11 @@ import { logout } from "@/stores/actions/authAction";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelectedPageContext } from "@/hooks/use-context";
 
-const HeaderAdmin = () => {
+const HeaderAdmin: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const { userData } = useSelector((state: RootState) => state.user);
   const { setSelectedPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
@@ -51,22 +51,41 @@ const HeaderAdmin = () => {
 
   return (
     <header className="flex justify-end items-center p-4 bg-[#2ABBB2] text-white w-full absolute">
-      <div className="relative" ref={wrapperRef}>
-        {" "}
-        {/* ref attached here */}
-        <button
-          onClick={toggleDropdown}
-          className="flex items-center gap-2 focus:outline-none"
-        >
-          <img
-            src={userData?.avatar} // Replace with actual avatar path
-            alt="User Avatar"
-            className="w-6 h-6 rounded-full"
-          />
-          <span className="font-bold text-xs">
-            {userData?.username || "anonymous"}
-          </span>
-        </button>
+      <div className="relative w-full" ref={wrapperRef}>
+        <div className="flex items-center justify-between w-full sm:justify-end">
+          <button
+            className="sm:hidden p-2 text-gray-300 hover:text-white"
+            onClick={onOpenMenu}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={toggleDropdown}
+            className="flex items-center gap-2 focus:outline-none"
+          >
+            <img
+              src={userData?.avatar} // Replace with actual avatar path
+              alt="User Avatar"
+              className="w-6 h-6 rounded-full"
+            />
+            <span className="font-bold text-xs">
+              {userData?.username || "anonymous"}
+            </span>
+          </button>
+        </div>
         <AnimatePresence>
           {isDropdownOpen && (
             <motion.div

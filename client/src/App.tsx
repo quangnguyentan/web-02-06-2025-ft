@@ -8,33 +8,23 @@ import { getCurrent } from "./stores/actions/userAction";
 import type { RootState, AppDispatch } from "./store";
 import { setNavigate } from "./lib/navigate";
 import { Loader } from "./components/layout/Loader";
+import TokenExpirationChecker from "./pages/(User)/Token";
 function App() {
-  const { isLoggedIn, current } = useSelector((state: RootState) => state.auth);
+  const { isLoggedIn, current, token } = useSelector(
+    (state: RootState) => state.auth
+  );
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     const setTimeoutId = setTimeout(() => {
       if (isLoggedIn) {
         dispatch(getCurrent());
-      } else {
-        // navigate("/");
-        // const publicPaths = [
-        //   /^\/auth$/,
-        //   /^\/forgot-password$/,
-        //   /^\/reset-password\/[^/]+$/,
-        // ];
-        // const isPublicPath = publicPaths.some((pattern) =>
-        //   pattern.test(location.pathname)
-        // );
-        // if (!isPublicPath) {
-        //   navigate("/");
-        // }
       }
     }, 1000);
     return () => {
       clearTimeout(setTimeoutId);
     };
-  }, [dispatch, isLoggedIn, navigate]);
+  }, [dispatch, isLoggedIn]);
   useEffect(() => {
     setNavigate(navigate);
   }, [navigate]);
@@ -64,6 +54,7 @@ function App() {
 
   return (
     <Suspense fallback={<Loader />}>
+      {isLoggedIn && token && <TokenExpirationChecker />}
       <Routes>
         {filteredRoutes?.map((route) => {
           const isAdminRoute = route.role?.includes("ADMIN");

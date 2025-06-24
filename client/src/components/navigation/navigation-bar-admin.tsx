@@ -30,7 +30,7 @@ type ItemType = {
 };
 
 const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
-  const { userData } = useSelector((state: RootState) => state.user);
+  const { current } = useSelector((state: RootState) => state.auth);
   const { selectedPage, setSelectedPage } = useSelectedPageContext();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -82,7 +82,7 @@ const NavigationBarAdmin = ({ items }: { items: ItemType[] }) => {
                 color: "#b66dff",
               }}
             >
-              {userData?.role === "ADMIN" ? "ADMIN PANEL" : "CONTROL PANEL"}
+              {current === "ADMIN" ? "ADMIN PANEL" : "CONTROL PANEL"}
             </h6>
             {/* <button
               className="p-1 rounded-full flex"

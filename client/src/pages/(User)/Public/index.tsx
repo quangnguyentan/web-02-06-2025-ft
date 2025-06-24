@@ -33,6 +33,7 @@ const Public = () => {
     useSelectedPageContext();
   const [open, setOpen] = React.useState(true);
   const handleClose = () => setOpen(false);
+
   React.useEffect(() => {
     containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
@@ -69,7 +70,7 @@ const Public = () => {
             <FooterInfo />
           </div>
           {/* <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} /> */}
-          <FloatingChatButton />
+          {/* <FloatingChatButton /> */}
           {/* <Modal
             open={open}
             onClose={handleClose}

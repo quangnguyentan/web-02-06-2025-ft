@@ -14,6 +14,9 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import React from "react";
+import { useMediaQuery, useTheme } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { DrawerMenu } from "@/components/navigation/navigation-bar-admin-mobile";
 interface MenuItem {
   id: number;
   name: string;
@@ -22,7 +25,13 @@ interface MenuItem {
 
 const Home = () => {
   const { current } = useSelector((state: RootState) => state.auth);
-  console.log(current);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const navigate = useNavigate();
+
+  const theme = useTheme();
+
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const allItems: MenuItem[] = [
     {
       id: 1,
@@ -77,12 +86,20 @@ const Home = () => {
   return (
     <SelectedPageProvider initialPage={initialPageName}>
       <main className="w-full h-screen flex flex-col relative bg-white overflow-hidden ">
-        <HeaderAdmin />
+        <HeaderAdmin onOpenMenu={() => setDrawerOpen(true)} />
         <div className="flex flex-row flex-1 overflow-hidden">
-          <div className="flex flex-col bg-gray-800 text-white h-full overflow-y-auto min-w-[200px] sticky z-50">
+          <div className="hidden md:flex flex-col bg-gray-800 text-white h-full overflow-y-auto min-w-[200px] sticky z-50">
             <NavigationBarAdmin items={filteredNavItems} />
           </div>
-          <section className="flex flex-col flex-1 p-8 overflow-y-auto items-center justify-center gap-5">
+          {isMobile && (
+            <DrawerMenu
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+              navItems={allItems}
+              navigate={navigate}
+            />
+          )}
+          <section className="flex flex-col flex-1 p-0 md:p-8  overflow-y-auto items-center justify-center gap-5">
             <ModalProvider />
             <TableProvider />
           </section>

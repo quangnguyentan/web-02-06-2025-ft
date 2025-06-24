@@ -55,8 +55,8 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
     typeof commentator === "object" && commentator?._id
       ? commentator.username ||
         `${commentator.firstname || ""} ${commentator.lastname || ""}`.trim() ||
-        "Unknown Commentator"
-      : "Unknown Commentator";
+        "Chưa cập nhật BLV"
+      : "Chưa cập nhật BLV";
   return (
     <div
       onClick={() => {

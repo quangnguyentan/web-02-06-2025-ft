@@ -208,7 +208,7 @@ export function MatchTable() {
 
   return (
     <div className="w-full shadow-lg drop-shadow-lg bg-white rounded-lg">
-      <div className="flex items-center py-4 px-6 justify-between">
+      <div className="flex items-center py-4 px-6 justify-between  flex-col gap-2 sm:gap-0 sm:flex-row">
         <Input
           placeholder="Tìm kiếm theo tiêu đề trận đấu..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -217,37 +217,39 @@ export function MatchTable() {
           }
           className="max-w-sm"
         />
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2  w-full sm:w-auto">
           <Button
             onClick={() => onOpen("createMatch")}
-            className="bg-blue-500 hover:bg-blue-700 text-white rounded-[4px]"
+            className="bg-blue-500 hover:bg-blue-700 text-white rounded-[4px] w-full"
           >
             Thêm trận đấu
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column, index) => (
-                  <DropdownMenuCheckboxItem
-                    key={index}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="sm:block hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column, index) => (
+                    <DropdownMenuCheckboxItem
+                      key={index}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto">

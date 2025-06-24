@@ -40,6 +40,7 @@
     "goober": "2.1.16",
     "heroicons": "^2.2.0",
     "hls.js": "^1.6.5",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.485.0",
     "motion": "^12.6.2",
     "react": "19.1.0",

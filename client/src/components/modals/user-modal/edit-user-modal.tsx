@@ -142,7 +142,7 @@ export const EditUserModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh] ">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Chỉnh sửa Người Dùng

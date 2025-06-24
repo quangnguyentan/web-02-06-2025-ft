@@ -36,7 +36,11 @@ export const getColumns = (
   {
     accessorKey: "name",
     header: "Môn thể thao",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize w-[150px] sm:w-auto">
+        {row.getValue("name")}
+      </div>
+    ),
   },
   {
     accessorKey: "slug",

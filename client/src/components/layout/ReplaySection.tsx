@@ -1,10 +1,6 @@
 import * as React from "react";
 import ReplayCard from "@/components/layout/ReplayCard";
-import {
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  TVIcon,
-} from "@/components/layout/Icon";
+import { ChevronRightIcon, ChevronLeftIcon } from "@/components/layout/Icon";
 import { Replay } from "@/types/replay.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useNavigate } from "react-router-dom";
@@ -82,8 +78,8 @@ const ReplaySection: React.FC<ReplaySectionProps> = ({
   return (
     <section className="py-3 sm:py-4 px-1 sm:px-4 md:px-3">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white flex items-center">
-          <TVIcon className="w-6 h-6 mr-2 text-yellow-400" /> {title}
+        <h2 className="sm:text-xl md:text-2xl  text-white flex items-center !font-bold uppercase !text-xl">
+          🎞️ {title}
         </h2>
         {viewAllUrl && (
           <div

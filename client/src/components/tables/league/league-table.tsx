@@ -124,7 +124,7 @@ export function LeagueTable() {
 
   return (
     <div className="w-full shadow-lg drop-shadow-lg ">
-      <div className="flex items-center py-4 justify-between">
+      <div className="flex items-center py-4 justify-between flex-col gap-2 sm:gap-0 sm:flex-row">
         <Input
           placeholder="Tìm kiếm theo tên giải đấu..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -135,37 +135,39 @@ export function LeagueTable() {
         />
         <div
           onClick={() => onOpen("createLeague")}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2  w-full sm:w-auto"
         >
-          <Button className="bg-blue-500 hover:bg-blue-700 text-white rounded-[4px]">
+          <Button className="bg-blue-500 hover:bg-blue-700 text-white rounded-[4px] w-full">
             Thêm giải đấu
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="sm:block hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
       <div className="rounded-md border">

@@ -51,6 +51,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const navigate = useNavigate();
   const { userData } = useSelector((state: RootState) => state.user);
   const { isLoggedIn, token } = useSelector((state: RootState) => state.auth);
+
   const getSportNameFromSlug = (slug: string) => {
     const sport = sportData?.find((s) => s.slug === slug);
     return sport ? sport.name : null;
@@ -155,7 +156,7 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
         }}
         src={logo}
         alt="HoiQuanTV Logo"
-        className="h-[50px] md:h-[70px] mr-2 md:mr-6 w-20 md:w-36 object-cover cursor-pointer"
+        className="h-[50px] md:h-[70px] mr-2 md:mr-6 w-32 md:w-36 object-cover cursor-pointer"
       />
       <div>
         <nav className="hidden md:flex items-center">
@@ -236,7 +237,10 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
                     <ul className="py-1">
                       <li>
                         <button
-                          onClick={handleLogout}
+                          onClick={() => {
+                            handleLogout();
+                            setIsDropdownOpen(false);
+                          }}
                           className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                         >
                           <LogOut size={16} className="mr-2" />
@@ -438,7 +442,13 @@ const DrawerMenu: React.FC<{
     selectedPage,
   } = useSelectedPageContext();
   const { sportData, matchData } = useData();
-
+  const location = useLocation();
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (open) {
+      containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.pathname, open]);
   const getSportNameFromSlug = (slug: string) => {
     const sport = sportData?.find((s) => s.slug === slug);
     return sport ? sport.name : null;
@@ -571,7 +581,10 @@ const DrawerMenu: React.FC<{
             />
           </svg>
         </button> */}
-        <nav className="flex-1 px-4 pt-8 overflow-y-auto h-auto">
+        <nav
+          ref={containerRef}
+          className="flex-1 px-4 pt-8 overflow-y-auto h-auto"
+        >
           {navItems.map((item) => (
             <div
               key={item.label}
@@ -623,7 +636,10 @@ const DrawerMenu: React.FC<{
             {sportData?.map((category) => (
               <div
                 key={category._id}
-                onClick={() => handleSportClick(category)}
+                onClick={() => {
+                  handleSportClick(category);
+                  onClose();
+                }}
                 className={`group relative flex items-center gap-2 pb-2 pt-4 text-sm font-medium cursor-pointer
                   transition-all duration-300
                   ${
