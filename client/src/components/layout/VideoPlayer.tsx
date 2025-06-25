@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true); // Luôn hiển thị control
+  const [showControls] = useState(true); // Luôn hiển thị control, không thay đổi
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
@@ -343,27 +343,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleMouseEnter = () => {
     if (!youTubeVideoId) {
-      setShowControls(true);
+      // Không cần cập nhật showControls vì nó luôn true
     }
   };
 
   const handleTouchStart = () => {
     if (!youTubeVideoId) {
-      setShowControls(true);
+      // Không cần cập nhật showControls vì nó luôn true
     }
   };
 
   const handleTouchEnd = () => {
     if (!youTubeVideoId) {
-      setShowControls(true); // Đảm bảo control vẫn hiển thị sau khi chạm
+      // Không cần cập nhật showControls vì nó luôn true
     }
   };
-
-  useEffect(() => {
-    if (!youTubeVideoId) {
-      setShowControls(true); // Luôn hiển thị control
-    }
-  }, [isPlaying, youTubeVideoId]);
 
   const handleVideoClick = () => {
     if (videoRef.current && !youTubeVideoId) {
@@ -422,8 +416,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }`}
         onClick={handleVideoClick}
         onDoubleClick={isMobile ? undefined : handleFullscreen}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onVolumeChange={() => {
@@ -486,11 +478,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      <div
-        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -523,7 +511,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 step="0.01"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-100" // Luôn hiển thị slider
+                className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-100"
                 aria-label="Volume"
               />
             </div>
@@ -598,11 +586,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      <div
-        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
         <h2 className="text-sm font-semibold">{videoTitle}</h2>
       </div>
     </div>
