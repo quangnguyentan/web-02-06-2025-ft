@@ -220,7 +220,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.zIndex = "9999";
       playerRef.current.style.backgroundColor = "black";
       document.body.style.overflow = "hidden"; // Prevent scrolling
-      // Ensure centering and aspect ratio preservation
       playerRef.current.style.display = "flex";
       playerRef.current.style.alignItems = "center";
       playerRef.current.style.justifyContent = "center";
@@ -305,9 +304,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const video = videoRef.current;
     if (video && !youTubeVideoId) {
       if (!isFullscreen) {
-        if (video.requestFullscreen) {
+        if (document.fullscreenEnabled && video.requestFullscreen) {
           video.requestFullscreen().catch((err) => {
             console.error(`Fullscreen error (standard): ${err.message}`);
+            // Fallback to webkit if standard fails
+            if (video.webkitEnterFullscreen) {
+              video.webkitEnterFullscreen();
+            }
           });
         } else if (video.webkitEnterFullscreen) {
           video.webkitEnterFullscreen();
@@ -377,10 +380,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [isPlaying, youTubeVideoId]);
 
   const handleVideoClick = () => {
-    if (!isMobile && videoRef.current && !youTubeVideoId) {
-      togglePlay();
-    } else if (isMobile && videoRef.current && !youTubeVideoId) {
-      setShowPlayButton(true);
+    if (videoRef.current && !youTubeVideoId) {
+      if (!isMobile) {
+        togglePlay();
+      } else {
+        setShowPlayButton(true);
+      }
     }
   };
 
@@ -431,7 +436,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             : ""
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={handleFullscreen} // Enable double-click for fullscreen on all devices
+        onDoubleClick={handleFullscreen}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -443,7 +448,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           }
         }}
         autoPlay={false}
-        controls={isMobile && !isCustomFullscreen && !isFullscreen} // Show native controls on mobile when not fullscreen
       >
         {videoUrl && (
           <source
