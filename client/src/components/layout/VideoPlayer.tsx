@@ -32,7 +32,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // Default to muted for autoplay
+  const [isMuted, setIsMuted] = useState(true); // Default to muted
   const [volume, setVolume] = useState(0.75);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -44,7 +44,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     { id: number; height: number }[]
   >([]);
   const [currentLevel, setCurrentLevel] = useState(-1);
-  const [showPlayPrompt, setShowPlayPrompt] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(false); // Thay thế showPlayPrompt
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -64,7 +64,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setDuration(0);
     setIsLive(false);
     setError(null);
-    setShowPlayPrompt(false);
+    setShowPlayButton(false);
     setQualityLevels([]);
     setCurrentLevel(-1);
   }, [videoUrl]);
@@ -87,21 +87,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     video.src = "";
 
     setError(null);
-
-    video.muted = !hasUserInteracted && autoPlay;
+    video.muted = true; // Luôn mute ban đầu
+    video.autoplay = false; // Tắt autoplay để tránh lỗi
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
-      video.autoplay = autoPlay;
-      video.playsInline = true;
-      if (autoPlay) {
-        video.play().catch((err) => {
-          setError(
-            `Autoplay failed: ${err.message}. User interaction required.`
-          );
-          setShowPlayPrompt(true);
-        });
-      }
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
       });
@@ -121,16 +111,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             height: level.height || 720,
           }))
         );
-        video.autoplay = autoPlay;
-        video.muted = !hasUserInteracted && autoPlay;
-        if (autoPlay) {
-          video.play().catch((err) => {
-            setError(
-              `Autoplay failed: ${err.message}. User interaction required.`
-            );
-            setShowPlayPrompt(true);
-          });
-        }
       });
 
       hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
@@ -146,16 +126,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       });
     } else {
       video.src = videoUrl;
-      video.autoplay = autoPlay;
-      video.playsInline = true;
-      if (autoPlay) {
-        video.play().catch((err) => {
-          setError(
-            `Autoplay failed: ${err.message}. User interaction required.`
-          );
-          setShowPlayPrompt(true);
-        });
-      }
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
         if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
@@ -178,20 +148,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current.removeEventListener("error", () => {});
       }
     };
-  }, [videoUrl, isYouTubeStream, youTubeVideoId, autoPlay, hasUserInteracted]);
+  }, [videoUrl, isYouTubeStream, youTubeVideoId]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (video && !youTubeVideoId && hasUserInteracted && autoPlay) {
-      const handlePlay = () => {
-        video.muted = false;
-        setIsMuted(false);
-        video.removeEventListener("play", handlePlay);
-      };
-      video.addEventListener("play", handlePlay);
-      return () => video.removeEventListener("play", handlePlay);
+    if (video && !youTubeVideoId && isPlaying) {
+      video.muted = false; // Unmute khi phát thành công
+      setIsMuted(false);
     }
-  }, [hasUserInteracted, autoPlay, youTubeVideoId]);
+  }, [isPlaying, youTubeVideoId]);
 
   useEffect(() => {
     if (videoRef.current && !youTubeVideoId) {
@@ -212,13 +177,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
-        videoRef.current.muted = false;
+        videoRef.current.muted = false; // Unmute khi phát thủ công
         setIsMuted(false);
         videoRef.current
           .play()
           .then(() => {
             setIsPlaying(true);
-            setShowPlayPrompt(false);
+            setShowPlayButton(false); // Ẩn nút play sau khi phát
             setHasUserInteracted(true);
           })
           .catch((err) => {
@@ -267,7 +232,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       if (!document.fullscreenElement) {
         if (playerRef.current.requestFullscreen) {
           playerRef.current.requestFullscreen().catch((err) => {
-            alert(`Error enabling full-screen: ${err.message}`);
+            console.error(`Fullscreen error: ${err.message}`);
           });
         } else if ((playerRef.current as any).webkitEnterFullscreen) {
           (playerRef.current as any).webkitEnterFullscreen();
@@ -311,10 +276,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [isPlaying, youTubeVideoId]);
 
-  // Thêm hàm handleVideoClick
   const handleVideoClick = () => {
     if (!isMobile && videoRef.current && !youTubeVideoId) {
-      togglePlay(); // Chỉ gọi togglePlay trên desktop
+      togglePlay(); // Trên desktop, nhấp để phát
+    } else if (isMobile && videoRef.current && !youTubeVideoId) {
+      setShowPlayButton(true); // Trên mobile, hiển thị nút play
     }
   };
 
@@ -358,8 +324,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         ref={videoRef}
         poster={posterUrl}
         className="absolute inset-0 w-full h-full object-contain"
-        onClick={handleVideoClick} // Sử dụng handleVideoClick
-        onDoubleClick={handleFullscreen} // Thêm double click để zoom full
+        onClick={handleVideoClick}
+        onDoubleClick={handleFullscreen} // Nhấn đúp để full screen
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -370,7 +336,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setIsMuted(videoRef.current.muted);
           }
         }}
-        autoPlay={autoPlay}
+        autoPlay={false} // Tắt autoplay để tránh lỗi
       >
         {videoUrl && (
           <source
@@ -388,23 +354,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         Your browser does not support the video tag.
       </video>
 
-      {error && !showPlayPrompt && (
+      {/* Hiển thị nút play khi showPlayButton là true trên mobile */}
+      {showPlayButton && isMobile && !isPlaying && (
+        <button
+          onClick={togglePlay}
+          aria-label="Play video"
+          className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors"
+        >
+          <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
+        </button>
+      )}
+
+      {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-red-500 text-center p-4">
           <p>{error}</p>
         </div>
       )}
 
-      {showPlayPrompt && (
-        <button
-          onClick={togglePlay}
-          aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xl font-bold hover:bg-black/70 transition-colors"
-        >
-          Nhấn để phát video và bật âm thanh
-        </button>
-      )}
-
-      {!isPlaying && posterUrl && !error && !showPlayPrompt && (
+      {!isPlaying && posterUrl && !error && !showPlayButton && (
         <button
           onClick={togglePlay}
           aria-label="Play video"
