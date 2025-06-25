@@ -54,7 +54,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false); // Thêm trạng thái full screen
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
@@ -73,7 +72,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setShowPlayButton(false);
     setQualityLevels([]);
     setCurrentLevel(-1);
-    setIsFullscreen(!!document.fullscreenElement); // Khởi tạo trạng thái full screen
   }, [videoUrl]);
 
   useEffect(() => {
@@ -144,14 +142,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       });
     }
 
-    // Phát hiện khi thay đổi full screen và giữ trạng thái phát
+    // Phát hiện khi thoát full screen và giữ trạng thái phát
     const handleFullscreenChange = () => {
       const video = videoRef.current;
-      const isCurrentlyFullscreen = !!document.fullscreenElement;
-      setIsFullscreen(isCurrentlyFullscreen);
-
-      if (video && !isCurrentlyFullscreen && isPlaying && hasUserInteracted) {
-        // Chỉ gọi play() nếu đã có tương tác người dùng
+      if (
+        video &&
+        !document.fullscreenElement &&
+        isPlaying &&
+        hasUserInteracted
+      ) {
+        // Tiếp tục phát video nếu bị tạm dừng do thoát full screen
         video.play().catch((err) => {
           console.error("Error resuming playback:", err.message);
           setError(`Playback failed: ${err.message}`);
