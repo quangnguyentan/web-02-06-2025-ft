@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showControls] = useState(true); // Luôn hiển thị control, không thay đổi
+  const [showControls, setShowControls] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
@@ -56,6 +56,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
+  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
@@ -160,12 +161,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           video.play().catch((err) => {
             console.error("Resume playback error:", err);
           });
+          setShowPlayButton(false);
         }, 100); // Slight delay for iOS
+      }
+    };
+
+    const handlePause = () => {
+      if (videoRef.current && isFullscreen && isPlaying) {
+        setShowPlayButton(false);
       }
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    video.addEventListener("pause", handlePause);
 
     return () => {
       if (hlsRef.current) {
@@ -176,6 +185,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current.src = "";
         videoRef.current.removeEventListener("loadedmetadata", () => {});
         videoRef.current.removeEventListener("error", () => {});
+        videoRef.current.removeEventListener("pause", handlePause);
       }
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
@@ -205,11 +215,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.position = "fixed";
       playerRef.current.style.top = "0";
       playerRef.current.style.left = "0";
-      playerRef.current.style.width = "100%";
-      playerRef.current.style.height = "100%";
+      playerRef.current.style.width = "100%"; // Full screen width
+      playerRef.current.style.height = "100%"; // Full screen height
       playerRef.current.style.zIndex = "9999";
       playerRef.current.style.backgroundColor = "black";
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "hidden"; // Prevent scrolling
+      // Ensure centering and aspect ratio preservation
       playerRef.current.style.display = "flex";
       playerRef.current.style.alignItems = "center";
       playerRef.current.style.justifyContent = "center";
@@ -261,7 +272,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const toggleMute = () => {
-    if (videoRef.current && !youTubeVideoId) {
+    if (videoRef.current) {
       const newMutedState = !isMuted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
@@ -270,18 +281,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (videoRef.current && !youTubeVideoId) {
-      const newVolume = parseFloat(e.target.value);
-      setVolume(newVolume);
-      videoRef.current.volume = newVolume;
-      if (isMuted && newVolume > 0) {
-        videoRef.current.muted = false;
-        setIsMuted(false);
-      } else if (!isMuted && newVolume === 0) {
-        videoRef.current.muted = true;
-        setIsMuted(true);
-      }
-    }
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (isMuted && newVolume > 0) setIsMuted(false);
+    if (!isMuted && newVolume === 0) setIsMuted(true);
   };
 
   const handleTimeUpdate = () => {
@@ -302,16 +305,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const video = videoRef.current;
     if (video && !youTubeVideoId) {
       if (!isFullscreen) {
-        if (isMobile && video.webkitEnterFullscreen) {
-          video.webkitEnterFullscreen();
-        } else if (video.requestFullscreen) {
+        if (video.requestFullscreen) {
           video.requestFullscreen().catch((err) => {
             console.error(`Fullscreen error (standard): ${err.message}`);
           });
+        } else if (video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen();
         }
         setIsFullscreen(true);
       } else {
-        if (document.exitFullscreen) {
+        if (document.fullscreenElement && document.exitFullscreen) {
           document.exitFullscreen();
         } else if (video.webkitExitFullscreen) {
           video.webkitExitFullscreen();
@@ -343,29 +346,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleMouseEnter = () => {
     if (!youTubeVideoId) {
-      // Không cần cập nhật showControls vì nó luôn true
+      setShowControls(true);
+      if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
     }
   };
 
-  const handleTouchStart = () => {
-    if (!youTubeVideoId) {
-      // Không cần cập nhật showControls vì nó luôn true
+  const handleMouseLeave = () => {
+    if (isPlaying && !youTubeVideoId) {
+      controlsTimeout.current = setTimeout(() => setShowControls(false), 2000);
     }
   };
 
-  const handleTouchEnd = () => {
+  useEffect(() => {
     if (!youTubeVideoId) {
-      // Không cần cập nhật showControls vì nó luôn true
+      setShowControls(!isPlaying || !videoRef.current?.played.length);
     }
-  };
+  }, [isPlaying, youTubeVideoId]);
 
   const handleVideoClick = () => {
-    if (videoRef.current && !youTubeVideoId) {
-      if (!isMobile) {
-        togglePlay();
-      } else {
-        setShowPlayButton(true);
-      }
+    if (!isMobile && videoRef.current && !youTubeVideoId) {
+      togglePlay();
+    } else if (isMobile && videoRef.current && !youTubeVideoId) {
+      setShowPlayButton(true);
     }
   };
 
@@ -403,8 +405,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
       onMouseEnter={handleMouseEnter}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onMouseLeave={handleMouseLeave}
     >
       <video
         ref={videoRef}
@@ -415,7 +416,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             : ""
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={isMobile ? undefined : handleFullscreen}
+        onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onVolumeChange={() => {
@@ -478,7 +481,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+      <div
+        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
+          showControls ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -511,7 +518,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 step="0.01"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-100"
+                className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-0 group-hover/volume:opacity-100 sm:opacity-100 transition-opacity"
                 aria-label="Volume"
               />
             </div>
@@ -586,7 +593,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+      <div
+        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-300 ${
+          showControls ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <h2 className="text-sm font-semibold">{videoTitle}</h2>
       </div>
     </div>
