@@ -56,7 +56,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const hlsRef = useRef<Hls | null>(null);
   const wasPlayingBeforeFullscreen = useRef(false);
 
-  const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
+  const { setHasUserInteracted } = useUserInteraction();
 
   const isYouTubeUrl = videoUrl?.match(
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([a-zA-Z0-9_-]{11})/
@@ -76,6 +76,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
+
     video.src = "";
     setError(null);
     video.muted = true;
@@ -103,11 +104,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         );
       });
 
-      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
         setCurrentLevel(data.level);
       });
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
           setError(`HLS Error: ${data.type}. Please try again.`);
           hls.destroy();
@@ -118,9 +119,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
-        if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
-          video.style.backgroundColor = "black";
-        }
       });
       video.addEventListener("error", () => {
         setError("Failed to load media. Please check the stream URL.");
@@ -128,43 +126,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
 
     const handleFullscreenEnter = () => {
-      if (videoRef.current && !videoRef.current.paused) {
-        wasPlayingBeforeFullscreen.current = true;
-      } else {
-        wasPlayingBeforeFullscreen.current = false;
-      }
+      if (!video.paused) wasPlayingBeforeFullscreen.current = true;
+      else wasPlayingBeforeFullscreen.current = false;
     };
 
-    const handleFullscreenChange = () => {
-      const isFull =
-        document.fullscreenElement || (document as any).webkitIsFullScreen;
-      if (!isFull && videoRef.current && wasPlayingBeforeFullscreen.current) {
-        videoRef.current.play().catch(() => {});
+    const handleFullscreenExit = () => {
+      const isExiting =
+        !document.fullscreenElement && !(document as any).webkitIsFullScreen;
+      if (isExiting && wasPlayingBeforeFullscreen.current) {
+        video.play().then(() => {
+          setIsPlaying(true);
+          setShowPlayButton(false);
+        });
       }
     };
 
     video.addEventListener("webkitbeginfullscreen", handleFullscreenEnter);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    video.addEventListener("webkitendfullscreen", handleFullscreenExit);
+    document.addEventListener("fullscreenchange", handleFullscreenExit);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenExit);
 
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
-      if (videoRef.current) {
-        videoRef.current.src = "";
-        videoRef.current.removeEventListener("loadedmetadata", () => {});
-        videoRef.current.removeEventListener("error", () => {});
-        videoRef.current.removeEventListener(
-          "webkitbeginfullscreen",
-          handleFullscreenEnter
-        );
-      }
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      video.src = "";
+      video.removeEventListener("webkitbeginfullscreen", handleFullscreenEnter);
+      video.removeEventListener("webkitendfullscreen", handleFullscreenExit);
+      document.removeEventListener("fullscreenchange", handleFullscreenExit);
       document.removeEventListener(
         "webkitfullscreenchange",
-        handleFullscreenChange
+        handleFullscreenExit
       );
     };
   }, [videoUrl, isYouTubeStream, youTubeVideoId]);
