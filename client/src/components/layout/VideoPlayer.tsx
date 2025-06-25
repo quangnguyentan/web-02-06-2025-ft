@@ -15,6 +15,8 @@ import { useTheme, useMediaQuery } from "@mui/material";
 // Mở rộng kiểu HTMLVideoElement để hỗ trợ webkitEnterFullscreen
 interface ExtendedVideoElement extends HTMLVideoElement {
   webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
 }
 
 interface VideoPlayerProps {
@@ -37,7 +39,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(true); // Default to muted
   const [volume, setVolume] = useState(0.75);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -50,13 +52,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   >([]);
   const [currentLevel, setCurrentLevel] = useState(-1);
   const [showPlayButton, setShowPlayButton] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false); // Track fullscreen state
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const wasPlayingBeforeFullscreen = useRef(false);
 
-  const { setHasUserInteracted } = useUserInteraction();
+  const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
   const isYouTubeUrl = videoUrl?.match(
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([a-zA-Z0-9_-]{11})/
@@ -64,8 +66,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const youTubeVideoId = isYouTubeUrl ? isYouTubeUrl[1] : null;
 
   useEffect(() => {
+    setIsPlaying(false);
+    setIsMuted(true);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsLive(false);
+    setError(null);
+    setShowPlayButton(false);
+    setQualityLevels([]);
+    setCurrentLevel(-1);
+    setIsFullscreen(false);
+  }, [videoUrl]);
+
+  useEffect(() => {
     if (!videoRef.current || !videoUrl || youTubeVideoId) return;
+
     const video = videoRef.current;
+    video.playsInline = true;
     const isM3u8 = videoUrl.endsWith(".m3u8") && !isYouTubeStream;
     const isHlsSupported = Hls.isSupported();
     const isNativeHlsSupported = video.canPlayType(
@@ -76,12 +93,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
-
     video.src = "";
+
     setError(null);
     video.muted = true;
     video.autoplay = false;
-    video.playsInline = true;
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
@@ -91,8 +107,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     } else if (isM3u8 && isHlsSupported) {
       const hls = new Hls();
       hlsRef.current = hls;
+
       hls.loadSource(videoUrl);
       hls.attachMedia(video);
+      video.playsInline = true;
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLive(hls.levels.some((level) => level.details?.live));
@@ -104,11 +122,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         );
       });
 
-      hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         setCurrentLevel(data.level);
       });
 
-      hls.on(Hls.Events.ERROR, (_, data) => {
+      hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           setError(`HLS Error: ${data.type}. Please try again.`);
           hls.destroy();
@@ -119,45 +137,48 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
+        if (isYouTubeStream && !video.videoWidth && !video.videoHeight) {
+          video.style.backgroundColor = "black";
+        }
       });
       video.addEventListener("error", () => {
         setError("Failed to load media. Please check the stream URL.");
       });
     }
 
-    const handleFullscreenEnter = () => {
-      if (!video.paused) wasPlayingBeforeFullscreen.current = true;
-      else wasPlayingBeforeFullscreen.current = false;
-    };
+    const handleFullscreenChange = () => {
+      const video = videoRef.current;
+      if (!video) return;
 
-    const handleFullscreenExit = () => {
-      const isExiting =
-        !document.fullscreenElement && !(document as any).webkitIsFullScreen;
-      if (isExiting && wasPlayingBeforeFullscreen.current) {
-        video.play().then(() => {
-          setIsPlaying(true);
-          setShowPlayButton(false);
+      const isCurrentlyFullscreen =
+        !!document.fullscreenElement || !!video.webkitDisplayingFullscreen;
+      setIsFullscreen(isCurrentlyFullscreen);
+
+      if (!isCurrentlyFullscreen && isPlaying) {
+        video.play().catch((err) => {
+          console.error("Resume playback error:", err);
         });
+        setShowPlayButton(false);
       }
     };
 
-    video.addEventListener("webkitbeginfullscreen", handleFullscreenEnter);
-    video.addEventListener("webkitendfullscreen", handleFullscreenExit);
-    document.addEventListener("fullscreenchange", handleFullscreenExit);
-    document.addEventListener("webkitfullscreenchange", handleFullscreenExit);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
 
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
-      video.src = "";
-      video.removeEventListener("webkitbeginfullscreen", handleFullscreenEnter);
-      video.removeEventListener("webkitendfullscreen", handleFullscreenExit);
-      document.removeEventListener("fullscreenchange", handleFullscreenExit);
+      if (videoRef.current) {
+        videoRef.current.src = "";
+        videoRef.current.removeEventListener("loadedmetadata", () => {});
+        videoRef.current.removeEventListener("error", () => {});
+      }
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
         "webkitfullscreenchange",
-        handleFullscreenExit
+        handleFullscreenChange
       );
     };
   }, [videoUrl, isYouTubeStream, youTubeVideoId]);
@@ -165,7 +186,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (video && !youTubeVideoId && isPlaying) {
-      video.muted = false; // Unmute khi phát thành công
+      video.muted = false;
       setIsMuted(false);
     }
   }, [isPlaying, youTubeVideoId]);
@@ -189,13 +210,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
-        videoRef.current.muted = false; // Unmute khi phát thủ công
+        videoRef.current.muted = false;
         setIsMuted(false);
         videoRef.current
           .play()
           .then(() => {
             setIsPlaying(true);
-            setShowPlayButton(false); // Ẩn nút play sau khi phát
+            setShowPlayButton(false);
             setHasUserInteracted(true);
           })
           .catch((err) => {
@@ -242,18 +263,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleFullscreen = () => {
     const video = videoRef.current;
     if (video && !youTubeVideoId) {
-      if (!document.fullscreenElement) {
+      if (!isFullscreen) {
         if (video.requestFullscreen) {
           video.requestFullscreen().catch((err) => {
             console.error(`Fullscreen error (standard): ${err.message}`);
           });
         } else if (video.webkitEnterFullscreen) {
-          video.webkitEnterFullscreen(); // Hỗ trợ iOS
+          video.webkitEnterFullscreen();
         }
+        setIsFullscreen(true);
       } else {
-        if (document.exitFullscreen) {
+        if (document.fullscreenElement && document.exitFullscreen) {
           document.exitFullscreen();
+        } else if (video.webkitExitFullscreen) {
+          video.webkitExitFullscreen();
         }
+        setIsFullscreen(false);
       }
     }
   };
@@ -291,9 +316,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleVideoClick = () => {
     if (!isMobile && videoRef.current && !youTubeVideoId) {
-      togglePlay(); // Trên desktop, nhấp để phát
+      togglePlay();
     } else if (isMobile && videoRef.current && !youTubeVideoId) {
-      setShowPlayButton(true); // Trên mobile, hiển thị nút play
+      setShowPlayButton(true);
     }
   };
 
@@ -338,7 +363,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         poster={posterUrl}
         className="absolute inset-0 w-full h-full object-contain"
         onClick={handleVideoClick}
-        onDoubleClick={handleFullscreen} // Nhấn đúp để full screen
+        onDoubleClick={handleFullscreen}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -349,7 +374,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setIsMuted(videoRef.current.muted);
           }
         }}
-        autoPlay={false} // Tắt autoplay để tránh lỗi
+        autoPlay={false}
       >
         {videoUrl && (
           <source
@@ -367,7 +392,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         Your browser does not support the video tag.
       </video>
 
-      {/* Hiển thị nút play khi showPlayButton là true trên mobile */}
       {showPlayButton && isMobile && !isPlaying && (
         <button
           onClick={togglePlay}
