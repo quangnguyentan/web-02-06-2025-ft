@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Hls from "hls.js";
 import {
   PlayCircleIconSolid,
   PauseCircleIconSolid,
   SpeakerWaveIconSolid,
   SpeakerXMarkIconSolid,
+  ArrowsPointingIconSolid,
   ArrowsPointingOutIconSolid,
 } from "./Icon";
-import * as React from "react";
 import { Cog8ToothIcon } from "@heroicons/react/24/solid";
 import { useUserInteraction } from "@/context/UserInteractionContext";
 import { useTheme, useMediaQuery } from "@mui/material";
@@ -155,15 +155,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setIsFullscreen(isCurrentlyFullscreen);
 
       if (!isCurrentlyFullscreen && isPlaying) {
-        video.play().catch((err) => {
-          console.error("Resume playback error:", err);
-        });
+        setTimeout(() => {
+          video.play().catch((err) => {
+            console.error("Resume playback error:", err);
+          });
+          setShowPlayButton(false);
+        }, 100); // Slight delay to ensure iOS processes exit
+      }
+    };
+
+    const handlePause = () => {
+      if (videoRef.current && isFullscreen && isPlaying) {
+        // Prevent play button from showing during iOS fullscreen exit
         setShowPlayButton(false);
       }
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    video.addEventListener("pause", handlePause);
 
     return () => {
       if (hlsRef.current) {
@@ -174,6 +184,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current.src = "";
         videoRef.current.removeEventListener("loadedmetadata", () => {});
         videoRef.current.removeEventListener("error", () => {});
+        videoRef.current.removeEventListener("pause", handlePause);
       }
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
