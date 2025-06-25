@@ -215,15 +215,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.position = "fixed";
       playerRef.current.style.top = "0";
       playerRef.current.style.left = "0";
-      playerRef.current.style.width = "1280px"; // Match image width
-      playerRef.current.style.height = "720px"; // Match image height
+      playerRef.current.style.width = "100%"; // Full screen width
+      playerRef.current.style.height = "100%"; // Full screen height
       playerRef.current.style.zIndex = "9999";
       playerRef.current.style.backgroundColor = "black";
       document.body.style.overflow = "hidden"; // Prevent scrolling
-      // Center the player on screen
-      playerRef.current.style.transform = "translate(-50%, -50%)";
-      playerRef.current.style.left = "50%";
-      playerRef.current.style.top = "50%";
+      // Ensure centering and aspect ratio preservation
+      playerRef.current.style.display = "flex";
+      playerRef.current.style.alignItems = "center";
+      playerRef.current.style.justifyContent = "center";
     } else if (playerRef.current) {
       playerRef.current.style.position = "";
       playerRef.current.style.top = "";
@@ -232,7 +232,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.height = "";
       playerRef.current.style.zIndex = "";
       playerRef.current.style.backgroundColor = "";
-      playerRef.current.style.transform = "";
+      playerRef.current.style.display = "";
+      playerRef.current.style.alignItems = "";
+      playerRef.current.style.justifyContent = "";
       document.body.style.overflow = "";
     }
   }, [isCustomFullscreen]);
@@ -408,8 +410,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <video
         ref={videoRef}
         poster={posterUrl}
-        className={`absolute inset-0 w-full h-full object-contain ${
-          isCustomFullscreen ? "object-fill" : ""
+        className={`w-full h-full object-contain ${
+          isCustomFullscreen
+            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            : ""
         }`}
         onClick={handleVideoClick}
         onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
@@ -518,11 +522,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 aria-label="Volume"
               />
             </div>
-            <span className="text-xs">
+            {/* <span className="text-xs">
               {isLive
                 ? "Live"
                 : `${formatTime(currentTime)} / ${formatTime(duration)}`}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center space-x-3 relative">
