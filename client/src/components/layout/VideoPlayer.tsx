@@ -142,11 +142,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       });
     }
 
-    // Phát hiện khi thoát full screen
+    // Phát hiện khi thoát full screen (chỉ theo dõi, không tạm dừng)
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && videoRef.current) {
-        videoRef.current.pause();
-        setIsPlaying(false);
+        // Không gọi pause, chỉ cập nhật trạng thái nếu cần
       }
     };
 
