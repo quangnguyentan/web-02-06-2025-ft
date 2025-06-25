@@ -37,7 +37,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   autoPlay = false,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default to muted
   const [volume, setVolume] = useState(0.75);
