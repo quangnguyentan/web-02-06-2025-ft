@@ -12,8 +12,8 @@ const { store } = reduxStore();
 const typedDispatch = store.dispatch as AppDispatch;
 
 const instance = axios.create({
-  // baseURL: production,
-  baseURL: development,
+  baseURL: production,
+  // baseURL: development,
   withCredentials: true,
 });
 
