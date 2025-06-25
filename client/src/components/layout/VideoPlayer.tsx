@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(true); // Luôn hiển thị control
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
@@ -200,6 +200,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (video && !youTubeVideoId && isPlaying) {
       video.muted = false;
       setIsMuted(false);
+      setShowControls(true); // Đảm bảo controls hiển thị khi video phát trên iOS
     }
   }, [isPlaying, youTubeVideoId]);
 
@@ -347,27 +348,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleMouseEnter = () => {
     if (!youTubeVideoId) {
       setShowControls(true);
-      if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
     }
   };
 
-  const handleMouseLeave = () => {
-    if (isPlaying && !youTubeVideoId) {
-      controlsTimeout.current = setTimeout(() => setShowControls(false), 2000);
+  const handleTouchStart = () => {
+    if (!youTubeVideoId) {
+      setShowControls(true);
     }
   };
 
   useEffect(() => {
     if (!youTubeVideoId) {
-      setShowControls(!isPlaying || !videoRef.current?.played.length);
+      setShowControls(true); // Luôn hiển thị control
     }
   }, [isPlaying, youTubeVideoId]);
 
   const handleVideoClick = () => {
-    if (!isMobile && videoRef.current && !youTubeVideoId) {
-      togglePlay();
-    } else if (isMobile && videoRef.current && !youTubeVideoId) {
-      setShowPlayButton(true);
+    if (videoRef.current && !youTubeVideoId) {
+      if (!isMobile) {
+        togglePlay();
+      } else {
+        setShowPlayButton(true);
+      }
     }
   };
 
@@ -405,7 +407,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
     >
       <video
         ref={videoRef}
@@ -416,7 +418,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             : ""
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
+        onDoubleClick={isMobile ? undefined : handleFullscreen}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -482,7 +484,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       )}
 
       <div
-        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -594,7 +596,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       </div>
 
       <div
-        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-300 ${
+        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
