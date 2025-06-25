@@ -90,7 +90,8 @@ app.use(cookieParser());
 //   express.static(path.join(__dirname, "./assets/images"))
 //   // express.static(path.join(__dirname, "../../var/www/hoiquantv/assets/images"))
 // );
-app.use(express.static("public"));
+// app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 initRoutes(app);

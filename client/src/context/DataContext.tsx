@@ -11,8 +11,8 @@ const fetcher = async (url: string) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
-    const fullUrl = `${production}${url}`;
-    const res = await fetch(fullUrl, {
+    const fullUrl = `${development}${url}`;
+    const res = await fetch(production, {
       signal: controller.signal,
       credentials: "include",
     });
