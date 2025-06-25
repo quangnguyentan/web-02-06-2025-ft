@@ -10,6 +10,7 @@ import {
 import * as React from "react";
 import { Cog8ToothIcon } from "@heroicons/react/24/solid";
 import { useUserInteraction } from "@/context/UserInteractionContext";
+import { useTheme, useMediaQuery } from "@mui/material";
 
 interface VideoPlayerProps {
   videoTitle?: string;
@@ -28,6 +29,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   mimeType,
   autoPlay = false,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default to muted for autoplay
   const [volume, setVolume] = useState(0.75);
@@ -49,13 +52,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
-  // Detect YouTube URL
   const isYouTubeUrl = videoUrl?.match(
     /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([a-zA-Z0-9_-]{11})/
   );
   const youTubeVideoId = isYouTubeUrl ? isYouTubeUrl[1] : null;
 
-  // Reset states when videoUrl changes
   useEffect(() => {
     setIsPlaying(false);
     setIsMuted(true);
@@ -68,7 +69,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setCurrentLevel(-1);
   }, [videoUrl]);
 
-  // Handle video setup and HLS
   useEffect(() => {
     if (!videoRef.current || !videoUrl || youTubeVideoId) return;
 
@@ -80,16 +80,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       "application/vnd.apple.mpegurl"
     );
 
-    // Cleanup previous instance
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
-    video.src = ""; // Clear previous source
+    video.src = "";
 
     setError(null);
 
-    // Chỉ mute nếu autoplay và chưa có tương tác
     video.muted = !hasUserInteracted && autoPlay;
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
@@ -124,7 +122,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           }))
         );
         video.autoplay = autoPlay;
-        video.muted = !hasUserInteracted && autoPlay; // Chỉ mute nếu autoplay và chưa có tương tác
+        video.muted = !hasUserInteracted && autoPlay;
         if (autoPlay) {
           video.play().catch((err) => {
             setError(
@@ -182,24 +180,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, [videoUrl, isYouTubeStream, youTubeVideoId, autoPlay, hasUserInteracted]);
 
-  // Handle user interaction to unmute
   useEffect(() => {
     const video = videoRef.current;
-    if (video && !youTubeVideoId) {
-      const handleInteraction = () => {
-        if (!hasUserInteracted) {
-          video.muted = false;
-          setIsMuted(false);
-          setHasUserInteracted(true);
-        }
+    if (video && !youTubeVideoId && hasUserInteracted && autoPlay) {
+      const handlePlay = () => {
+        video.muted = false;
+        setIsMuted(false);
+        video.removeEventListener("play", handlePlay);
       };
-
-      video.addEventListener("click", handleInteraction);
-      return () => {
-        video.removeEventListener("click", handleInteraction);
-      };
+      video.addEventListener("play", handlePlay);
+      return () => video.removeEventListener("play", handlePlay);
     }
-  }, [hasUserInteracted, setHasUserInteracted, youTubeVideoId]);
+  }, [hasUserInteracted, autoPlay, youTubeVideoId]);
 
   useEffect(() => {
     if (videoRef.current && !youTubeVideoId) {
@@ -220,7 +212,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
-        videoRef.current.muted = false; // Đảm bảo bật âm thanh trước khi phát
+        videoRef.current.muted = false;
         setIsMuted(false);
         videoRef.current
           .play()
@@ -245,7 +237,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const newMutedState = !isMuted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
-      setHasUserInteracted(true); // Ghi nhận tương tác
+      setHasUserInteracted(true);
     }
   };
 
@@ -273,11 +265,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleFullscreen = () => {
     if (playerRef.current) {
       if (!document.fullscreenElement) {
-        playerRef.current.requestFullscreen().catch((err) => {
-          alert(`Error enabling full-screen: ${err.message}`);
-        });
+        if (playerRef.current.requestFullscreen) {
+          playerRef.current.requestFullscreen().catch((err) => {
+            alert(`Error enabling full-screen: ${err.message}`);
+          });
+        } else if ((playerRef.current as any).webkitEnterFullscreen) {
+          (playerRef.current as any).webkitEnterFullscreen();
+        }
       } else {
-        document.exitFullscreen();
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
       }
     }
   };
@@ -312,6 +310,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setShowControls(!isPlaying || !videoRef.current?.played.length);
     }
   }, [isPlaying, youTubeVideoId]);
+
+  // Thêm hàm handleVideoClick
+  const handleVideoClick = () => {
+    if (!isMobile && videoRef.current && !youTubeVideoId) {
+      togglePlay(); // Chỉ gọi togglePlay trên desktop
+    }
+  };
 
   if (!videoUrl) {
     return (
@@ -353,7 +358,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         ref={videoRef}
         poster={posterUrl}
         className="absolute inset-0 w-full h-full object-contain"
-        onClick={togglePlay}
+        onClick={handleVideoClick} // Sử dụng handleVideoClick
+        onDoubleClick={handleFullscreen} // Thêm double click để zoom full
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
