@@ -8,11 +8,11 @@ import {
   ArrowsPointingIconSolid,
   ArrowsPointingOutIconSolid,
 } from "./Icon";
-import { Cog8ToothIcon } from "@heroicons/react/24/solid";
+import { Cog8ToothIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useUserInteraction } from "@/context/UserInteractionContext";
 import { useTheme, useMediaQuery } from "@mui/material";
 
-// Mở rộng kiểu HTMLVideoElement để hỗ trợ webkitEnterFullscreen
+// Mở rộng kiểu HTMLVideoElement để hỗ trợ webkit
 interface ExtendedVideoElement extends HTMLVideoElement {
   webkitEnterFullscreen?: () => void;
   webkitExitFullscreen?: () => void;
@@ -33,11 +33,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoUrl,
   posterUrl,
   isYouTubeStream = false,
-  mimeType,
+  mimeType = "auto",
   autoPlay = false,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default to muted
   const [volume, setVolume] = useState(0.75);
@@ -52,7 +52,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   >([]);
   const [currentLevel, setCurrentLevel] = useState(-1);
   const [showPlayButton, setShowPlayButton] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false); // Track fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false); // Native fullscreen state
+  const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -76,6 +77,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setQualityLevels([]);
     setCurrentLevel(-1);
     setIsFullscreen(false);
+    setIsCustomFullscreen(false);
   }, [videoUrl]);
 
   useEffect(() => {
@@ -160,13 +162,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             console.error("Resume playback error:", err);
           });
           setShowPlayButton(false);
-        }, 100); // Slight delay to ensure iOS processes exit
+        }, 100); // Slight delay for iOS
       }
     };
 
     const handlePause = () => {
       if (videoRef.current && isFullscreen && isPlaying) {
-        // Prevent play button from showing during iOS fullscreen exit
         setShowPlayButton(false);
       }
     };
@@ -208,6 +209,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       videoRef.current.muted = isMuted;
     }
   }, [volume, isMuted, youTubeVideoId]);
+
+  useEffect(() => {
+    if (isCustomFullscreen && playerRef.current) {
+      playerRef.current.style.position = "fixed";
+      playerRef.current.style.top = "0";
+      playerRef.current.style.left = "0";
+      playerRef.current.style.width = "100%";
+      playerRef.current.style.height = "100%";
+      playerRef.current.style.zIndex = "9999";
+      playerRef.current.style.backgroundColor = "black";
+      document.body.style.overflow = "hidden"; // Prevent scrolling
+    } else if (playerRef.current) {
+      playerRef.current.style.position = "";
+      playerRef.current.style.top = "";
+      playerRef.current.style.left = "";
+      playerRef.current.style.width = "";
+      playerRef.current.style.height = "";
+      playerRef.current.style.zIndex = "";
+      playerRef.current.style.backgroundColor = "";
+      document.body.style.overflow = "";
+    }
+  }, [isCustomFullscreen]);
 
   const formatTime = (timeInSeconds: number) => {
     if (isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
@@ -294,6 +317,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
+  const handleCustomFullscreen = () => {
+    if (!isCustomFullscreen) {
+      setIsCustomFullscreen(true);
+    } else {
+      setIsCustomFullscreen(false);
+    }
+  };
+
   const handleSettings = () => {
     setShowSettings(!showSettings);
   };
@@ -372,9 +403,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <video
         ref={videoRef}
         poster={posterUrl}
-        className="absolute inset-0 w-full h-full object-contain"
+        className={`absolute inset-0 w-full h-full object-contain ${
+          isCustomFullscreen ? "object-fill" : ""
+        }`}
         onClick={handleVideoClick}
-        onDoubleClick={handleFullscreen}
+        onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -426,6 +459,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
         >
           <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
+        </button>
+      )}
+
+      {isCustomFullscreen && (
+        <button
+          onClick={handleCustomFullscreen}
+          aria-label="Exit Custom Fullscreen"
+          className="absolute top-4 right-4 z-[10000] hover:text-red-500 transition-colors"
+        >
+          <XMarkIcon className="w-8 h-8 text-white/80 hover:text-white" />
         </button>
       )}
 
@@ -513,9 +556,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </ul>
               </div>
             )}
+            {isMobile && (
+              <button
+                onClick={handleCustomFullscreen}
+                aria-label={
+                  isCustomFullscreen
+                    ? "Exit Custom Fullscreen"
+                    : "Custom Fullscreen"
+                }
+                className="hover:text-red-500 transition-colors"
+              >
+                <ArrowsPointingIconSolid className="w-6 h-6" />
+              </button>
+            )}
             <button
               onClick={handleFullscreen}
-              aria-label="Fullscreen"
+              aria-label="Native Fullscreen"
               className="hover:text-red-500 transition-colors"
             >
               <ArrowsPointingOutIconSolid className="w-6 h-6" />
