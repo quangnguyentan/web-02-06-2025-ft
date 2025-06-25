@@ -345,14 +345,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleMouseEnter = () => {
-    if (!youTubeVideoId && !isCustomFullscreen && !isFullscreen) {
+    if (!youTubeVideoId) {
       setShowControls(true);
       if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
     }
   };
 
   const handleMouseLeave = () => {
-    if (isPlaying && !youTubeVideoId && !isCustomFullscreen && !isFullscreen) {
+    if (isPlaying && !youTubeVideoId) {
       controlsTimeout.current = setTimeout(() => setShowControls(false), 2000);
     }
   };
@@ -363,27 +363,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [isPlaying, youTubeVideoId]);
 
-  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
-    if (
-      videoRef.current &&
-      !youTubeVideoId &&
-      (isCustomFullscreen || isFullscreen)
-    ) {
-      const seekTime = 10; // Seek 10 seconds
-      if (e.type === "click" && e.button === 2) {
-        // Right-click for forward
-        videoRef.current.currentTime = Math.min(
-          videoRef.current.currentTime + seekTime,
-          duration
-        );
-      } else if (e.type === "dblclick") {
-        // Double-click for backward
-        videoRef.current.currentTime = Math.max(
-          videoRef.current.currentTime - seekTime,
-          0
-        );
-      }
-    } else if (!isMobile && videoRef.current && !youTubeVideoId) {
+  const handleVideoClick = () => {
+    if (!isMobile && videoRef.current && !youTubeVideoId) {
       togglePlay();
     } else if (isMobile && videoRef.current && !youTubeVideoId) {
       setShowPlayButton(true);
@@ -435,8 +416,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             : ""
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={handleVideoClick} // Reuse handleVideoClick for double-click
-        onContextMenu={(e) => e.preventDefault()} // Prevent default right-click menu
+        onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -501,116 +481,117 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      {!isCustomFullscreen && !isFullscreen && (
-        <div
-          className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
-            showControls ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+      <div
+        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
+          showControls ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={togglePlay}
+              aria-label={isPlaying ? "Pause" : "Play"}
+              className="hover:text-red-500 transition-colors"
+            >
+              {isPlaying ? (
+                <PauseCircleIconSolid className="w-7 h-7" />
+              ) : (
+                <PlayCircleIconSolid className="w-7 h-7" />
+              )}
+            </button>
+            <div className="flex items-center group/volume">
               <button
-                onClick={togglePlay}
-                aria-label={isPlaying ? "Pause" : "Play"}
+                onClick={toggleMute}
+                aria-label={isMuted ? "Unmute" : "Mute"}
                 className="hover:text-red-500 transition-colors"
               >
-                {isPlaying ? (
-                  <PauseCircleIconSolid className="w-7 h-7" />
+                {isMuted || volume === 0 ? (
+                  <SpeakerXMarkIconSolid className="w-6 h-6" />
                 ) : (
-                  <PlayCircleIconSolid className="w-7 h-7" />
+                  <SpeakerWaveIconSolid className="w-6 h-6" />
                 )}
               </button>
-              <div className="flex items-center group/volume">
-                <button
-                  onClick={toggleMute}
-                  aria-label={isMuted ? "Unmute" : "Mute"}
-                  className="hover:text-red-500 transition-colors"
-                >
-                  {isMuted || volume === 0 ? (
-                    <SpeakerXMarkIconSolid className="w-6 h-6" />
-                  ) : (
-                    <SpeakerWaveIconSolid className="w-6 h-6" />
-                  )}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-0 group-hover/volume:opacity-100 sm:opacity-100 transition-opacity"
-                  aria-label="Volume"
-                />
-              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="w-20 h-1 ml-1 accent-red-500 cursor-pointer opacity-0 group-hover/volume:opacity-100 sm:opacity-100 transition-opacity"
+                aria-label="Volume"
+              />
             </div>
+            {/* <span className="text-xs">
+              {isLive
+                ? "Live"
+                : `${formatTime(currentTime)} / ${formatTime(duration)}`}
+            </span> */}
+          </div>
 
-            <div className="flex items-center space-x-3 relative">
-              <button
-                onClick={handleSettings}
-                aria-label="Settings"
-                className="hover:text-red-500 transition-colors"
-              >
-                <Cog8ToothIcon className="w-6 h-6" />
-              </button>
-              {showSettings && qualityLevels.length > 0 && (
-                <div className="absolute bottom-10 right-0 bg-black/90 text-white rounded-md shadow-lg p-2 z-10">
-                  <ul className="space-y-1">
-                    <li>
+          <div className="flex items-center space-x-3 relative">
+            <button
+              onClick={handleSettings}
+              aria-label="Settings"
+              className="hover:text-red-500 transition-colors"
+            >
+              <Cog8ToothIcon className="w-6 h-6" />
+            </button>
+            {showSettings && qualityLevels.length > 0 && (
+              <div className="absolute bottom-10 right-0 bg-black/90 text-white rounded-md shadow-lg p-2 z-10">
+                <ul className="space-y-1">
+                  <li>
+                    <button
+                      onClick={() => handleQualityChange(-1)}
+                      className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
+                        currentLevel === -1 ? "bg-red-500/70" : ""
+                      }`}
+                    >
+                      Auto
+                    </button>
+                  </li>
+                  {qualityLevels.map((level) => (
+                    <li key={level.id}>
                       <button
-                        onClick={() => handleQualityChange(-1)}
+                        onClick={() => handleQualityChange(level.id)}
                         className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
-                          currentLevel === -1 ? "bg-red-500/70" : ""
+                          currentLevel === level.id ? "bg-red-500/70" : ""
                         }`}
                       >
-                        Auto
+                        {level.height}p
                       </button>
                     </li>
-                    {qualityLevels.map((level) => (
-                      <li key={level.id}>
-                        <button
-                          onClick={() => handleQualityChange(level.id)}
-                          className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
-                            currentLevel === level.id ? "bg-red-500/70" : ""
-                          }`}
-                        >
-                          {level.height}p
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {isMobile && (
-                <button
-                  onClick={handleCustomFullscreen}
-                  aria-label={
-                    isCustomFullscreen
-                      ? "Exit Custom Fullscreen"
-                      : "Custom Fullscreen"
-                  }
-                  className="hover:text-red-500 transition-colors"
-                >
-                  <ArrowsPointingIconSolid
-                    className={`w-6 h-6 ${
-                      isCustomFullscreen ? "rotate-45" : ""
-                    }`}
-                  />
-                </button>
-              )}
+                  ))}
+                </ul>
+              </div>
+            )}
+            {isMobile && (
               <button
-                onClick={handleFullscreen}
-                aria-label="Native Fullscreen"
+                onClick={handleCustomFullscreen}
+                aria-label={
+                  isCustomFullscreen
+                    ? "Exit Custom Fullscreen"
+                    : "Custom Fullscreen"
+                }
                 className="hover:text-red-500 transition-colors"
               >
-                <ArrowsPointingOutIconSolid
-                  className={`w-6 h-6 ${isFullscreen ? "rotate-45" : ""}`}
+                <ArrowsPointingIconSolid
+                  className={`w-6 h-6 ${isCustomFullscreen ? "rotate-45" : ""}`}
                 />
               </button>
-            </div>
+            )}
+            <button
+              onClick={handleFullscreen}
+              aria-label="Native Fullscreen"
+              className="hover:text-red-500 transition-colors"
+            >
+              <ArrowsPointingOutIconSolid
+                className={`w-6 h-6 ${isFullscreen ? "rotate-45" : ""}`}
+              />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       <div
         className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-300 ${
