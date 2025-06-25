@@ -142,10 +142,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       });
     }
 
-    // Phát hiện khi thoát full screen (chỉ theo dõi, không tạm dừng)
+    // Phát hiện khi thoát full screen và giữ trạng thái phát
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && videoRef.current) {
-        // Không gọi pause, chỉ cập nhật trạng thái nếu cần
+      const video = videoRef.current;
+      if (video && !document.fullscreenElement && isPlaying) {
+        // Thử tiếp tục phát nếu video bị tạm dừng do hành vi trình duyệt
+        video.play().catch((err) => {
+          console.error("Error resuming playback:", err);
+        });
       }
     };
 
@@ -168,7 +172,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         handleFullscreenChange
       );
     };
-  }, [videoUrl, isYouTubeStream, youTubeVideoId]);
+  }, [videoUrl, isYouTubeStream, youTubeVideoId, isPlaying]);
 
   useEffect(() => {
     const video = videoRef.current;
