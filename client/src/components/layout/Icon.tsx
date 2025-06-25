@@ -364,15 +364,15 @@ export const ArrowsPointingOutIconSolid: React.FC<{ className?: string }> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
+    width="22"
+    height="22"
     className={className}
+    viewBox="0 0 1024 1024"
   >
     <path
-      fillRule="evenodd"
-      d="M2.25 6.75A.75.75 0 0 1 3 6h3.75a.75.75 0 0 1 0 1.5H4.5v2.25a.75.75 0 0 1-1.5 0V6.75ZM17.25 6a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V8.25h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75v.001ZM6.75 21a.75.75 0 0 1-.75-.75v-3.75a.75.75 0 0 1 1.5 0v2.25h2.25a.75.75 0 0 1 0 1.5H6.75V21Zm10.5 0a.75.75 0 0 1-.75-.75V17.25a.75.75 0 0 1 1.5 0v2.25h2.25a.75.75 0 0 1 0 1.5h-3.75Z"
-      clipRule="evenodd"
-    />
+      fill="#fff"
+      d="M625.778 256H768v142.222h113.778v-256h-256zM256 398.222V256h142.222V142.222h-256v256zm512 227.556V768H625.778v113.778h256v-256zM398.222 768H256V625.778H142.222v256h256z"
+    ></path>
   </svg>
 );
 export const ArrowsPointingIconSolid: React.FC<{ className?: string }> = ({
@@ -382,11 +382,13 @@ export const ArrowsPointingIconSolid: React.FC<{ className?: string }> = ({
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
     className={className}
   >
     <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"
     />
   </svg>

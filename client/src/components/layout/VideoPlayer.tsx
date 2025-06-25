@@ -215,11 +215,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.position = "fixed";
       playerRef.current.style.top = "0";
       playerRef.current.style.left = "0";
-      playerRef.current.style.width = "100%";
-      playerRef.current.style.height = "100%";
+      playerRef.current.style.width = "100%"; // Full screen width
+      playerRef.current.style.height = "100%"; // Full screen height
       playerRef.current.style.zIndex = "9999";
       playerRef.current.style.backgroundColor = "black";
       document.body.style.overflow = "hidden"; // Prevent scrolling
+      // Ensure centering and aspect ratio preservation
+      playerRef.current.style.display = "flex";
+      playerRef.current.style.alignItems = "center";
+      playerRef.current.style.justifyContent = "center";
     } else if (playerRef.current) {
       playerRef.current.style.position = "";
       playerRef.current.style.top = "";
@@ -228,6 +232,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.height = "";
       playerRef.current.style.zIndex = "";
       playerRef.current.style.backgroundColor = "";
+      playerRef.current.style.display = "";
+      playerRef.current.style.alignItems = "";
+      playerRef.current.style.justifyContent = "";
       document.body.style.overflow = "";
     }
   }, [isCustomFullscreen]);
@@ -403,8 +410,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <video
         ref={videoRef}
         poster={posterUrl}
-        className={`absolute inset-0 w-full h-full object-contain ${
-          isCustomFullscreen ? "object-fill" : ""
+        className={`w-full h-full object-contain ${
+          isCustomFullscreen
+            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            : ""
         }`}
         onClick={handleVideoClick}
         onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
@@ -466,9 +475,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={handleCustomFullscreen}
           aria-label="Exit Custom Fullscreen"
-          className="absolute top-4 right-4 z-[10000] hover:text-red-500 transition-colors"
+          className="absolute top-1 right-2 z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
         >
-          <XMarkIcon className="w-8 h-8 text-white/80 hover:text-white" />
+          <XMarkIcon className="w-6 h-6 text-white/80 hover:text-white stroke-border" />
         </button>
       )}
 
@@ -566,7 +575,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 }
                 className="hover:text-red-500 transition-colors"
               >
-                <ArrowsPointingIconSolid className="w-6 h-6" />
+                <ArrowsPointingIconSolid
+                  className={`w-6 h-6 ${isCustomFullscreen ? "rotate-45" : ""}`}
+                />
               </button>
             )}
             <button
@@ -574,7 +585,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               aria-label="Native Fullscreen"
               className="hover:text-red-500 transition-colors"
             >
-              <ArrowsPointingOutIconSolid className="w-6 h-6" />
+              <ArrowsPointingOutIconSolid
+                className={`w-6 h-6 ${isFullscreen ? "rotate-45" : ""}`}
+              />
             </button>
           </div>
         </div>
