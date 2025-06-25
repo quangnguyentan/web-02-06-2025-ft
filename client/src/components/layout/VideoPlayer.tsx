@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(true); // Luôn giữ true
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
@@ -56,7 +56,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
@@ -215,12 +214,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.position = "fixed";
       playerRef.current.style.top = "0";
       playerRef.current.style.left = "0";
-      playerRef.current.style.width = "100%"; // Full screen width
-      playerRef.current.style.height = "100%"; // Full screen height
-      playerRef.current.style.zIndex = "9999";
+      playerRef.current.style.width = "100%";
+      playerRef.current.style.height = "100%";
+      playerRef.current.style.zIndex = "10";
       playerRef.current.style.backgroundColor = "black";
-      document.body.style.overflow = "hidden"; // Prevent scrolling
-      // Ensure centering and aspect ratio preservation
+      document.body.style.overflow = "hidden";
       playerRef.current.style.display = "flex";
       playerRef.current.style.alignItems = "center";
       playerRef.current.style.justifyContent = "center";
@@ -344,30 +342,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const handleMouseEnter = () => {
-    if (!youTubeVideoId) {
-      setShowControls(true);
-      if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isPlaying && !youTubeVideoId) {
-      controlsTimeout.current = setTimeout(() => setShowControls(false), 2000);
-    }
-  };
-
-  useEffect(() => {
-    if (!youTubeVideoId) {
-      setShowControls(!isPlaying || !videoRef.current?.played.length);
-    }
-  }, [isPlaying, youTubeVideoId]);
-
   const handleVideoClick = () => {
-    if (!isMobile && videoRef.current && !youTubeVideoId) {
-      togglePlay();
-    } else if (isMobile && videoRef.current && !youTubeVideoId) {
-      setShowPlayButton(true);
+    if (videoRef.current && !youTubeVideoId) {
+      if (!isMobile) {
+        togglePlay();
+      } else {
+        setShowPlayButton(true);
+      }
     }
   };
 
@@ -404,19 +385,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     <div
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <video
         ref={videoRef}
         poster={posterUrl}
         className={`w-full h-full object-contain ${
           isCustomFullscreen
-            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-            : ""
+            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0"
+            : "z-10"
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={isMobile ? undefined : handleFullscreen} // Disable double-click on mobile
+        onDoubleClick={isMobile ? undefined : handleFullscreen}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
@@ -481,11 +460,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      <div
-        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -522,11 +497,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 aria-label="Volume"
               />
             </div>
-            {/* <span className="text-xs">
+            <span className="text-xs">
               {isLive
                 ? "Live"
                 : `${formatTime(currentTime)} / ${formatTime(duration)}`}
-            </span> */}
+            </span>
           </div>
 
           <div className="flex items-center space-x-3 relative">
@@ -593,11 +568,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      <div
-        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-300 ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
+      <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent z-50">
         <h2 className="text-sm font-semibold">{videoTitle}</h2>
       </div>
     </div>
