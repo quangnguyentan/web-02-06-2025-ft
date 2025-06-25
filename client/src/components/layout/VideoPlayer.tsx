@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showControls, setShowControls] = useState(true); // Luôn hiển thị control
+  const [showControls, setShowControls] = useState(true); // Luôn hiển thị control, không thay đổi
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
@@ -56,7 +56,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
@@ -200,7 +199,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (video && !youTubeVideoId && isPlaying) {
       video.muted = false;
       setIsMuted(false);
-      setShowControls(true); // Đảm bảo controls hiển thị khi video phát trên iOS
     }
   }, [isPlaying, youTubeVideoId]);
 
@@ -347,21 +345,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleMouseEnter = () => {
     if (!youTubeVideoId) {
-      setShowControls(true);
+      // Không cần setShowControls vì đã luôn true
     }
   };
 
   const handleTouchStart = () => {
     if (!youTubeVideoId) {
-      setShowControls(true);
+      // Không cần setShowControls vì đã luôn true
     }
   };
 
-  useEffect(() => {
-    if (!youTubeVideoId) {
-      setShowControls(true); // Luôn hiển thị control
-    }
-  }, [isPlaying, youTubeVideoId]);
+  // Loại bỏ useEffect có thể thay đổi showControls
+  // useEffect(() => {
+  //   if (!youTubeVideoId) {
+  //     setShowControls(true); // Loại bỏ để tránh xung đột
+  //   }
+  // }, [isPlaying, youTubeVideoId]);
 
   const handleVideoClick = () => {
     if (videoRef.current && !youTubeVideoId) {
@@ -406,8 +405,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     <div
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
-      onMouseEnter={handleMouseEnter}
-      onTouchStart={handleTouchStart}
+      // onMouseEnter={handleMouseEnter} // Loại bỏ vì không cần
+      // onTouchStart={handleTouchStart} // Loại bỏ vì không cần
     >
       <video
         ref={videoRef}
@@ -484,9 +483,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       )}
 
       <div
-        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" // Loại bỏ transition-opacity
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -596,9 +593,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       </div>
 
       <div
-        className={`absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent" // Loại bỏ transition-opacity
       >
         <h2 className="text-sm font-semibold">{videoTitle}</h2>
       </div>
