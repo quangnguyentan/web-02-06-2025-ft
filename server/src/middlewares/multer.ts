@@ -2,7 +2,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 
-const uploadDir = path.join(__dirname, "../../assets/images");
+// const uploadDir = path.join(__dirname, "../../assets/images");
+// const uploadDir = path.join("./assets/images");
+const uploadDir = path.join("./public/images");
 const ensureUploadDir = async () => {
   try {
     await fs.mkdir(uploadDir, { recursive: true });

@@ -54,7 +54,7 @@ export const updateUser = async (
   const { firstName, lastName } = splitName(username);
   let logoUrl: string | undefined;
   if (avatarFile) {
-    logoUrl = `${configURL.baseURL}/static/${path.basename(avatarFile.path)}`;
+    logoUrl = `${configURL.baseURL}/images/${path.basename(avatarFile.path)}`;
   }
 
   const user = await User.findByIdAndUpdate(

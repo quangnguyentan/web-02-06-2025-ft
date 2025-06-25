@@ -38,7 +38,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
     let logoUrl: string | undefined;
     if (avatarFile) {
-      logoUrl = `${configURL.baseURL}/static/${path.basename(avatarFile.path)}`;
+      logoUrl = `${configURL.baseURL}/images/${path.basename(avatarFile.path)}`;
     }
 
     const newUser = await User.create({

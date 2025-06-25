@@ -5,7 +5,6 @@ import path from "path";
 import fs from "fs/promises";
 import { configURL } from "../configs/configURL";
 
-
 // @desc    Tạo một đội mới
 // @route   POST /api/teams
 export const createTeam = async (
@@ -25,7 +24,7 @@ export const createTeam = async (
 
     let logoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
+      logoUrl = `${configURL.baseURL}/images/${path.basename(logoFile.path)}`;
     }
 
     const newTeam: ITeam = new Team({
@@ -99,7 +98,9 @@ export const updateTeam = async (
 
     // Handle logo update
     if (logoFile) {
-      updateData.logo = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
+      updateData.logo = `${configURL.baseURL}/images/${path.basename(
+        logoFile.path
+      )}`;
     } else if (removeLogo === "true") {
       // Delete existing logo file if it exists
       const team = await Team.findById(req.params.id);

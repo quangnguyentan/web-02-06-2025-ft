@@ -4,7 +4,6 @@ import path from "path";
 import fs from "fs/promises";
 import { configURL } from "../configs/configURL";
 
-
 // @desc    Tạo một môn thể thao mới
 // @route   POST /api/sports
 export const createSport = async (
@@ -24,7 +23,7 @@ export const createSport = async (
 
     let iconUrl: string | undefined;
     if (iconFile) {
-      iconUrl = `${configURL.baseURL}/static/${path.basename(iconFile.path)}`;
+      iconUrl = `${configURL.baseURL}/images/${path.basename(iconFile.path)}`;
     }
 
     const newSport: ISport = new Sport({
@@ -102,7 +101,9 @@ export const updateSport = async (
 
     // Handle icon update
     if (iconFile) {
-      updateData.icon = `${configURL.baseURL}/static/${path.basename(iconFile.path)}`;
+      updateData.icon = `${configURL.baseURL}/images/${path.basename(
+        iconFile.path
+      )}`;
     } else if (removeIcon === "true") {
       // Delete existing icon file if it exists
       const sport = await Sport.findById(req.params.id);

@@ -9,12 +9,14 @@ import type { RootState, AppDispatch } from "./store";
 import { setNavigate } from "./lib/navigate";
 import { Loader } from "./components/layout/Loader";
 import TokenExpirationChecker from "./pages/(User)/Token";
+import { useAppDispatch } from "./hooks/use-dispatch";
 function App() {
   const { isLoggedIn, current, token } = useSelector(
     (state: RootState) => state.auth
   );
+  console.log(isLoggedIn);
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const setTimeoutId = setTimeout(() => {
       if (isLoggedIn) {

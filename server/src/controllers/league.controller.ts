@@ -31,7 +31,7 @@ export const createLeague = async (
 
     let logoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
+      logoUrl = `${configURL.baseURL}/images/${path.basename(logoFile.path)}`;
     }
 
     const newLeague: ILeague = new League({
@@ -118,7 +118,9 @@ export const updateLeague = async (
 
     // Handle logo update
     if (logoFile) {
-      updateData.logo = `${configURL.baseURL}/static/${path.basename(logoFile.path)}`;
+      updateData.logo = `${configURL.baseURL}/images/${path.basename(
+        logoFile.path
+      )}`;
     } else if (removeLogo === "true") {
       // Delete existing logo file if it exists
       const league = await League.findById(req.params.id);

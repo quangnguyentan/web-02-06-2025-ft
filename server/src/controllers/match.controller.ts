@@ -32,9 +32,9 @@ export const createMatch: RequestHandler[] = [
       // Access req.files and assert its type
       const files = req.files as
         | {
-          streamLinkImages?: Express.Multer.File[];
-          streamLinkCommentatorImages?: Express.Multer.File[];
-        }
+            streamLinkImages?: Express.Multer.File[];
+            streamLinkCommentatorImages?: Express.Multer.File[];
+          }
         | undefined;
 
       // Parse streamLinks
@@ -60,7 +60,7 @@ export const createMatch: RequestHandler[] = [
         streamLinks.map(async (link: any, index: number) => {
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${configURL.baseURL}/static/${path.basename(
+            commentatorImageUrl = `${configURL.baseURL}/images/${path.basename(
               streamLinkCommentatorImages[index].path
             )}`;
 
@@ -83,9 +83,9 @@ export const createMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${configURL.baseURL}/static/${path.basename(
-                streamLinkImages[index].path
-              )}`
+              ? `${configURL.baseURL}/images/${path.basename(
+                  streamLinkImages[index].path
+                )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage:
@@ -156,8 +156,16 @@ export const getAllMatches = async (
       .populate("awayTeam", "name logo")
       .populate("league", "name logo")
       .populate("sport", "name icon slug")
-      .populate("streamLinks.commentator", "username avatar")
-      .sort({ startTime: -1 }); // Sắp xếp trận mới nhất lên đầu
+      .populate("streamLinks.commentator", "username avatar");
+
+    matches.sort((a, b) => {
+      const aPriority = a.status === MatchStatus.LIVE ? 1 : 0;
+      const bPriority = b.status === MatchStatus.LIVE ? 1 : 0;
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority; // Live lên đầu
+      }
+      return a.startTime.getTime() - b.startTime.getTime(); // Sắp xếp startTime tăng dần
+    });
 
     res.status(200).json(matches);
   } catch (error) {
@@ -228,9 +236,9 @@ export const updateMatch: RequestHandler[] = [
       const body = req.body;
       const files = req.files as
         | {
-          streamLinkImages?: Express.Multer.File[];
-          streamLinkCommentatorImages?: Express.Multer.File[];
-        }
+            streamLinkImages?: Express.Multer.File[];
+            streamLinkCommentatorImages?: Express.Multer.File[];
+          }
         | undefined;
 
       // Parse streamLinks
@@ -254,20 +262,16 @@ export const updateMatch: RequestHandler[] = [
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
       for (const link of match.streamLinks) {
-        if (link.image?.startsWith(`${configURL.baseURL}/static/`)) {
+        if (link.image?.startsWith(`${configURL.baseURL}/images/`)) {
           oldFiles.push(
-            path.join(
-              __dirname,
-              "../../assets/images",
-              path.basename(link.image)
-            )
+            path.join(__dirname, "../public/images", path.basename(link.image))
           );
         }
-        if (link.commentatorImage?.startsWith(`${configURL.baseURL}/static/`)) {
+        if (link.commentatorImage?.startsWith(`${configURL.baseURL}/images/`)) {
           oldFiles.push(
             path.join(
               __dirname,
-              "../../assets/images",
+              "../public/images",
               path.basename(link.commentatorImage)
             )
           );
@@ -279,7 +283,7 @@ export const updateMatch: RequestHandler[] = [
         streamLinks.map(async (link: any, index: number) => {
           let commentatorImageUrl: string | undefined;
           if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${configURL.baseURL}/static/${path.basename(
+            commentatorImageUrl = `${configURL.baseURL}/images/${path.basename(
               streamLinkCommentatorImages[index].path
             )}`;
 
@@ -302,9 +306,9 @@ export const updateMatch: RequestHandler[] = [
             label: link.label,
             url: link.url,
             image: streamLinkImages[index]
-              ? `${configURL.baseURL}/static/${path.basename(
-                streamLinkImages[index].path
-              )}`
+              ? `${configURL.baseURL}/images/${path.basename(
+                  streamLinkImages[index].path
+                )}`
               : link.image || undefined,
             commentator: link.commentator || undefined,
             commentatorImage:
@@ -338,8 +342,8 @@ export const updateMatch: RequestHandler[] = [
           body.isHot === "true"
             ? true
             : body.isHot === "false"
-              ? false
-              : match.isHot,
+            ? false
+            : match.isHot,
       };
 
       // Update match
@@ -394,16 +398,16 @@ export const deleteMatch = async (
     // Optionally, delete associated files here
     const oldFiles: string[] = [];
     for (const link of deletedMatch.streamLinks) {
-      if (link.image?.startsWith(`${configURL.baseURL}/static/`)) {
+      if (link.image?.startsWith(`${configURL.baseURL}/images/`)) {
         oldFiles.push(
-          path.join(__dirname, "../../assets/images", path.basename(link.image))
+          path.join(__dirname, "../public/images", path.basename(link.image))
         );
       }
-      if (link.commentatorImage?.startsWith(`${configURL.baseURL}/static/`)) {
+      if (link.commentatorImage?.startsWith(`${configURL.baseURL}/images/`)) {
         oldFiles.push(
           path.join(
             __dirname,
-            "../../assets/images",
+            "../public/images",
             path.basename(link.commentatorImage)
           )
         );

@@ -68,6 +68,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setCurrentLevel(-1);
   }, [videoUrl]);
 
+  // Handle video setup and HLS
   useEffect(() => {
     if (!videoRef.current || !videoUrl || youTubeVideoId) return;
 
@@ -88,10 +89,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     setError(null);
 
+    // Chỉ mute nếu autoplay và chưa có tương tác
+    video.muted = !hasUserInteracted && autoPlay;
+
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
       video.src = videoUrl;
       video.autoplay = autoPlay;
-      video.muted = !hasUserInteracted;
       video.playsInline = true;
       if (autoPlay) {
         video.play().catch((err) => {
@@ -121,7 +124,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           }))
         );
         video.autoplay = autoPlay;
-        video.muted = !hasUserInteracted;
+        video.muted = !hasUserInteracted && autoPlay; // Chỉ mute nếu autoplay và chưa có tương tác
         if (autoPlay) {
           video.play().catch((err) => {
             setError(
@@ -146,7 +149,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     } else {
       video.src = videoUrl;
       video.autoplay = autoPlay;
-      video.muted = !hasUserInteracted;
       video.playsInline = true;
       if (autoPlay) {
         video.play().catch((err) => {
@@ -180,6 +182,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, [videoUrl, isYouTubeStream, youTubeVideoId, autoPlay, hasUserInteracted]);
 
+  // Handle user interaction to unmute
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && !youTubeVideoId) {
+      const handleInteraction = () => {
+        if (!hasUserInteracted) {
+          video.muted = false;
+          setIsMuted(false);
+          setHasUserInteracted(true);
+        }
+      };
+
+      video.addEventListener("click", handleInteraction);
+      return () => {
+        video.removeEventListener("click", handleInteraction);
+      };
+    }
+  }, [hasUserInteracted, setHasUserInteracted, youTubeVideoId]);
+
   useEffect(() => {
     if (videoRef.current && !youTubeVideoId) {
       videoRef.current.volume = volume;
@@ -199,8 +220,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const togglePlay = () => {
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
+        videoRef.current.muted = false; // Đảm bảo bật âm thanh trước khi phát
         setIsMuted(false);
-        videoRef.current.muted = false;
         videoRef.current
           .play()
           .then(() => {
@@ -220,7 +241,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    if (videoRef.current) {
+      const newMutedState = !isMuted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
+      setHasUserInteracted(true); // Ghi nhận tương tác
+    }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,7 +394,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           aria-label="Play video"
           className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xl font-bold hover:bg-black/70 transition-colors"
         >
-          Tap to Play
+          Nhấn để phát video và bật âm thanh
         </button>
       )}
 
