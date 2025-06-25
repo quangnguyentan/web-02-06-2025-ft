@@ -77,20 +77,20 @@ app.use(
 );
 
 app.use(cookieParser());
-// app.use(
-//   "/static",
-//   (req, res, next) => {
-//     const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
-//     const ext = path.extname(req.path).toLowerCase();
-//     if (imageExtensions.includes(ext)) {
-//       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-//     }
-//     next();
-//   },
-//   express.static(path.join(__dirname, "./assets/images"))
-//   // express.static(path.join(__dirname, "../../var/www/hoiquantv/assets/images"))
-// );
-app.use(express.static("public"));
+app.use(
+  "/static",
+  (req, res, next) => {
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"];
+    const ext = path.extname(req.path).toLowerCase();
+    if (imageExtensions.includes(ext)) {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    }
+    next();
+  },
+  express.static(path.join(__dirname, "./assets/images"))
+  // express.static(path.join(__dirname, "../../var/www/hoiquantv/assets/images"))
+);
+// app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 initRoutes(app);
