@@ -428,7 +428,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={togglePlay}
           aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors"
+          className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors z-50"
         >
           <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
         </button>
@@ -444,7 +444,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={togglePlay}
           aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
+          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-50"
         >
           <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
         </button>
@@ -454,7 +454,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={handleCustomFullscreen}
           aria-label="Exit Custom Fullscreen"
-          className="absolute top-1 right-2 z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+          className="absolute top-1 right-2 z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1 "
         >
           <XMarkIcon className="w-6 h-6 text-white/80 hover:text-white stroke-border" />
         </button>
