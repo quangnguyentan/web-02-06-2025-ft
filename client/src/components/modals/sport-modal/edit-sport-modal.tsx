@@ -21,55 +21,93 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { apiUpdateSport } from "@/services/sport.services";
-import { useDropzone } from "react-dropzone";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useDropzone, FileRejection, DropEvent } from "react-dropzone";
+import { XCircle } from "lucide-react";
 
-const sportFormSchema = z.object({
-  name: z.string().min(1, { message: "Tên môn thể thao là bắt buộc" }),
-  slug: z
-    .string()
-    .min(1, { message: "Slug là bắt buộc" })
-    .regex(/^[a-z0-9-]+$/i, {
-      message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
-    })
-    .transform((val) => val.toLowerCase()),
-  icon: z
-    .instanceof(File)
-    .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
-      message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
-    })
-    .optional(),
-  order: z.coerce.number().min(1, { message: "Thứ tự phải là số không âm" }),
-  removeIcon: z.boolean().optional(),
-});
+// Hàm tạo slug từ name
+const createSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+// Schema cho form
+const formSchema = z
+  .object({
+    name: z.string().min(1, { message: "Tên môn thể thao là bắt buộc" }),
+    icon: z
+      .instanceof(File)
+      .refine((file) => file && /image\/(jpe?g|png)/i.test(file.type), {
+        message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
+      })
+      .optional(),
+    iconUrl: z
+      .string()
+      .url({ message: "Vui lòng nhập URL ảnh hợp lệ" })
+      .optional()
+      .or(z.literal("")),
+    order: z.coerce.number().min(1, { message: "Thứ tự phải là số không âm" }),
+  })
+  .refine((data) => data.icon || data.iconUrl || !data.iconUrl, {
+    message: "Phải cung cấp file ảnh hoặc URL ảnh nếu không xóa icon",
+    path: ["iconUrl"],
+  });
 
 export const EditSportModal = () => {
   const { isOpen, onClose, type, data } = useModal();
-  const { sport } = data;
   const isModalOpen = isOpen && type === "editSport";
-  const { setSelectedPage, sports, setSports } = useSelectedPageContext();
-  const [currentIcon, setCurrentIcon] = useState<string | undefined>(undefined);
+  const { setSelectedPage, setSports, sports } = useSelectedPageContext();
 
-  const form = useForm({
-    resolver: zodResolver(sportFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      slug: "",
       icon: undefined,
+      iconUrl: "",
       order: 1,
-      removeIcon: false,
     },
   });
 
   const isLoading = form.formState.isSubmitting;
 
+  useEffect(() => {
+    if (data?.sport && isModalOpen) {
+      form.reset({
+        name: data.sport.name || "",
+        icon: undefined,
+        iconUrl: data.sport.icon || "",
+        order: data.sport.order || 1,
+      });
+    } else if (!isModalOpen) {
+      form.reset();
+    }
+  }, [isModalOpen, data?.sport, form]);
+
   const onDropIcon = useCallback(
-    (acceptedFiles: File[]) => {
+    (
+      acceptedFiles: File[],
+      fileRejections: FileRejection[],
+      event: DropEvent
+    ) => {
       if (acceptedFiles[0]) {
         form.setValue("icon", acceptedFiles[0], { shouldValidate: true });
-        form.setValue("removeIcon", false);
+        form.setValue("iconUrl", "", { shouldValidate: true });
+      } else {
+        if ("dataTransfer" in event && event.dataTransfer) {
+          const url = event.dataTransfer.getData("text/uri-list");
+          if (url && z.string().url().safeParse(url).success) {
+            form.setValue("iconUrl", url, { shouldValidate: true });
+            form.setValue("icon", undefined, { shouldValidate: true });
+          } else {
+            toast.error("URL ảnh không hợp lệ");
+          }
+        } else if (fileRejections.length > 0) {
+          toast.error(
+            `File ảnh không hợp lệ: ${fileRejections[0].errors[0].message}`
+          );
+        }
       }
     },
     [form]
@@ -79,7 +117,7 @@ export const EditSportModal = () => {
     onDrop: onDropIcon,
     accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB limit to match multer
+    maxSize: 10 * 1024 * 1024, // 10MB limit
     onDropRejected: (fileRejections) => {
       const error =
         fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
@@ -87,41 +125,26 @@ export const EditSportModal = () => {
     },
   });
 
-  useEffect(() => {
-    if (isModalOpen && sport) {
-      form.reset({
-        name: sport.name || "",
-        slug: sport.slug || "",
-        icon: undefined,
-        order: sport.order ?? 1,
-        removeIcon: false,
-      });
-      setCurrentIcon(sport.icon);
-    } else if (!isModalOpen) {
-      form.reset();
-      setCurrentIcon(undefined);
-    }
-  }, [isModalOpen, sport, form]);
-
-  const onSubmit = async (values: z.infer<typeof sportFormSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      if (!sport?._id) {
+      if (!data?.sport?._id) {
         toast.error("Không tìm thấy ID môn thể thao để cập nhật");
         return;
       }
 
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("slug", values.slug);
+      formData.append("slug", createSlug(values.name));
       formData.append("order", values.order.toString());
-      if (values.icon) {
+      if (values.icon instanceof File) {
         formData.append("icon", values.icon);
-      }
-      if (values.removeIcon && currentIcon) {
+      } else if (values.iconUrl) {
+        formData.append("icon", values.iconUrl);
+      } else if (!values.iconUrl && data.sport.icon) {
         formData.append("removeIcon", "true");
       }
 
-      const res = await apiUpdateSport(sport._id, formData);
+      const res = await apiUpdateSport(data.sport._id, formData);
       if (res?.data) {
         const updatedList = sports?.map((item) =>
           item._id === res.data._id ? res.data : item
@@ -142,13 +165,12 @@ export const EditSportModal = () => {
 
   const handleClose = () => {
     form.reset();
-    setCurrentIcon(undefined);
     onClose();
   };
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh] md:max-w-[60%] max-w-[90%]">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Chỉnh Sửa Môn Thể Thao
@@ -167,26 +189,7 @@ export const EditSportModal = () => {
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Nhập tên môn thể thao (ví dụ: Bóng đá)"
-                        {...field}
-                        type="text"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slug</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Nhập slug (ví dụ: bong-da)"
+                        placeholder="Nhập tên môn thể thao (ví dụ: Bóng Đá)"
                         {...field}
                         type="text"
                       />
@@ -200,36 +203,68 @@ export const EditSportModal = () => {
                 name="icon"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icon (Không bắt buộc)</FormLabel>
+                    <FormLabel>Icon</FormLabel>
                     <FormControl>
                       <div>
-                        {currentIcon && !form.watch("removeIcon") && (
-                          <div className="mb-2">
+                        {form.getValues("iconUrl") ? (
+                          <div className="relative w-24 h-24 mb-2">
                             <img
-                              src={currentIcon}
-                              alt="Current icon"
-                              className="h-20 w-20 object-contain"
+                              src={form.getValues("iconUrl")}
+                              alt="Icon Preview"
+                              className="object-cover w-full h-full rounded"
+                              onError={() =>
+                                toast.error("Không thể tải hình ảnh từ URL")
+                              }
                             />
-                            <p className="text-sm text-gray-500">
-                              Icon hiện tại
+                            <Button
+                              type="button"
+                              onClick={() =>
+                                form.setValue("iconUrl", "", {
+                                  shouldValidate: true,
+                                })
+                              }
+                              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                              size="sm"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : field.value instanceof File ? (
+                          <div className="relative w-24 h-24 mb-2">
+                            <img
+                              src={URL.createObjectURL(field.value)}
+                              alt="Icon Preview"
+                              className="object-cover w-full h-full rounded"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() =>
+                                form.setValue("icon", undefined, {
+                                  shouldValidate: true,
+                                })
+                              }
+                              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                              size="sm"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div
+                            {...getRootProps()}
+                            className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                              isDragActive
+                                ? "border-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            <input {...getInputProps()} />
+                            <p className="!text-sm">
+                              Kéo và thả file ảnh (.jpg, .jpeg, .png) hoặc URL
+                              tại đây
                             </p>
                           </div>
                         )}
-                        <div
-                          {...getRootProps()}
-                          className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
-                            isDragActive ? "border-blue-500" : "border-gray-300"
-                          }`}
-                        >
-                          <input {...getInputProps()} />
-                          {field.value ? (
-                            <p className="text-blue-600">{field.value.name}</p>
-                          ) : (
-                            <p className="!text-sm">
-                              Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
-                            </p>
-                          )}
-                        </div>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -238,22 +273,27 @@ export const EditSportModal = () => {
               />
               <FormField
                 control={form.control}
-                name="removeIcon"
+                name="iconUrl"
                 render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2">
+                  <FormItem>
+                    <FormLabel>URL Icon</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          if (checked) {
-                            form.setValue("icon", undefined);
+                      <Input
+                        disabled={isLoading}
+                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        placeholder="Nhập URL icon (ví dụ: https://example.com/icon.png)"
+                        {...field}
+                        type="url"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (e.target.value) {
+                            form.setValue("icon", undefined, {
+                              shouldValidate: true,
+                            });
                           }
                         }}
-                        disabled={isLoading || !currentIcon}
                       />
                     </FormControl>
-                    <FormLabel>Xóa icon hiện tại</FormLabel>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -268,7 +308,7 @@ export const EditSportModal = () => {
                       <Input
                         disabled={isLoading}
                         className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Nhập thứ tự (ví dụ: 1)"
+                        placeholder="Nhập thứ tự"
                         {...field}
                         type="number"
                         min={1}
@@ -306,3 +346,5 @@ export const EditSportModal = () => {
     </Dialog>
   );
 };
+
+export default EditSportModal;

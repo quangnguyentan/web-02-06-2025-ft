@@ -8,6 +8,7 @@ import reduxStore from "@/store";
 import { SelectedPageProvider } from "./components/navigation/navigation-provider";
 
 import type { RootState, AppDispatch } from "@/store"; // FIX: Import types from your store file
+import { DataProvider } from "./context/DataContext";
 
 const { store, persistor } = reduxStore();
 createRoot(document.getElementById("root")!).render(
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
           initialPage="TRANG CHỦ"
           inititalSportsNavbarPage=""
         >
-          <App />
+          <DataProvider>
+            <App />
+          </DataProvider>
         </SelectedPageProvider>
       </BrowserRouter>
     </PersistGate>

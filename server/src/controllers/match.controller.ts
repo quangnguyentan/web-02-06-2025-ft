@@ -21,21 +21,13 @@ import { configURL } from "../configs/configURL";
 // @desc    Tạo một trận đấu mới
 // @route   POST /api/matches
 export const createMatch: RequestHandler[] = [
-  upload.fields([
-    { name: "streamLinkImages", maxCount: 10 },
-    { name: "streamLinkCommentatorImages", maxCount: 10 },
-  ]),
+  upload.array("streamLinkImages", 10),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const body = req.body;
 
       // Access req.files and assert its type
-      const files = req.files as
-        | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-          }
-        | undefined;
+      const files = req.files as Express.Multer.File[] | undefined;
 
       // Parse streamLinks
       let streamLinks: any[] = [];
@@ -50,55 +42,49 @@ export const createMatch: RequestHandler[] = [
         }
       }
 
-      // Process uploaded files
-      const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages =
-        files?.streamLinkCommentatorImages || [];
+      // Process uploaded files and URLs
+      const streamLinkImages = files || [];
+      const streamLinkImagesFromBody = Array.isArray(req.body.streamLinkImages)
+        ? req.body.streamLinkImages
+        : req.body.streamLinkImages
+        ? [req.body.streamLinkImages]
+        : [];
 
-      // Map streamLinks with uploaded files and update User.image
+      // Map streamLinks with uploaded files or URLs
       const processedStreamLinks = await Promise.all(
         streamLinks.map(async (link: any, index: number) => {
-          let commentatorImageUrl: string | undefined;
-          if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${configURL.baseURL}/images/${path.basename(
-              streamLinkCommentatorImages[index].path
-            )}`;
-
-            // Update User.image if commentator exists
-            if (link.commentator) {
-              const user = await User.findByIdAndUpdate(
-                link.commentator,
-                { avatar: commentatorImageUrl },
-                { new: true, runValidators: true }
-              );
-              if (!user) {
-                console.warn(
-                  `User not found for commentator ID: ${link.commentator}`
-                );
-              }
+          let imageUrl: string | undefined;
+          if (link.image && link.image.startsWith("file:image-")) {
+            const file = streamLinkImages[index];
+            if (file) {
+              imageUrl = `${configURL.baseURL}/images/${path.basename(
+                file.path
+              )}`;
             }
+          } else if (streamLinkImagesFromBody[index]) {
+            imageUrl = streamLinkImagesFromBody[index];
           }
+
+          const commentator = link.commentator
+            ? await User.findById(link.commentator)
+            : undefined;
 
           return {
             label: link.label,
             url: link.url,
-            image: streamLinkImages[index]
-              ? `${configURL.baseURL}/images/${path.basename(
-                  streamLinkImages[index].path
-                )}`
-              : link.image || undefined,
+            image: imageUrl || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage:
-              commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
         })
       );
+
       // Determine status based on streamLinks
       const hasValidStreamLinks = processedStreamLinks.some(
         (link) =>
           link.url && typeof link.url === "string" && link.url.trim() !== ""
       );
+
       // Prepare match data
       const matchData: Partial<IMatch> = {
         title: body.title,
@@ -128,6 +114,7 @@ export const createMatch: RequestHandler[] = [
         .populate("league", "name logo")
         .populate("sport", "name icon slug")
         .populate("streamLinks.commentator", "username avatar");
+
       res.status(201).json(populatedMatch);
     } catch (error: any) {
       console.error("Create match error:", error);
@@ -221,10 +208,7 @@ export const getMatchBySlug = async (
 // @desc    Cập nhật một trận đấu
 // @route   PUT /api/matches/:id
 export const updateMatch: RequestHandler[] = [
-  upload.fields([
-    { name: "streamLinkImages", maxCount: 10 },
-    { name: "streamLinkCommentatorImages", maxCount: 10 },
-  ]),
+  upload.array("streamLinkImages", 10),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const match = await Match.findById(req.params.id);
@@ -234,12 +218,7 @@ export const updateMatch: RequestHandler[] = [
       }
 
       const body = req.body;
-      const files = req.files as
-        | {
-            streamLinkImages?: Express.Multer.File[];
-            streamLinkCommentatorImages?: Express.Multer.File[];
-          }
-        | undefined;
+      const files = req.files as Express.Multer.File[] | undefined;
 
       // Parse streamLinks
       let streamLinks: any[] = [];
@@ -254,10 +233,13 @@ export const updateMatch: RequestHandler[] = [
         }
       }
 
-      // Process uploaded files
-      const streamLinkImages = files?.streamLinkImages || [];
-      const streamLinkCommentatorImages =
-        files?.streamLinkCommentatorImages || [];
+      // Process uploaded files and URLs
+      const streamLinkImages = files || [];
+      const streamLinkImagesFromBody = Array.isArray(req.body.streamLinkImages)
+        ? req.body.streamLinkImages
+        : req.body.streamLinkImages
+        ? [req.body.streamLinkImages]
+        : [];
 
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
@@ -267,56 +249,40 @@ export const updateMatch: RequestHandler[] = [
             path.join(__dirname, "../public/images", path.basename(link.image))
           );
         }
-        if (link.commentatorImage?.startsWith(`${configURL.baseURL}/images/`)) {
-          oldFiles.push(
-            path.join(
-              __dirname,
-              "../public/images",
-              path.basename(link.commentatorImage)
-            )
-          );
-        }
       }
 
-      // Map streamLinks with uploaded files and update User.image
+      // Map streamLinks with uploaded files or URLs
       const processedStreamLinks = await Promise.all(
         streamLinks.map(async (link: any, index: number) => {
-          let commentatorImageUrl: string | undefined;
-          if (streamLinkCommentatorImages[index]) {
-            commentatorImageUrl = `${configURL.baseURL}/images/${path.basename(
-              streamLinkCommentatorImages[index].path
-            )}`;
-
-            // Update User.image if commentator exists
-            if (link.commentator) {
-              const user = await User.findByIdAndUpdate(
-                link.commentator,
-                { avatar: commentatorImageUrl },
-                { new: true, runValidators: true }
-              );
-              if (!user) {
-                console.warn(
-                  `User not found for commentator ID: ${link.commentator}`
-                );
-              }
+          let imageUrl: string | undefined;
+          if (link.image && link.image.startsWith("file:image-")) {
+            const file = streamLinkImages[index];
+            if (file) {
+              imageUrl = `${configURL.baseURL}/images/${path.basename(
+                file.path
+              )}`;
             }
+          } else if (streamLinkImagesFromBody[index]) {
+            imageUrl = streamLinkImagesFromBody[index];
+          } else {
+            imageUrl = match.streamLinks?.[index]?.image; // Keep existing image if not updated
           }
+
+          const commentator = link.commentator
+            ? await User.findById(link.commentator)
+            : undefined;
 
           return {
             label: link.label,
             url: link.url,
-            image: streamLinkImages[index]
-              ? `${configURL.baseURL}/images/${path.basename(
-                  streamLinkImages[index].path
-                )}`
-              : link.image || undefined,
+            image: imageUrl || undefined,
             commentator: link.commentator || undefined,
-            commentatorImage:
-              commentatorImageUrl || link.commentatorImage || undefined,
             priority: link.priority ? Number(link.priority) : 1,
           };
         })
       );
+
+      // Determine status based on streamLinks
       const hasValidStreamLinks = processedStreamLinks.some(
         (link) =>
           link.url && typeof link.url === "string" && link.url.trim() !== ""
@@ -395,21 +361,13 @@ export const deleteMatch = async (
       res.status(404).json({ message: "Không tìm thấy trận đấu" });
       return;
     }
-    // Optionally, delete associated files here
+
+    // Delete associated files
     const oldFiles: string[] = [];
     for (const link of deletedMatch.streamLinks) {
       if (link.image?.startsWith(`${configURL.baseURL}/images/`)) {
         oldFiles.push(
           path.join(__dirname, "../public/images", path.basename(link.image))
-        );
-      }
-      if (link.commentatorImage?.startsWith(`${configURL.baseURL}/images/`)) {
-        oldFiles.push(
-          path.join(
-            __dirname,
-            "../public/images",
-            path.basename(link.commentatorImage)
-          )
         );
       }
     }
@@ -421,6 +379,7 @@ export const deleteMatch = async (
         console.error(`Lỗi khi xóa file cũ: ${filePath}`, err);
       }
     }
+
     res.status(200).json({ message: "Đã xóa trận đấu thành công" });
   } catch (error) {
     console.error("Delete match error:", error);

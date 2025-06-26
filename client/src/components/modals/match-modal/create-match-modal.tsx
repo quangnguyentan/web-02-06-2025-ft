@@ -1,5 +1,4 @@
 import * as z from "zod";
-
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -18,19 +17,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-model-store";
 import toast from "react-hot-toast";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { apiCreateMatch } from "@/services/match.services";
 import { apiGetAllTeams } from "@/services/team.services";
 import { apiGetAllLeagues } from "@/services/league.services";
@@ -49,36 +41,35 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiGetAllUser } from "@/services/user.services";
 import { User } from "@/types/user.types";
 import { createSlug } from "@/lib/helper";
-
+import Select from "react-select";
+import { FixedSizeList as List } from "react-window";
+import debounce from "lodash.debounce";
 registerLocale("vi", vi);
 setDefaultLocale("vi");
 
-// Updated streamLinkSchema: url is string only, image and commentatorImage are File or undefined
 const streamLinkSchema = z.object({
   label: z.string().optional(),
   url: z.string().optional(),
   image: z
     .instanceof(File)
-    .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
+    .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
       message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
     })
     .optional(),
+  imageUrl: z
+    .string()
+    .url({ message: "Vui lòng nhập URL hợp lệ" })
+    .optional()
+    .or(z.literal("")),
   commentator: z.string().optional(),
-  // commentatorImage: z
-  //   .instanceof(File)
-  //   .refine((file) => /image\/(jpg|jpeg|png)/.test(file.type), {
-  //     message: "File ảnh không hợp lệ (.jpg, .jpeg, .png)",
-  //   })
-  //   .optional(),
   priority: z.coerce
     .number()
-    .min(1, { message: "Ưu tiên phải là số không hợp lệ" })
+    .min(1, { message: "Ưu tiên phải là số không âm" })
     .optional(),
 });
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Tiêu đề là bắt buộc" }),
-  // slug: z.string().min(1, { message: "Slug là bắt buộc" }),
   homeTeam: z.string().min(1, { message: "Đội nhà là bắt buộc" }),
   awayTeam: z.string().min(1, { message: "Đội khách là bắt buộc" }),
   league: z.string().min(1, { message: "Giải đấu là bắt buộc" }),
@@ -99,18 +90,79 @@ const formSchema = z.object({
         .optional(),
     })
     .optional(),
-
   isHot: z.boolean().optional(),
   streamLinks: z.array(streamLinkSchema).optional(),
 });
 
-// Component for individual stream link fields
+// Custom Option component for react-select with virtualization
+const MenuList = ({ options, children, maxHeight, getValue }: any) => {
+  const [value] = getValue();
+  const height = 35;
+  const initialOffset = options.indexOf(value) * height;
+
+  return (
+    <List
+      height={maxHeight}
+      itemCount={children.length}
+      itemSize={height}
+      initialScrollOffset={initialOffset}
+      width="100%"
+    >
+      {({ index, style }) => <div style={style}>{children[index]}</div>}
+    </List>
+  );
+};
+
+// Custom styles for react-select to match Tailwind CSS
+const customStyles = {
+  control: (provided: any) => ({
+    ...provided,
+    border: "1px solid #e5e7eb",
+    borderRadius: "0.375rem",
+    padding: "0.5rem",
+    backgroundColor: "#fff",
+    "&:hover": {
+      borderColor: "#d1d5db",
+    },
+  }),
+  menu: (provided: any) => ({
+    ...provided,
+    borderRadius: "0.375rem",
+    boxShadow:
+      "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+    zIndex: 50,
+  }),
+  option: (provided: any, state: any) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#3b82f6"
+      : state.isFocused
+      ? "#f3f4f6"
+      : "#fff",
+    color: state.isSelected ? "#fff" : "#000",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
+  }),
+  placeholder: (provided: any) => ({
+    ...provided,
+    color: "#6b7280",
+  }),
+  singleValue: (provided: any) => ({
+    ...provided,
+    color: "#000",
+  }),
+  input: (provided: any) => ({
+    ...provided,
+    color: "#000",
+  }),
+};
+
 interface StreamLinkFieldProps {
   index: number;
-  form: any; // Use proper type from react-hook-form
+  form: any;
   remove: (index: number) => void;
   isLoading: boolean;
-  users: User[]; // Thêm prop users để truyền từ CreateMatchModal
+  users: User[];
 }
 
 const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
@@ -118,14 +170,55 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
   form,
   remove,
   isLoading,
-  users, // Nhận users từ props
+  users,
 }) => {
+  const [commentatorSearch, setCommentatorSearch] = useState("");
+  const debouncedSetCommentatorSearch = useCallback(
+    debounce((value: string) => setCommentatorSearch(value), 300),
+    []
+  );
+
+  const commentatorOptions = useMemo(
+    () =>
+      users.map((user) => ({
+        value: user._id ?? "",
+        label: user.username ?? "",
+      })),
+    [users]
+  );
+
+  const filteredCommentatorOptions = useMemo(
+    () =>
+      commentatorOptions.filter((option) =>
+        option.label.toLowerCase().includes(commentatorSearch.toLowerCase())
+      ),
+    [commentatorOptions, commentatorSearch]
+  );
+
   const onDropImage = useCallback(
-    (acceptedFiles: File[]) => {
+    (acceptedFiles: File[], fileRejections: any[], event: any) => {
       if (acceptedFiles[0]) {
         form.setValue(`streamLinks.${index}.image`, acceptedFiles[0], {
           shouldValidate: true,
         });
+        form.setValue(`streamLinks.${index}.imageUrl`, "", {
+          shouldValidate: true,
+        });
+      } else {
+        const dataTransfer = event.dataTransfer;
+        if (dataTransfer.types.includes("text/uri-list")) {
+          const url = dataTransfer.getData("text/uri-list");
+          if (url && z.string().url().safeParse(url).success) {
+            form.setValue(`streamLinks.${index}.imageUrl`, url, {
+              shouldValidate: true,
+            });
+            form.setValue(`streamLinks.${index}.image`, undefined, {
+              shouldValidate: true,
+            });
+          } else {
+            toast.error("URL ảnh không hợp lệ");
+          }
+        }
       }
     },
     [form, index]
@@ -147,39 +240,8 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
     },
   });
 
-  const onDropCommentatorImage = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles[0]) {
-        form.setValue(
-          `streamLinks.${index}.commentatorImage`,
-          acceptedFiles[0],
-          {
-            shouldValidate: true,
-          }
-        );
-      }
-    },
-    [form, index]
-  );
-
-  const {
-    getRootProps: getCommentatorImageRootProps,
-    getInputProps: getCommentatorImageInputProps,
-    isDragActive: isCommentatorImageDragActive,
-  } = useDropzone({
-    onDrop: onDropCommentatorImage,
-    accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
-    maxFiles: 1,
-    maxSize: 10 * 1024 * 1024,
-    onDropRejected: (fileRejections) => {
-      const error =
-        fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
-      toast.error(error);
-    },
-  });
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-1 gap-4 border p-3 rounded-md relative">
+    <div className="grid grid-cols-1 gap-4 border p-3 rounded-md relative">
       <Button
         type="button"
         onClick={() => remove(index)}
@@ -232,25 +294,94 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
         name={`streamLinks.${index}.image`}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Ảnh đại diện link</FormLabel>
+            <FormLabel>Ảnh đại diện link (Không bắt buộc)</FormLabel>
             <FormControl>
               <div>
-                <div
-                  {...getImageRootProps()}
-                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer mt-2 ${
-                    isImageDragActive ? "border-blue-500" : "border-gray-300"
-                  }`}
-                >
-                  <input {...getImageInputProps()} />
-                  {field.value instanceof File ? (
-                    <p className="text-blue-600">{field.value.name}</p>
-                  ) : (
+                {form.getValues(`streamLinks.${index}.imageUrl`) ? (
+                  <div className="relative w-24 h-24 mb-2">
+                    <img
+                      src={form.getValues(`streamLinks.${index}.imageUrl`)}
+                      alt="Stream Link"
+                      className="object-cover w-full h-full rounded"
+                      onError={() =>
+                        toast.error("Không thể tải hình ảnh từ URL")
+                      }
+                    />
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        form.setValue(`streamLinks.${index}.imageUrl`, "", {
+                          shouldValidate: true,
+                        })
+                      }
+                      className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                      size="sm"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : field.value instanceof File ? (
+                  <div className="relative w-24 h-24 mb-2">
+                    <img
+                      src={URL.createObjectURL(field.value)}
+                      alt="Stream Link Preview"
+                      className="object-cover w-full h-full rounded"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        form.setValue(`streamLinks.${index}.image`, undefined, {
+                          shouldValidate: true,
+                        })
+                      }
+                      className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                      size="sm"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    {...getImageRootProps()}
+                    className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer ${
+                      isImageDragActive ? "border-blue-500" : "border-gray-300"
+                    }`}
+                  >
+                    <input {...getImageInputProps()} />
                     <p className="!text-sm">
-                      Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
+                      Kéo và thả file ảnh (.jpg, .jpeg, .png) hoặc URL tại đây,
+                      hoặc nhấp để chọn file
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name={`streamLinks.${index}.imageUrl`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>URL ảnh đại diện (Không bắt buộc)</FormLabel>
+            <FormControl>
+              <Input
+                disabled={isLoading}
+                className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                placeholder="Nhập URL ảnh (ví dụ: https://example.com/image.png)"
+                {...field}
+                type="url"
+                onChange={(e) => {
+                  field.onChange(e);
+                  if (e.target.value) {
+                    form.setValue(`streamLinks.${index}.image`, undefined, {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -262,65 +393,28 @@ const StreamLinkField: React.FC<StreamLinkFieldProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Bình luận viên (Link này)</FormLabel>
-            <Select
-              disabled={isLoading}
-              onValueChange={field.onChange}
-              value={field.value || ""}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn bình luận viên" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent className="bg-white text-black h-[220px]">
-                {users?.length > 0 ? (
-                  users?.map((user) => (
-                    <SelectItem key={user?._id} value={user?._id ?? ""}>
-                      {user?.username}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="p-2 text-gray-500">
-                    Không có bình luận viên nào
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      {/* <FormField
-        control={form.control}
-        name={`streamLinks.${index}.commentatorImage`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Ảnh BLV (Link này)</FormLabel>
             <FormControl>
-              <div>
-                <div
-                  {...getCommentatorImageRootProps()}
-                  className={`border-2 border-dashed p-4 rounded-lg text-center cursor-pointer mt-2 ${
-                    isCommentatorImageDragActive
-                      ? "border-blue-500"
-                      : "border-gray-300"
-                  }`}
-                >
-                  <input {...getCommentatorImageInputProps()} />
-                  {field.value instanceof File ? (
-                    <p className="text-blue-600">{field.value.name}</p>
-                  ) : (
-                    <p className="!text-sm">
-                      Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
-                    </p>
-                  )}
-                </div>
-              </div>
+              <Select
+                options={filteredCommentatorOptions}
+                value={filteredCommentatorOptions.find(
+                  (option) => option.value === field.value
+                )}
+                onChange={(option) => field.onChange(option?.value || "")}
+                onInputChange={debouncedSetCommentatorSearch}
+                placeholder="Chọn bình luận viên"
+                isDisabled={isLoading}
+                isClearable
+                isSearchable
+                noOptionsMessage={() => "Không tìm thấy bình luận viên"}
+                components={{ MenuList }}
+                styles={customStyles}
+                aria-label="Bình luận viên"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
-      /> */}
+      />
       <FormField
         control={form.control}
         name={`streamLinks.${index}.priority`}
@@ -352,11 +446,91 @@ export const CreateMatchModal = () => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [sports, setSports] = useState<Sport[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [homeTeamSearch, setHomeTeamSearch] = useState("");
+  const [awayTeamSearch, setAwayTeamSearch] = useState("");
+  const [leagueSearch, setLeagueSearch] = useState("");
+  const [sportSearch, setSportSearch] = useState("");
+
+  const debouncedSetHomeTeamSearch = useCallback(
+    debounce((value: string) => setHomeTeamSearch(value), 300),
+    []
+  );
+  const debouncedSetAwayTeamSearch = useCallback(
+    debounce((value: string) => setAwayTeamSearch(value), 300),
+    []
+  );
+  const debouncedSetLeagueSearch = useCallback(
+    debounce((value: string) => setLeagueSearch(value), 300),
+    []
+  );
+  const debouncedSetSportSearch = useCallback(
+    debounce((value: string) => setSportSearch(value), 300),
+    []
+  );
+
+  const teamOptions = useMemo(
+    () =>
+      teams.map((team) => ({
+        value: team._id ?? "",
+        label: team.name ?? "",
+      })),
+    [teams]
+  );
+
+  const filteredTeamOptions = useMemo(
+    () =>
+      teamOptions.filter((option) =>
+        option.label.toLowerCase().includes(homeTeamSearch.toLowerCase())
+      ),
+    [teamOptions, homeTeamSearch]
+  );
+
+  const filteredAwayTeamOptions = useMemo(
+    () =>
+      teamOptions.filter((option) =>
+        option.label.toLowerCase().includes(awayTeamSearch.toLowerCase())
+      ),
+    [teamOptions, awayTeamSearch]
+  );
+
+  const leagueOptions = useMemo(
+    () =>
+      leagues.map((league) => ({
+        value: league._id ?? "",
+        label: league.name ?? "",
+      })),
+    [leagues]
+  );
+
+  const filteredLeagueOptions = useMemo(
+    () =>
+      leagueOptions.filter((option) =>
+        option.label.toLowerCase().includes(leagueSearch.toLowerCase())
+      ),
+    [leagueOptions, leagueSearch]
+  );
+
+  const sportOptions = useMemo(
+    () =>
+      sports.map((sport) => ({
+        value: sport._id ?? "",
+        label: sport.name ?? "",
+      })),
+    [sports]
+  );
+
+  const filteredSportOptions = useMemo(
+    () =>
+      sportOptions.filter((option) =>
+        option.label.toLowerCase().includes(sportSearch.toLowerCase())
+      ),
+    [sportOptions, sportSearch]
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      // slug: "",
       homeTeam: "",
       awayTeam: "",
       league: "",
@@ -387,7 +561,6 @@ export const CreateMatchModal = () => {
           apiGetAllSports(),
           apiGetAllUser(),
         ]);
-        console.log(usersRes);
         setTeams(teamsRes.data || []);
         setLeagues(leaguesRes.data || []);
         setSports(sportsRes.data || []);
@@ -420,7 +593,6 @@ export const CreateMatchModal = () => {
       const formData = new FormData();
       formData.append("title", values.title);
       formData.append("slug", createSlug(values.title));
-      // formData.append("slug", values.slug);
       formData.append("homeTeam", homeTeamData._id || "");
       formData.append("awayTeam", awayTeamData._id || "");
       formData.append("league", leagueData._id || "");
@@ -428,13 +600,19 @@ export const CreateMatchModal = () => {
       formData.append("startTime", values.startTime.toISOString());
       formData.append("status", values.status);
 
-      if (values.scores?.homeScore !== undefined) {
+      if (
+        values.scores?.homeScore !== undefined &&
+        values.scores?.homeScore !== null
+      ) {
         formData.append(
           "scores[homeScore]",
           values.scores.homeScore.toString()
         );
       }
-      if (values.scores?.awayScore !== undefined) {
+      if (
+        values.scores?.awayScore !== undefined &&
+        values.scores?.awayScore !== null
+      ) {
         formData.append(
           "scores[awayScore]",
           values.scores.awayScore.toString()
@@ -443,33 +621,28 @@ export const CreateMatchModal = () => {
       if (values.isHot !== undefined) {
         formData.append("isHot", values.isHot.toString());
       }
+
       const validStreamLinks =
-        values.streamLinks?.filter((link) => link.commentator) || [];
-      const processedLinks = validStreamLinks.map((link) => ({
-        label: link.label,
-        url: link.url, // Always a string URL
+        values.streamLinks?.filter((link) => link.url) || [];
+      const processedLinks = validStreamLinks.map((link, index) => ({
+        label: link.label || undefined,
+        url: link.url || undefined,
         image:
           link.image instanceof File
-            ? `file:image-${Math.random()}`
-            : undefined,
+            ? `file:image-${index}`
+            : link.imageUrl || undefined,
         commentator: link.commentator || undefined,
-        // commentatorImage:
-        //   link.commentatorImage instanceof File
-        //     ? `file:commentatorImage-${Math.random()}`
-        //     : undefined,
-        // priority: link.priority || 1,
+        priority: link.priority || 1,
       }));
 
       formData.append("streamLinks", JSON.stringify(processedLinks));
 
-      // Append files without array indexing
       validStreamLinks.forEach((link) => {
         if (link.image instanceof File) {
           formData.append("streamLinkImages", link.image);
+        } else if (link.imageUrl) {
+          formData.append("streamLinkImages", link.imageUrl);
         }
-        // if (link.commentatorImage instanceof File) {
-        //   formData.append("streamLinkCommentatorImages", link.commentatorImage);
-        // }
       });
 
       const res = await apiCreateMatch(formData);
@@ -490,12 +663,16 @@ export const CreateMatchModal = () => {
 
   const handleClose = () => {
     form.reset();
+    setHomeTeamSearch("");
+    setAwayTeamSearch("");
+    setLeagueSearch("");
+    setSportSearch("");
     onClose();
   };
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh] md:max-w-[60%] max-w-[90%]">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Tạo trận đấu
@@ -526,48 +703,32 @@ export const CreateMatchModal = () => {
                   </FormItem>
                 )}
               />
-              {/* <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slug</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        placeholder="Nhập slug"
-                        type="text"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
               <FormField
                 control={form.control}
                 name="homeTeam"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Đội nhà</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn đội nhà" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white text-black h-[220px]">
-                        {teams.map((team) => (
-                          <SelectItem key={team._id} value={team._id ?? ""}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Select
+                        options={filteredTeamOptions}
+                        value={filteredTeamOptions.find(
+                          (option) => option.value === field.value
+                        )}
+                        onChange={(option) =>
+                          field.onChange(option?.value || "")
+                        }
+                        onInputChange={debouncedSetHomeTeamSearch}
+                        placeholder="Chọn đội nhà"
+                        isDisabled={isLoading}
+                        isClearable
+                        isSearchable
+                        noOptionsMessage={() => "Không tìm thấy đội"}
+                        components={{ MenuList }}
+                        styles={customStyles}
+                        aria-label="Đội nhà"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -578,24 +739,26 @@ export const CreateMatchModal = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Đội khách</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn đội khách" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white text-black h-[220px]">
-                        {teams.map((team) => (
-                          <SelectItem key={team._id} value={team._id ?? ""}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Select
+                        options={filteredAwayTeamOptions}
+                        value={filteredAwayTeamOptions.find(
+                          (option) => option.value === field.value
+                        )}
+                        onChange={(option) =>
+                          field.onChange(option?.value || "")
+                        }
+                        onInputChange={debouncedSetAwayTeamSearch}
+                        placeholder="Chọn đội khách"
+                        isDisabled={isLoading}
+                        isClearable
+                        isSearchable
+                        noOptionsMessage={() => "Không tìm thấy đội"}
+                        components={{ MenuList }}
+                        styles={customStyles}
+                        aria-label="Đội khách"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -606,24 +769,26 @@ export const CreateMatchModal = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Giải đấu</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn giải đấu" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white text-black h-[220px]">
-                        {leagues.map((league) => (
-                          <SelectItem key={league._id} value={league._id ?? ""}>
-                            {league.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Select
+                        options={filteredLeagueOptions}
+                        value={filteredLeagueOptions.find(
+                          (option) => option.value === field.value
+                        )}
+                        onChange={(option) =>
+                          field.onChange(option?.value || "")
+                        }
+                        onInputChange={debouncedSetLeagueSearch}
+                        placeholder="Chọn giải đấu"
+                        isDisabled={isLoading}
+                        isClearable
+                        isSearchable
+                        noOptionsMessage={() => "Không tìm thấy giải đấu"}
+                        components={{ MenuList }}
+                        styles={customStyles}
+                        aria-label="Giải đấu"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -634,24 +799,26 @@ export const CreateMatchModal = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Môn thể thao</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn môn thể thao" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white text-black h-[220px]">
-                        {sports.map((sport) => (
-                          <SelectItem key={sport._id} value={sport._id ?? ""}>
-                            {sport.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Select
+                        options={filteredSportOptions}
+                        value={filteredSportOptions.find(
+                          (option) => option.value === field.value
+                        )}
+                        onChange={(option) =>
+                          field.onChange(option?.value || "")
+                        }
+                        onInputChange={debouncedSetSportSearch}
+                        placeholder="Chọn môn thể thao"
+                        isDisabled={isLoading}
+                        isClearable
+                        isSearchable
+                        noOptionsMessage={() => "Không tìm thấy môn thể thao"}
+                        components={{ MenuList }}
+                        styles={customStyles}
+                        aria-label="Môn thể thao"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -681,9 +848,6 @@ export const CreateMatchModal = () => {
                             placeholderText="Nhập ngày và giờ"
                             className="w-full p-2 border rounded placeholder:text-gray-500"
                             minDate={new Date()}
-                            // Remove selectsMultiple or set to false if allowed by context
-                            // If the error persists, comment out selectsMultiple temporarily
-                            // selectsMultiple={false}
                           />
                         )}
                       />
@@ -698,24 +862,30 @@ export const CreateMatchModal = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Trạng thái</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn trạng thái" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-white text-black h-[220px]">
-                        {Object.values(MatchStatusType).map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Select
+                        options={Object.values(MatchStatusType).map(
+                          (status) => ({
+                            value: status,
+                            label: status,
+                          })
+                        )}
+                        value={Object.values(MatchStatusType)
+                          .map((status) => ({ value: status, label: status }))
+                          .find((option) => option.value === field.value)}
+                        onChange={(option) =>
+                          field.onChange(option?.value || "")
+                        }
+                        placeholder="Chọn trạng thái"
+                        isDisabled={isLoading}
+                        isClearable
+                        isSearchable={false}
+                        noOptionsMessage={() => "Không tìm thấy trạng thái"}
+                        components={{ MenuList }}
+                        styles={customStyles}
+                        aria-label="Trạng thái"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -732,7 +902,12 @@ export const CreateMatchModal = () => {
                           disabled={isLoading}
                           type="number"
                           min={0}
-                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : null
+                            )
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -750,7 +925,12 @@ export const CreateMatchModal = () => {
                           disabled={isLoading}
                           type="number"
                           min={0}
-                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : null
+                            )
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -786,7 +966,7 @@ export const CreateMatchModal = () => {
                     form={form}
                     remove={remove}
                     isLoading={isLoading}
-                    users={users} // Truyền users từ CreateMatchModal
+                    users={users}
                   />
                 ))}
                 <Button
@@ -796,8 +976,8 @@ export const CreateMatchModal = () => {
                       label: "",
                       url: "",
                       image: undefined,
+                      imageUrl: "",
                       commentator: "",
-                      // commentatorImage: undefined,
                       priority: 1,
                     })
                   }
@@ -820,7 +1000,6 @@ export const CreateMatchModal = () => {
               >
                 Đóng
               </Button>
-
               <Button
                 disabled={isLoading}
                 type="submit"

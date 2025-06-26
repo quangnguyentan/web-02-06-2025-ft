@@ -29,8 +29,9 @@ const AppContent: React.FC = () => {
       const match =
         matchData?.filter((m) => {
           if (!m?.startTime) return false;
-          const matchDate = new Date(m.startTime);
-          const matchDay = formatDateFull(matchDate);
+          const matchDate = new Date(m?.startTime); // Chuyển startTime thành Date
+          const adjustedMatchDate = adjustToVietnamTime(matchDate); // Điều chỉnh sang UTC+07:00
+          const matchDay = formatDateFull(adjustedMatchDate);
           const todayDay = formatDateFull(vietnamToday);
           return (
             m.sport?.slug === slug &&

@@ -44,15 +44,30 @@ export function LeagueTable() {
   const { league, setLeague } = useSelectedPageContext();
   const [sports, setSports] = React.useState<Sport[]>([]); // State để lưu danh sách sports
   const theme = useTheme(); // Sử dụng theme từ MUI
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Kiểm tra breakpoint sm (600px)
+  const isXs = useMediaQuery(theme.breakpoints.down("xs")); // < 600px
+  const isSm = useMediaQuery(theme.breakpoints.between("xs", "sm")); // 600px - 899px
+  const isMd = useMediaQuery(theme.breakpoints.between("sm", "md")); // 900px - 1199px
+  const isLg = useMediaQuery(theme.breakpoints.between("md", "lg")); // 1200px - 1535px
+  const isXl = useMediaQuery(theme.breakpoints.up("xl")); // >= 1536px
 
   // Đặt pageSize động dựa trên kích thước màn hình
-  const [pageSize, setPageSize] = React.useState(isMobile ? 3 : 5);
+  const [pageSize, setPageSize] = React.useState(
+    isXs ? 3 : isSm ? 4 : isMd ? 5 : isLg ? 6 : isXl ? 8 : 8
+  ); // Giá trị mặc định
 
-  // Cập nhật pageSize khi kích thước màn hình thay đổi
   React.useEffect(() => {
-    setPageSize(isMobile ? 3 : 5);
-  }, [isMobile]);
+    if (isXs) {
+      setPageSize(3); // pageSize cho màn hình rất nhỏ
+    } else if (isSm) {
+      setPageSize(4); // pageSize cho màn hình nhỏ
+    } else if (isMd) {
+      setPageSize(5); // pageSize cho màn hình trung bình
+    } else if (isLg) {
+      setPageSize(6); // pageSize cho màn hình lớn
+    } else if (isXl) {
+      setPageSize(8); // pageSize cho màn hình rất lớn
+    }
+  }, [isXs, isSm, isMd, isLg, isXl]);
   // Chuyển sports vào getColumns
   const columns = React.useMemo(
     () => getColumns(onOpen, sports),
@@ -134,7 +149,7 @@ export function LeagueTable() {
 
   return (
     <div className="w-full shadow-lg drop-shadow-lg ">
-      <div className="flex items-center py-4 justify-between flex-col gap-2 sm:gap-0 sm:flex-row">
+      <div className="flex items-center py-4 px-6 justify-between flex-col gap-2 sm:gap-0 sm:flex-row">
         <Input
           placeholder="Tìm kiếm theo tên giải đấu..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

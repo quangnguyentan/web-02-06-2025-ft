@@ -12,7 +12,7 @@ export const createLeague = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, sport } = req.body;
+    const { name, slug, sport, logo } = req.body;
     const logoFile = req.file; // File uploaded via multer
 
     // Validation: Kiểm tra xem sport ID có hợp lệ không
@@ -29,15 +29,20 @@ export const createLeague = async (
       return;
     }
 
-    let logoUrl: string | undefined;
+    let finalLogoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `${configURL.baseURL}/images/${path.basename(logoFile.path)}`;
+      // Nếu có file được tải lên, sử dụng đường dẫn file
+      finalLogoUrl = `${configURL.baseURL}/images/${path.basename(
+        logoFile.path
+      )}`;
+    } else if (logo) {
+      // Nếu có logoUrl từ input text, sử dụng nó
+      finalLogoUrl = logo;
     }
-
     const newLeague: ILeague = new League({
       name,
       slug,
-      logo: logoUrl,
+      logo: finalLogoUrl,
       sport,
     });
     await newLeague.save();
@@ -89,7 +94,7 @@ export const updateLeague = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, sport, removeLogo } = req.body;
+    const { name, slug, sport, logo, removeLogo } = req.body;
     const logoFile = req.file;
 
     // Validation: Kiểm tra xem sport ID có hợp lệ không nếu được cung cấp
@@ -118,15 +123,24 @@ export const updateLeague = async (
 
     // Handle logo update
     if (logoFile) {
+      // Nếu có file mới, sử dụng đường dẫn file
       updateData.logo = `${configURL.baseURL}/images/${path.basename(
         logoFile.path
       )}`;
+    } else if (logo) {
+      // Nếu có logoUrl từ input text, sử dụng nó
+      updateData.logo = logo;
     } else if (removeLogo === "true") {
-      // Delete existing logo file if it exists
+      // Xóa logo nếu yêu cầu
       const league = await League.findById(req.params.id);
-      if (league?.logo) {
+
+      if (
+        league?.logo &&
+        `${league.logo.startsWith(configURL.baseURL as string)}/images/`
+      ) {
+        // Chỉ xóa file nếu logo là file được lưu trên server
         const fileName = path.basename(league.logo);
-        const filePath = path.join(__dirname, "../../assets/images", fileName);
+        const filePath = path.join(__dirname, "../public/images", fileName);
         try {
           await fs.unlink(filePath);
         } catch (err) {
@@ -150,7 +164,6 @@ export const updateLeague = async (
     res.status(500).json({ message: "Lỗi server", error });
   }
 };
-
 // @desc    Xóa một giải đấu
 // @route   DELETE /api/leagues/:id
 export const deleteLeague = async (
@@ -163,10 +176,13 @@ export const deleteLeague = async (
       res.status(404).json({ message: "Không tìm thấy giải đấu" });
       return;
     }
-    // Delete the logo file if it exists
-    if (deletedLeague.logo) {
+    // Delete the logo file if it exists and is a local file
+    if (
+      deletedLeague.logo &&
+      `${deletedLeague.logo.startsWith(configURL.baseURL as string)}/images/`
+    ) {
       const fileName = path.basename(deletedLeague.logo);
-      const filePath = path.join(__dirname, "../../assets/images", fileName);
+      const filePath = path.join(__dirname, "../public/images", fileName);
       try {
         await fs.unlink(filePath);
       } catch (err) {

@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { Loader } from "@/components/layout/Loader";
 
 const Replay: React.FC = () => {
-  const { replayData, fetchData, loading } = useData();
+  const { replayData, fetchReplays, loading } = useData();
 
   const [replaySuggestions, setReplaySuggestions] = React.useState<Replay[]>(
     []
@@ -16,17 +16,20 @@ const Replay: React.FC = () => {
   React.useEffect(() => {
     const loadMatchData = async () => {
       if (!replayData.length && !loading) {
-        await fetchData();
+        await fetchReplays();
       }
-      const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
-      setReplaySuggestions(replay);
     };
     loadMatchData();
-  }, [slug, replayData, fetchData, loading]);
-
+  }, [replayData.length, loading, fetchReplays]);
+  const filteredReplays = React.useMemo(() => {
+    return replayData.filter((r) => r.sport?.slug === slug && r.isShown);
+  }, [replayData, slug]);
+  React.useEffect(() => {
+    setReplaySuggestions(filteredReplays);
+  }, [filteredReplays]);
   const featuredBroadcasts = React.useMemo(() => {
     return replaySuggestions.map((replay) => ({
-      id: replay._id || "",
+      id: replay._id ?? "",
       playerImage: replay.match?.homeTeam?.logo || "",
       playerName: replay.match?.homeTeam?.name || "",
       time:
@@ -44,9 +47,9 @@ const Replay: React.FC = () => {
     if (!replay) return null;
     return {
       playerImages: [
-        replay.match?.homeTeam?.logo || "",
-        replay.match?.awayTeam?.logo || "",
-        replay.thumbnail || "",
+        replay.match?.homeTeam?.logo ?? "",
+        replay.match?.awayTeam?.logo ?? "",
+        replay.thumbnail ?? "",
       ],
       replay: replay,
       description: `${replay?.title}`,
@@ -87,17 +90,13 @@ const Replay: React.FC = () => {
     }));
   }, [replaySuggestions]);
 
-  const sidebarReplays = React.useMemo(() => {
-    return replaySuggestions;
-  }, [replaySuggestions]);
-
   if (loading) return <Loader />;
   return (
     <ReplayHubPage
       featuredBroadcasts={featuredBroadcasts}
       highlightedEvent={highlightedEvent as HighlightedEventInfo}
       categorizedReplays={categorizedReplays}
-      sidebarReplays={sidebarReplays}
+      sidebarReplays={filteredReplays}
     />
   );
 };

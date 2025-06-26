@@ -43,7 +43,6 @@ const Live: React.FC = () => {
     () => replayData?.filter((replay) => replay?.sport?.slug === slugSport),
     [replayData, slugSport]
   );
-
   useEffect(() => {
     const loadMatchData = async () => {
       if (!matchData.length && !loading) {
@@ -54,9 +53,9 @@ const Live: React.FC = () => {
     };
     loadMatchData();
   }, [slugSport, slug, matchData, fetchData, loading]); // Added `slug` to dependency array
-
-  console.log(currentMatch);
-
+  useEffect(() => {
+    console.log("Current match updated:", currentMatch);
+  }, [currentMatch]);
   return (
     <React.Suspense fallback={<Loader />}>
       <div className="flex">

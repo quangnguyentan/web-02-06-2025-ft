@@ -77,7 +77,7 @@ const ReplaySection: React.FC<ReplaySectionProps> = ({
 
   return (
     <section className="py-3 sm:py-4 px-1 sm:px-4 md:px-3">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
+      <div className="flex flex-row items-center justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
         <h2 className="sm:text-xl md:text-2xl  text-white flex items-center !font-bold uppercase !text-xl">
           🎞️ {title}
         </h2>

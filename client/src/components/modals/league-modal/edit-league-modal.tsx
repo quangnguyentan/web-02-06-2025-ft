@@ -38,19 +38,17 @@ import { createSlug } from "@/lib/helper";
 
 const leagueFormSchema = z.object({
   name: z.string().min(1, { message: "Tên giải đấu là bắt buộc" }),
-  // slug: z
-  //   .string()
-  //   .min(1, { message: "Slug là bắt buộc" })
-  //   .regex(/^[a-z0-9-]+$/i, {
-  //     message: "Slug chỉ được chứa chữ thường, số hoặc dấu gạch ngang",
-  //   })
-  //   .transform((val) => val.toLowerCase()),
   logo: z
     .instanceof(File)
     .refine((file) => file && /image\/(jpg|jpeg|png)/.test(file.type), {
       message: "Vui lòng chọn file ảnh hợp lệ (.jpg, .jpeg, .png)",
     })
     .optional(),
+  logoUrl: z
+    .string()
+    .url({ message: "Vui lòng nhập URL hợp lệ" })
+    .optional()
+    .or(z.literal("")),
   sport: z.string().min(1, { message: "Môn thể thao là bắt buộc" }),
   removeLogo: z.boolean().optional(),
 });
@@ -67,8 +65,8 @@ export const EditLeagueModal = () => {
     resolver: zodResolver(leagueFormSchema),
     defaultValues: {
       name: "",
-      // slug: "",
       logo: undefined,
+      logoUrl: "",
       sport: "",
       removeLogo: false,
     },
@@ -76,21 +74,36 @@ export const EditLeagueModal = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  const onDropLogo = useCallback(
-    (acceptedFiles: File[]) => {
+  const onDrop = useCallback(
+    (acceptedFiles: File[], fileRejections: any[], event: any) => {
+      // Kiểm tra nếu kéo-thả là file
       if (acceptedFiles[0]) {
         form.setValue("logo", acceptedFiles[0], { shouldValidate: true });
-        form.setValue("removeLogo", false);
+        form.setValue("logoUrl", "", { shouldValidate: true }); // Xóa logoUrl nếu có file
+        form.setValue("removeLogo", false, { shouldValidate: true });
+      } else {
+        // Kiểm tra nếu kéo-thả là text (URL)
+        const dataTransfer = event.dataTransfer;
+        if (dataTransfer.types.includes("text/uri-list")) {
+          const url = dataTransfer.getData("text/uri-list");
+          if (url && z.string().url().safeParse(url).success) {
+            form.setValue("logoUrl", url, { shouldValidate: true });
+            form.setValue("logo", undefined, { shouldValidate: true }); // Xóa logo file nếu có URL
+            form.setValue("removeLogo", false, { shouldValidate: true });
+          } else {
+            toast.error("URL không hợp lệ");
+          }
+        }
       }
     },
     [form]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: onDropLogo,
+    onDrop,
     accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB limit to match multer
+    maxSize: 10 * 1024 * 1024, // 10MB limit
     onDropRejected: (fileRejections) => {
       const error =
         fileRejections[0]?.errors[0]?.message || "File ảnh không hợp lệ";
@@ -118,8 +131,8 @@ export const EditLeagueModal = () => {
     if (isModalOpen && leagueToEdit) {
       form.reset({
         name: leagueToEdit.name || "",
-        // slug: leagueToEdit.slug || "",
         logo: undefined,
+        logoUrl: leagueToEdit.logo || "",
         sport: leagueToEdit.sport?._id || "",
         removeLogo: false,
       });
@@ -145,10 +158,12 @@ export const EditLeagueModal = () => {
 
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("slug", createSlug(values?.name));
+      formData.append("slug", createSlug(values.name));
       formData.append("sport", values.sport);
       if (values.logo) {
         formData.append("logo", values.logo);
+      } else if (values.logoUrl) {
+        formData.append("logo", values.logoUrl);
       }
       if (values.removeLogo && currentLogo) {
         formData.append("removeLogo", "true");
@@ -181,7 +196,7 @@ export const EditLeagueModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh]">
+      <DialogContent className="bg-white text-black p-0 overflow-y-auto max-h-[90vh] md:max-w-[60%] max-w-[90%]">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Chỉnh Sửa Giải Đấu
@@ -209,31 +224,14 @@ export const EditLeagueModal = () => {
                   </FormItem>
                 )}
               />
-              {/* <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slug</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={isLoading}
-                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        placeholder="Nhập slug (ví dụ: premier-league)"
-                        {...field}
-                        type="text"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
               <FormField
                 control={form.control}
                 name="logo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Logo (Không bắt buộc)</FormLabel>
+                    <FormLabel>
+                      Logo (Kéo thả file hoặc URL - Không bắt buộc)
+                    </FormLabel>
                     <FormControl>
                       <div>
                         {currentLogo && !form.watch("removeLogo") && (
@@ -256,14 +254,68 @@ export const EditLeagueModal = () => {
                         >
                           <input {...getInputProps()} />
                           {field.value ? (
-                            <p className="text-blue-600">{field.value.name}</p>
+                            <div>
+                              <p className="text-blue-600">
+                                {field.value.name}
+                              </p>
+                              <img
+                                src={URL.createObjectURL(field.value)}
+                                alt="Preview"
+                                className="mt-2 max-w-full h-auto max-h-32"
+                              />
+                            </div>
+                          ) : form.getValues("logoUrl") ? (
+                            <div>
+                              <p className="text-blue-600">
+                                URL: {form.getValues("logoUrl")}
+                              </p>
+                              <img
+                                src={form.getValues("logoUrl")}
+                                alt="Preview"
+                                className="mt-2 max-w-full h-auto max-h-32"
+                                onError={() =>
+                                  toast.error("Không thể tải hình ảnh từ URL")
+                                }
+                              />
+                            </div>
                           ) : (
                             <p className="!text-sm">
-                              Kéo và thả file ảnh tại đây (.jpg, .jpeg, .png)
+                              Kéo và thả file ảnh (.jpg, .jpeg, .png) hoặc URL
+                              tại đây, hoặc nhấp để chọn file
                             </p>
                           )}
                         </div>
                       </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="logoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL Logo (Không bắt buộc)</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={isLoading}
+                        className="bg-zinc-100 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        placeholder="Nhập URL logo (ví dụ: https://example.com/logo.png)"
+                        {...field}
+                        type="url"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (e.target.value) {
+                            form.setValue("logo", undefined, {
+                              shouldValidate: true,
+                            }); // Xóa logo file nếu nhập URL
+                            form.setValue("removeLogo", false, {
+                              shouldValidate: true,
+                            });
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -280,7 +332,12 @@ export const EditLeagueModal = () => {
                         onCheckedChange={(checked) => {
                           field.onChange(checked);
                           if (checked) {
-                            form.setValue("logo", undefined);
+                            form.setValue("logo", undefined, {
+                              shouldValidate: true,
+                            });
+                            form.setValue("logoUrl", "", {
+                              shouldValidate: true,
+                            });
                           }
                         }}
                         disabled={isLoading || !currentLogo}

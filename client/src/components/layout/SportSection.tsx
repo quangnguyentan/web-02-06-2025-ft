@@ -59,7 +59,7 @@ const SportSection: React.FC<SportSectionProps> = ({
 
   return (
     <section className="py-3 sm:py-4 px-1 sm:px-4 md:px-3">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4">
+      <div className="flex flex-row items-center justify-between sm:items-center mb-3 sm:mb-4">
         <h2
           className={`${titleClassName} flex items-center mb-2 sm:mb-0 !font-bold uppercase !text-xl`}
         >

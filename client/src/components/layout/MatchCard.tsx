@@ -156,41 +156,43 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
           boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
       >
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
-          {match?.streamLinks?.[0]?.commentatorImage && (
-            <img
-              src={match?.streamLinks[0]?.commentatorImage}
-              alt={commentatorName}
-              className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
-            />
-          )}
-          {match?.streamLinks?.[0]?.commentator && (
-            <span className="text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">
-              {commentatorName}
-            </span>
-          )}
+        <div className="flex items-center space-x-2 w-full sm:w-auto justify-between">
+          <div className="flex items-center w-2/4">
+            {match?.streamLinks?.[0]?.commentatorImage && (
+              <img
+                src={match?.streamLinks[0]?.commentatorImage}
+                alt={commentatorName}
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
+              />
+            )}
+            {match?.streamLinks?.[0]?.commentator && (
+              <span className="text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">
+                {commentatorName}
+              </span>
+            )}
+          </div>
+          <div className="sm:hidden flex items-center gap-1 w-2/4">
+            <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] font-semibold py-1 rounded transition-colors text-center w-full !text-[9px]">
+              Xem Ngay
+            </a>
+            <a
+              className=" bg-green-500 hover:bg-green-600  text-white  font-semibold py-1  rounded transition-colors text-center w-full !text-[9px]"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // window.open("https://b.thapcam73.life/", "_blank");
+              }}
+            >
+              Đặt Cược
+            </a>
+          </div>
         </div>
         <div className="hidden sm:flex items-center gap-2">
-          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1.5 px-6 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
+          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] sm:text-sm font-semibold py-1 px-6 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm">
             Xem Ngay
           </a>
           <a
-            className=" bg-green-500 hover:bg-green-600  text-white  sm:text-sm font-semibold py-1.5 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // window.open("https://b.thapcam73.life/", "_blank");
-            }}
-          >
-            Đặt Cược
-          </a>
-        </div>
-        <div className="sm:hidden flex flex-col items-center gap-2 w-full">
-          <a className="bg-blue-600 hover:bg-blue-500 text-white hover:text-[#333] font-semibold py-1  rounded transition-colors text-center w-full !text-xs">
-            Xem Ngay
-          </a>
-          <a
-            className=" bg-green-500 hover:bg-green-600  text-white  font-semibold py-1  rounded transition-colors text-center w-full !text-xs"
+            className=" bg-green-500 hover:bg-green-600  text-white  sm:text-sm font-semibold py-1 px-2 sm:px-3 rounded transition-colors text-center w-full sm:w-auto !text-sm"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

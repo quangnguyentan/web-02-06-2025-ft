@@ -10,9 +10,21 @@ const today = new Date();
 
 const Schedule: React.FC = () => {
   // Loại bỏ fetchData ở đây vì nó không còn được gọi trực tiếp trong component này.
-  const { matchData, replayData, loading, error } = useData();
+  const { matchData, replayData, loading, error, fetchMatches, fetchReplays } =
+    useData();
   const { slug } = useParams();
-
+  React.useEffect(() => {
+    const loadData = async () => {
+      if ((!matchData.length || !replayData.length) && !loading) {
+        try {
+          await Promise.all([fetchMatches(), fetchReplays()]);
+        } catch (error) {
+          console.error("Error loading data:", error);
+        }
+      }
+    };
+    loadData();
+  }, [matchData, replayData, fetchMatches, fetchReplays, loading]);
   // Lấy dữ liệu giả lập từ useScheduleData (chỉ gọi một lần)
   const { scheduleData: mockScheduleData } = useScheduleData([]);
   const mockReplayData: Replay[] = React.useMemo(() => [], []); // Dữ liệu giả lập cho replay, memoize rỗng

@@ -173,8 +173,8 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
           boxShadow: "0 0 0 2px rgba(255, 164, 92, 0.6)",
         }}
       >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-1.5 overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1.5 overflow-hidden w-2/4">
             {match.streamLinks?.[0]?.commentatorImage ? (
               <img
                 src={match.streamLinks[0].commentatorImage}
@@ -188,17 +188,17 @@ const SpotlightMatchCard: React.FC<{ match: Match }> = ({ match }) => {
               {commentatorName}
             </span>
           </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <a className="flex-1 bg-blue-600 hover:bg-blue-500 text-white hover:text-gray-800 sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm">
-            Xem Ngay
-          </a>
-          <a
-            href="#"
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white sm:text-sm font-semibold py-1.5 px-2 rounded transition-colors text-center !text-sm"
-          >
-            Đặt Cược
-          </a>
+          <div className="flex sm:flex-row gap-2 w-2/4">
+            <a className="flex-1 bg-blue-600 hover:bg-blue-500 text-white hover:text-gray-800 sm:text-sm font-semibold py-1 px-0 md:py-1.5 md:px-2 rounded transition-colors text-center md:text-sm !text-xs">
+              Xem Ngay
+            </a>
+            <a
+              href="#"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white sm:text-sm font-semibold py-1 px-0 md:py-1.5 md:px-2 rounded transition-colors text-center md:text-sm !text-xs"
+            >
+              Đặt Cược
+            </a>
+          </div>
         </div>
       </div>
     </div>

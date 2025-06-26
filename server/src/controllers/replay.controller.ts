@@ -1,6 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import Replay, { IReplay } from "../models/replay.model";
 import Match from "../models/match.model";
+import Sport from "../models/sport.model";
 import { upload } from "../middlewares/multer";
 import fs from "fs/promises";
 import path from "path";
@@ -39,7 +40,6 @@ export const createReplay: RequestHandler[] = [
   async (req: Request, res: Response): Promise<void> => {
     try {
       const body = req.body;
-      // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
             videoUrl?: Express.Multer.File[];
@@ -47,47 +47,60 @@ export const createReplay: RequestHandler[] = [
           }
         | undefined;
 
-      // Validate match
+      // Validate match and sport
       const matchExists = await Match.findById(body.match);
       if (!matchExists) {
         res.status(400).json({ message: "ID trận đấu không hợp lệ" });
         return;
       }
-
-      // Validate video file
-      // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
-      if (!files?.videoUrl?.[0]) {
-        res.status(400).json({ message: "File video là bắt buộc" });
+      const sportExists = await Sport.findById(body.sport);
+      if (!sportExists) {
+        res.status(400).json({ message: "ID môn thể thao không hợp lệ" });
         return;
       }
 
-      // Handle video file
-      // Accessing files.videoUrl[0] is now safe because of the check above
-      const videoUrl = `${configURL.baseURL}/images/${path.basename(
-        files.videoUrl[0].path
-      )}`;
+      // Validate video (file or URL)
+      let videoUrl: string | undefined;
+      if (files?.videoUrl?.[0]) {
+        videoUrl = `${configURL.baseURL}/images/${path.basename(
+          files.videoUrl[0].path
+        )}`;
+      } else if (body.videoUrl) {
+        videoUrl = body.videoUrl;
+      } else {
+        res
+          .status(400)
+          .json({ message: "Phải cung cấp file video hoặc URL video" });
+        return;
+      }
 
-      // Handle thumbnail file (optional)
-      const thumbnailUrl = files?.thumbnail?.[0]
-        ? `${configURL.baseURL}/images/${path.basename(
-            files.thumbnail[0].path
-          )}`
-        : undefined;
+      // Handle thumbnail (optional)
+      let thumbnailUrl: string | undefined;
+      if (files?.thumbnail?.[0]) {
+        thumbnailUrl = `${configURL.baseURL}/images/${path.basename(
+          files.thumbnail[0].path
+        )}`;
+      } else if (body.thumbnail) {
+        thumbnailUrl = body.thumbnail;
+      }
 
       // Prepare replay data
       const replayData: Partial<IReplay> = {
         title: body.title,
-        slug: body.slug,
-        description: body.description,
+        slug: body.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, ""),
+        description: body.description || undefined,
         videoUrl,
-        thumbnail: thumbnailUrl,
+        thumbnail: thumbnailUrl || undefined,
         match: body.match,
         sport: body.sport,
         duration: body.duration ? Number(body.duration) : undefined,
         views: body.views ? Number(body.views) : 0,
-        commentator: body.commentator,
-        publishDate: body.publishDate || new Date().toISOString(),
-        isShown: body.isShown === "true" ? true : false,
+        commentator: body.commentator || undefined,
+        publishDate: body.publishDate ? new Date(body.publishDate) : new Date(),
+        isShown: body.isShown === "true",
       };
 
       const newReplay = new Replay(replayData);
@@ -108,7 +121,7 @@ export const createReplay: RequestHandler[] = [
 
       res.status(201).json(populatedReplay);
     } catch (error: any) {
-      console.error(error);
+      console.error("Create Replay Error:", error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },
@@ -194,22 +207,12 @@ export const updateReplay: RequestHandler[] = [
   async (req: Request, res: Response): Promise<void> => {
     try {
       const body = req.body;
-      // *** FIX: Type assertion for files ***
       const files = req.files as
         | {
             videoUrl?: Express.Multer.File[];
             thumbnail?: Express.Multer.File[];
           }
         | undefined;
-
-      // Validate match if provided
-      if (body.match) {
-        const matchExists = await Match.findById(body.match);
-        if (!matchExists) {
-          res.status(400).json({ message: "ID trận đấu không hợp lệ" });
-          return;
-        }
-      }
 
       // Find existing replay
       const existingReplay = await Replay.findById(req.params.id);
@@ -218,17 +221,107 @@ export const updateReplay: RequestHandler[] = [
         return;
       }
 
+      // Validate match and sport if provided
+      if (body.match) {
+        const matchExists = await Match.findById(body.match);
+        if (!matchExists) {
+          res.status(400).json({ message: "ID trận đấu không hợp lệ" });
+          return;
+        }
+      }
+      if (body.sport) {
+        const sportExists = await Sport.findById(body.sport);
+        if (!sportExists) {
+          res.status(400).json({ message: "ID môn thể thao không hợp lệ" });
+          return;
+        }
+      }
+
       // Collect old file paths for deletion
       const oldFiles: string[] = [];
 
-      // Initialize update data
+      // Handle video
+      let videoUrl: string | undefined;
+      if (files?.videoUrl?.[0]) {
+        videoUrl = `${configURL.baseURL}/images/${path.basename(
+          files.videoUrl[0].path
+        )}`;
+        if (
+          existingReplay.videoUrl?.startsWith(`${configURL.baseURL}/images/`)
+        ) {
+          oldFiles.push(
+            path.join(
+              __dirname,
+              "../public/images",
+              path.basename(existingReplay.videoUrl)
+            )
+          );
+        }
+      } else if (body.videoUrl) {
+        videoUrl = body.videoUrl;
+      } else {
+        videoUrl = existingReplay.videoUrl;
+      }
+
+      // Handle thumbnail
+      let thumbnailUrl: string | undefined;
+      if (files?.thumbnail?.[0]) {
+        thumbnailUrl = `${configURL.baseURL}/images/${path.basename(
+          files.thumbnail[0].path
+        )}`;
+        if (
+          existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/images/`)
+        ) {
+          oldFiles.push(
+            path.join(
+              __dirname,
+              "../public/images",
+              path.basename(existingReplay.thumbnail)
+            )
+          );
+        }
+      } else if (body.thumbnail === "") {
+        thumbnailUrl = undefined;
+        if (
+          existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/images/`)
+        ) {
+          oldFiles.push(
+            path.join(
+              __dirname,
+              "../public/images",
+              path.basename(existingReplay.thumbnail)
+            )
+          );
+        }
+      } else if (body.thumbnail) {
+        thumbnailUrl = body.thumbnail;
+      } else {
+        thumbnailUrl = existingReplay.thumbnail;
+      }
+
+      // Validate videoUrl
+      if (!videoUrl) {
+        res
+          .status(400)
+          .json({ message: "Phải cung cấp file video hoặc URL video" });
+        return;
+      }
+
+      // Prepare update data
       const updateData: Partial<IReplay> = {
         title: body.title || existingReplay.title,
-        slug: body.slug || existingReplay.slug,
+        slug: body.title
+          ? body.title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+          : existingReplay.slug,
         description:
           body.description !== undefined
             ? body.description
             : existingReplay.description,
+        videoUrl,
+        thumbnail: thumbnailUrl,
         match: body.match || existingReplay.match,
         sport: body.sport || existingReplay.sport,
         duration: body.duration
@@ -239,7 +332,9 @@ export const updateReplay: RequestHandler[] = [
           body.commentator !== undefined
             ? body.commentator
             : existingReplay.commentator,
-        publishDate: body.publishDate || existingReplay.publishDate,
+        publishDate: body.publishDate
+          ? new Date(body.publishDate)
+          : existingReplay.publishDate,
         isShown:
           body.isShown === "true"
             ? true
@@ -247,56 +342,6 @@ export const updateReplay: RequestHandler[] = [
             ? false
             : existingReplay.isShown,
       };
-
-      // Handle video upload
-      // Now 'files' is correctly typed, so 'files?.videoUrl' is valid
-      if (files?.videoUrl?.[0]) {
-        updateData.videoUrl = `${configURL.baseURL}/images/${path.basename(
-          files.videoUrl[0].path
-        )}`;
-        if (
-          existingReplay.videoUrl?.startsWith(`${configURL.baseURL}/images/`)
-        ) {
-          const filename = path.basename(existingReplay.videoUrl);
-          oldFiles.push(path.join(__dirname, "../public/images", filename));
-        }
-      } else if (body.videoUrl) {
-        updateData.videoUrl = body.videoUrl;
-      } else {
-        updateData.videoUrl = existingReplay.videoUrl;
-      }
-
-      // Handle thumbnail upload
-      // Now 'files' is correctly typed, so 'files?.thumbnail' is valid
-      if (files?.thumbnail?.[0]) {
-        updateData.thumbnail = `${configURL.baseURL}/images/${path.basename(
-          files.thumbnail[0].path
-        )}`;
-        if (
-          existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/images/`)
-        ) {
-          const filename = path.basename(existingReplay.thumbnail);
-          oldFiles.push(path.join(__dirname, "../public/images", filename));
-        }
-      } else if (body.thumbnail === "") {
-        updateData.thumbnail = undefined;
-        if (
-          existingReplay.thumbnail?.startsWith(`${configURL.baseURL}/images/`)
-        ) {
-          const filename = path.basename(existingReplay.thumbnail);
-          oldFiles.push(path.join(__dirname, "../public/images", filename));
-        }
-      } else if (body.thumbnail) {
-        updateData.thumbnail = body.thumbnail;
-      } else {
-        updateData.thumbnail = existingReplay.thumbnail;
-      }
-
-      // Validate videoUrl
-      if (!updateData.videoUrl) {
-        res.status(400).json({ message: "URL video là bắt buộc" });
-        return;
-      }
 
       // Update replay
       const updatedReplay = await Replay.findByIdAndUpdate(
@@ -328,16 +373,17 @@ export const updateReplay: RequestHandler[] = [
       // Delete old files
       for (const filePath of oldFiles) {
         try {
-          await fs.access(filePath); // Check if file exists before trying to unlink
           await fs.unlink(filePath);
-        } catch (err) {
-          console.error(`Lỗi khi xóa file cũ: ${filePath}`, err);
+        } catch (err: any) {
+          if (err.code !== "ENOENT") {
+            console.error(`Lỗi khi xóa file cũ: ${filePath}`, err);
+          }
         }
       }
 
       res.status(200).json(updatedReplay);
     } catch (error: any) {
-      console.error(error);
+      console.error("Update Replay Error:", error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },
@@ -356,7 +402,7 @@ export const deleteReplay = async (
       return;
     }
 
-    // Delete video file if it exists
+    // Delete video file
     if (deletedReplay.videoUrl?.startsWith(`${configURL.baseURL}/images/`)) {
       const videoPath = path.join(
         __dirname,
@@ -364,14 +410,15 @@ export const deleteReplay = async (
         path.basename(deletedReplay.videoUrl)
       );
       try {
-        await fs.access(videoPath); // Check if file exists before trying to unlink
         await fs.unlink(videoPath);
-      } catch (err) {
-        console.error(`Lỗi khi xóa file video: ${videoPath}`, err);
+      } catch (err: any) {
+        if (err.code !== "ENOENT") {
+          console.error(`Lỗi khi xóa file video: ${videoPath}`, err);
+        }
       }
     }
 
-    // Delete thumbnail file if it exists
+    // Delete thumbnail file
     if (deletedReplay.thumbnail?.startsWith(`${configURL.baseURL}/images/`)) {
       const thumbnailPath = path.join(
         __dirname,
@@ -379,16 +426,18 @@ export const deleteReplay = async (
         path.basename(deletedReplay.thumbnail)
       );
       try {
-        await fs.access(thumbnailPath); // Check if file exists before trying to unlink
         await fs.unlink(thumbnailPath);
-      } catch (err) {
-        console.error(`Lỗi khi xóa file thumbnail: ${thumbnailPath}`, err);
+      } catch (err: any) {
+        if (err.code !== "ENOENT") {
+          console.error(`Lỗi khi xóa file thumbnail: ${thumbnailPath}`, err);
+        }
       }
     }
 
     await Replay.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Đã xóa video thành công" });
   } catch (error: any) {
+    console.error("Delete Replay Error:", error);
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };

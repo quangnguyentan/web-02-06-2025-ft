@@ -31,7 +31,8 @@ const sportIconMap: Record<string, React.ReactNode> = {
 };
 
 const AppContent: React.FC = () => {
-  const { matchData, replayData, loading } = useData();
+  const { matchData, replayData, loading, fetchMatches, fetchReplays } =
+    useData();
   const [sports, setSports] = React.useState<Sport[]>([]);
   const today = new Date(); // Lấy thời gian hiện tại
   const vietnamToday = adjustToVietnamTime(today); // Điều chỉnh sang UTC+07:00
@@ -48,8 +49,19 @@ const AppContent: React.FC = () => {
     };
     fetchSports();
   }, []);
-
-  // Filter matches by sport slug
+  React.useEffect(() => {
+    const loadMatchData = async () => {
+      if ((!matchData.length && !loading) || (!replayData.length && !loading)) {
+        try {
+          await Promise.all([fetchMatches(), fetchReplays()]);
+          console.timeEnd("fetchData");
+        } catch (error) {
+          console.error("Error loading data:", error);
+        }
+      }
+    };
+    loadMatchData();
+  }, [matchData, replayData, fetchMatches, fetchReplays, loading]);
   const filterMatchesBySport = React.useCallback(
     (slug: string) => {
       return matchData.filter((match) => {
@@ -110,21 +122,22 @@ const AppContent: React.FC = () => {
       <HeroSection />
       <div className="hidden md:flex flex-col items-center justify-center gap-2 py-4 overflow-x-auto">
         <span className="text-center text-white text-sm md:text-lg md:font-semibold">
-          HOIQUANTV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online
-          nhanh nhất - Hội Quán TV
+          HOIQUANTV xem trực tiếp eSports, bóng đá, bóng rổ, bóng chuyền, tennis
+          online nhanh nhất - Hội Quán TV
         </span>
         <span className="text-center text-white text-sm md:text-sm">
-          HoiQuanTV là kênh cập nhật link xem trực tiếp bóng đá, bóng chuyền,
-          bóng rổ và các môn thể thao khác cho Fan hâm mộ Việt Nam và Quốc tế
-          qua kết nối Internet. Xem thể thao trực tuyến với trên HoiQuanTV
+          HoiQuanTV là kênh cập nhật link xem trực tiếp eSports, bóng đá, bóng
+          chuyền, bóng rổ và các môn thể thao khác cho Fan hâm mộ Việt Nam và
+          Quốc tế qua kết nối Internet. Xem thể thao trực tuyến với trên
+          HoiQuanTV
         </span>
       </div>
       <div className="flex md:hidden items-center gap-2 py-4 overflow-x-auto scrollable-x w-full ">
         <span className="text-center text-white text-sm font-semibold flex-shrink-0">
-          HOIQUANTV xem trực tiếp bóng đá, bóng rổ, bóng chuyền, tennis online
-          nhanh nhất - Hội Quán TV. HoiQuanTV là kênh cập nhật link xem trực
-          tiếp bóng đá, bóng chuyền, bóng rổ và các môn thể thao khác cho Fan
-          hâm mộ Việt Nam và Quốc tế qua kết nối Internet. Xem thể thao trực
+          HOIQUANTV xem trực tiếp eSports, bóng đá, bóng rổ, bóng chuyền, tennis
+          online nhanh nhất - Hội Quán TV. HoiQuanTV là kênh cập nhật link xem
+          trực tiếp bóng đá, bóng chuyền, bóng rổ và các môn thể thao khác cho
+          Fan hâm mộ Việt Nam và Quốc tế qua kết nối Internet. Xem thể thao trực
           tuyến với trên HoiQuanTV
         </span>
       </div>

@@ -52,28 +52,27 @@ const Public = () => {
   }, []); // Empty dependency array ensures it runs only once on mount
 
   return (
-    <DataProvider>
-      <UserInteractionProvider>
-        <div
-          ref={containerRef}
-          className="bg-slate-700 text-brand-text overflow-y-auto h-screen "
-        >
-          <div className="flex flex-col min-h-screen bg-[#1E2027]">
-            {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}
-            <div className="pt-[6px] flex-grow relative">
-              <Header />
-              <div className="container mx-auto relative px-1 sm:px-0">
-                <div className="hidden lg:block">
-                  {/* <VerticalAdBanner position="left" imageUrl={belt_left_right} /> */}
-                  {/* <VerticalAdBanner position="right" imageUrl={belt_left_right} /> */}
-                </div>
-                <Outlet />
+    <UserInteractionProvider>
+      <div
+        ref={containerRef}
+        className="bg-slate-700 text-brand-text overflow-y-auto h-screen "
+      >
+        <div className="flex flex-col min-h-screen bg-[#1E2027]">
+          {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}
+          <div className="pt-[6px] flex-grow relative">
+            <Header />
+            <div className="container mx-auto relative px-1 sm:px-0">
+              <div className="hidden lg:block">
+                {/* <VerticalAdBanner position="left" imageUrl={belt_left_right} /> */}
+                {/* <VerticalAdBanner position="right" imageUrl={belt_left_right} /> */}
               </div>
-              <FooterInfo />
+              <Outlet />
             </div>
-            {/* <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} /> */}
-            {/* <FloatingChatButton /> */}
-            {/* <Modal
+            <FooterInfo />
+          </div>
+          {/* <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} /> */}
+          {/* <FloatingChatButton /> */}
+          {/* <Modal
             open={open}
             onClose={handleClose}
             aria-labelledby="modal-modal-title"
@@ -103,10 +102,9 @@ const Public = () => {
               </div>
             </Box>
           </Modal> */}
-          </div>
         </div>
-      </UserInteractionProvider>
-    </DataProvider>
+      </div>
+    </UserInteractionProvider>
   );
 };
 

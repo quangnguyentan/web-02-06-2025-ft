@@ -41,6 +41,7 @@ export const apiCreateSport = async (data: FormData) => {
       method: "POST",
       url: "/sports/",
       data,
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response;
   } catch (error) {

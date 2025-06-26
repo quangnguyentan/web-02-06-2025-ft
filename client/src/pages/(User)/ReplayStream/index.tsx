@@ -18,9 +18,16 @@ const ReplayStreamPage = React.lazy(
 
 const ReplayStream: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { replayData, loading, error } = useData();
+  const { replayData, fetchReplays, loading, error } = useData();
   const { selectedSportsNavbarPage } = useSelectedPageContext();
-  console.log(selectedSportsNavbarPage);
+  React.useEffect(() => {
+    const loadReplayData = async () => {
+      if (!replayData.length && !loading) {
+        await fetchReplays();
+      }
+    };
+    loadReplayData();
+  }, [replayData, fetchReplays, loading]);
   const currentReplay = useMemo(() => {
     if (error || !replayData.length) {
       return null;

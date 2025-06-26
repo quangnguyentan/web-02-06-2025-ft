@@ -1,8 +1,16 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import Sport, { ISport } from "../models/sport.model";
 import path from "path";
 import fs from "fs/promises";
 import { configURL } from "../configs/configURL";
+import { upload } from "../middlewares/multer";
+const createSlug = (name: string): string =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+// @desc    Tạo một môn thể thao mới
+// @route   POST /api/sports
 
 // @desc    Tạo một môn thể thao mới
 // @route   POST /api/sports
@@ -11,31 +19,50 @@ export const createSport = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, order } = req.body;
-    const iconFile = req.file; // File uploaded via multer
+    const { name, order, iconUrl } = req.body;
+    const iconFile = req.file;
 
-    // Kiểm tra xem slug đã tồn tại chưa
+    // Validate required fields
+    if (!name) {
+      res.status(400).json({ message: "Tên môn thể thao là bắt buộc" });
+      return;
+    }
+
+    // Generate slug from name
+    const slug = createSlug(name);
+
+    // Check if slug already exists
     const existingSport = await Sport.findOne({ slug });
     if (existingSport) {
       res.status(409).json({ message: "Slug đã tồn tại" });
       return;
     }
 
-    let iconUrl: string | undefined;
+    // Handle icon (file or URL)
+    let finalIconUrl: string | undefined;
     if (iconFile) {
-      iconUrl = `${configURL.baseURL}/images/${path.basename(iconFile.path)}`;
+      // Nếu có file được tải lên, sử dụng đường dẫn file
+      finalIconUrl = `${configURL.baseURL}/images/${path.basename(
+        iconFile.path
+      )}`;
+    } else if (iconUrl) {
+      // Nếu có logoUrl từ input text, sử dụng nó
+      finalIconUrl = iconUrl;
     }
-
-    const newSport: ISport = new Sport({
+    const newSport: Partial<ISport> = {
       name,
       slug,
-      icon: iconUrl,
-      order: order ? Number(order) : 0,
-    });
-    await newSport.save();
-    res.status(201).json(newSport);
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+      icon: finalIconUrl,
+      order: order ? Number(order) : 1,
+    };
+
+    const createdSport = new Sport(newSport);
+    await createdSport.save();
+
+    res.status(201).json(createdSport);
+  } catch (error: any) {
+    console.error("Create Sport Error:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
@@ -78,47 +105,89 @@ export const updateSport = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, order, removeIcon } = req.body;
+    const { name, order } = req.body;
     const iconFile = req.file;
 
-    // Kiểm tra xem slug mới có bị trùng không (nếu có thay đổi slug)
-    if (slug) {
-      const existingSport = await Sport.findOne({
+    // Find existing sport
+    const existingSport = await Sport.findById(req.params.id);
+    if (!existingSport) {
+      res.status(404).json({ message: "Không tìm thấy môn thể thao" });
+      return;
+    }
+
+    // Generate slug from name if provided
+    let slug = existingSport.slug;
+    if (name) {
+      slug = createSlug(name);
+      // Check if new slug already exists
+      const slugExists = await Sport.findOne({
         slug,
         _id: { $ne: req.params.id },
       });
-      if (existingSport) {
+      if (slugExists) {
         res.status(409).json({ message: "Slug đã tồn tại" });
         return;
       }
     }
 
-    const updateData: Partial<ISport> = {
-      name,
-      slug,
-      order: order ? Number(order) : undefined,
-    };
+    // Collect old file path for deletion
+    const oldFiles: string[] = [];
 
-    // Handle icon update
+    // Handle icon
+    let iconUrl: string | undefined;
     if (iconFile) {
-      updateData.icon = `${configURL.baseURL}/images/${path.basename(
-        iconFile.path
-      )}`;
-    } else if (removeIcon === "true") {
-      // Delete existing icon file if it exists
-      const sport = await Sport.findById(req.params.id);
-      if (sport?.icon) {
-        const fileName = path.basename(sport.icon);
-        const filePath = path.join(__dirname, "../../assets/images", fileName);
-        try {
-          await fs.unlink(filePath);
-        } catch (err) {
-          console.error("Error deleting icon file:", err);
-        }
+      iconUrl = `${configURL.baseURL}/images/${path.basename(iconFile.path)}`;
+      if (existingSport.icon?.startsWith(`${configURL.baseURL}/images/`)) {
+        oldFiles.push(
+          path.join(
+            __dirname,
+            "../public/images",
+            path.basename(existingSport.icon)
+          )
+        );
       }
-      updateData.icon = undefined;
+    } else if (req.body.icon) {
+      // Validate URL
+      try {
+        new URL(req.body.icon);
+        iconUrl = req.body.icon;
+      } catch {
+        res.status(400).json({ message: "URL ảnh không hợp lệ" });
+        return;
+      }
+      if (existingSport.icon?.startsWith(`${configURL.baseURL}/images/`)) {
+        oldFiles.push(
+          path.join(
+            __dirname,
+            "../public/images",
+            path.basename(existingSport.icon)
+          )
+        );
+      }
+    } else if (req.body.removeIcon === "true") {
+      iconUrl = undefined;
+      if (existingSport.icon?.startsWith(`${configURL.baseURL}/images/`)) {
+        oldFiles.push(
+          path.join(
+            __dirname,
+            "../public/images",
+            path.basename(existingSport.icon)
+          )
+        );
+      }
+    } else {
+      iconUrl = existingSport.icon;
     }
 
+    // Prepare update data
+    const updateData: Partial<ISport> = {
+      name: name || existingSport.name,
+      slug,
+      icon: iconUrl,
+      order: order ? Number(order) : existingSport.order,
+    };
+
+    // Update sport
     const updatedSport = await Sport.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -127,13 +196,27 @@ export const updateSport = async (
         runValidators: true,
       }
     );
+
     if (!updatedSport) {
       res.status(404).json({ message: "Không tìm thấy môn thể thao" });
       return;
     }
+
+    // Delete old files
+    for (const filePath of oldFiles) {
+      try {
+        await fs.unlink(filePath);
+      } catch (err: any) {
+        if (err.code !== "ENOENT") {
+          console.error(`Lỗi khi xóa file cũ: ${filePath}`, err);
+        }
+      }
+    }
+
     res.status(200).json(updatedSport);
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+  } catch (error: any) {
+    console.error("Update Sport Error:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
@@ -144,23 +227,32 @@ export const deleteSport = async (
   res: Response
 ): Promise<void> => {
   try {
-    const deletedSport = await Sport.findByIdAndDelete(req.params.id);
-    if (!deletedSport) {
+    const sport = await Sport.findById(req.params.id);
+    if (!sport) {
       res.status(404).json({ message: "Không tìm thấy môn thể thao" });
       return;
     }
-    // Delete the icon file if it exists
-    if (deletedSport.icon) {
-      const fileName = path.basename(deletedSport.icon);
-      const filePath = path.join(__dirname, "../../assets/images", fileName);
+
+    // Delete icon file if exists
+    if (sport.icon?.startsWith(`${configURL.baseURL}/images/`)) {
+      const filePath = path.join(
+        __dirname,
+        "../public/images",
+        path.basename(sport.icon)
+      );
       try {
         await fs.unlink(filePath);
-      } catch (err) {
-        console.error("Error deleting icon file:", err);
+      } catch (err: any) {
+        if (err.code !== "ENOENT") {
+          console.error(`Lỗi khi xóa file icon: ${filePath}`, err);
+        }
       }
     }
+
+    await Sport.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Đã xóa môn thể thao thành công" });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+  } catch (error: any) {
+    console.error("Delete Sport Error:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };

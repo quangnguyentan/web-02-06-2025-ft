@@ -12,7 +12,7 @@ export const createTeam = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, sport } = req.body;
+    const { name, slug, sport, logo } = req.body;
     const logoFile = req.file; // File uploaded via multer
 
     // Validate sport ID
@@ -22,15 +22,28 @@ export const createTeam = async (
       return;
     }
 
-    let logoUrl: string | undefined;
+    // Check if slug already exists
+    const existingTeam = await Team.findOne({ slug });
+    if (existingTeam) {
+      res.status(409).json({ message: "Slug đã tồn tại" });
+      return;
+    }
+
+    let finalLogoUrl: string | undefined;
     if (logoFile) {
-      logoUrl = `${configURL.baseURL}/images/${path.basename(logoFile.path)}`;
+      // If a file is uploaded, use the file path
+      finalLogoUrl = `${configURL.baseURL}/images/${path.basename(
+        logoFile.path
+      )}`;
+    } else if (logo) {
+      // If a logo URL is provided, use it
+      finalLogoUrl = logo;
     }
 
     const newTeam: ITeam = new Team({
       name,
       slug,
-      logo: logoUrl,
+      logo: finalLogoUrl,
       sport,
     });
 
@@ -81,7 +94,7 @@ export const updateTeam = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, slug, sport, removeLogo } = req.body;
+    const { name, slug, sport, logo, removeLogo } = req.body;
     const logoFile = req.file;
 
     // Validate sport ID if provided
@@ -93,20 +106,36 @@ export const updateTeam = async (
       }
     }
 
+    // Check if slug is unique (if provided)
+    if (slug) {
+      const existingTeam = await Team.findOne({
+        slug,
+        _id: { $ne: req.params.id },
+      });
+      if (existingTeam) {
+        res.status(409).json({ message: "Slug đã tồn tại" });
+        return;
+      }
+    }
+
     const updateData: Partial<ITeam> = { name, slug };
     if (sport) updateData.sport = sport;
 
     // Handle logo update
     if (logoFile) {
+      // If a new file is uploaded, use the file path
       updateData.logo = `${configURL.baseURL}/images/${path.basename(
         logoFile.path
       )}`;
+    } else if (logo) {
+      // If a logo URL is provided, use it
+      updateData.logo = logo;
     } else if (removeLogo === "true") {
-      // Delete existing logo file if it exists
+      // Delete existing logo file if it exists and is a local file
       const team = await Team.findById(req.params.id);
-      if (team?.logo) {
-        const fileName = path.basename(team.logo); // Extract filename from URL
-        const filePath = path.join(__dirname, "../../assets/images", fileName);
+      if (team?.logo && team.logo.startsWith(`${configURL.baseURL}/images/`)) {
+        const fileName = path.basename(team.logo);
+        const filePath = path.join(__dirname, "../public/images", fileName);
         try {
           await fs.unlink(filePath);
         } catch (err) {
@@ -148,10 +177,13 @@ export const deleteTeam = async (
       res.status(404).json({ message: "Không tìm thấy đội" });
       return;
     }
-    // Delete the logo file if it exists
-    if (deletedTeam.logo) {
-      const fileName = path.basename(deletedTeam.logo); // Extract filename from URL
-      const filePath = path.join(__dirname, "../../assets/images", fileName);
+    // Delete the logo file if it exists and is a local file
+    if (
+      deletedTeam.logo &&
+      deletedTeam.logo.startsWith(`${configURL.baseURL}/images/`)
+    ) {
+      const fileName = path.basename(deletedTeam.logo);
+      const filePath = path.join(__dirname, "../public/images", fileName);
       try {
         await fs.unlink(filePath);
       } catch (err) {
