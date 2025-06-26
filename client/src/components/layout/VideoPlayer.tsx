@@ -57,6 +57,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const lastTouchTime = useRef<number>(0); // Theo dõi thời gian chạm cuối cùng
 
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
@@ -352,6 +353,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
+  // Xử lý double-tap trên mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTouchTime.current;
+    if (tapLength < 300 && tapLength > 0) {
+      e.preventDefault(); // Ngăn chạm kép mở menu trình duyệt
+      handleFullscreen();
+    }
+    lastTouchTime.current = currentTime;
+  };
+
   if (!videoUrl) {
     return (
       <div className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl flex items-center justify-center">
@@ -396,6 +408,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }`}
         onClick={handleVideoClick}
         onDoubleClick={isMobile ? undefined : handleFullscreen}
+        onTouchStart={isMobile ? handleTouchStart : undefined} // Thêm xử lý double-tap trên mobile
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
