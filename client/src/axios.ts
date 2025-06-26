@@ -8,12 +8,14 @@ import { apiRefreshToken } from "./services/auth.services";
 
 const production = "https://sv.hoiquan.live/api";
 const development = "http://localhost:8080/api";
+const API_BASE_URL =
+  import.meta.env.VITE_NODE_ENV === "production" ? production : development;
 const { store } = reduxStore();
 const typedDispatch = store.dispatch as AppDispatch;
 
 const instance = axios.create({
-  baseURL: production,
-  // baseURL: development,
+  // baseURL: production,
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 

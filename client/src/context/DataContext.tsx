@@ -8,11 +8,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
-
+console.log("Vite NODE_ENV:", import.meta.env.VITE_NODE_ENV);
 const production = "https://sv.hoiquan.live";
 const development = "http://localhost:8080";
 const API_BASE_URL =
-  process.env.NODE_ENV === "production" ? production : development;
+  import.meta.env.VITE_NODE_ENV === "production" ? production : development;
 
 const fetchData = async (url: string) => {
   const controller = new AbortController();
