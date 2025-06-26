@@ -7,41 +7,24 @@ import {
   mockResultsData,
 } from "@/data/mockResultsData";
 import { Match, MatchStatusType } from "@/types/match.types";
-import { useParams } from "react-router-dom";
 import { Replay } from "@/types/replay.types";
+import { useParams } from "react-router-dom";
 import { Loader } from "@/components/layout/Loader";
 
 const today = new Date();
 
 const Result: React.FC = () => {
-  const { matchData, replayData, fetchMatches, fetchReplays, loading, error } =
-    useData();
-  const { slug } = useParams();
-  React.useEffect(() => {
-    const loadData = async () => {
-      if ((!matchData.length || !replayData.length) && !loading) {
-        try {
-          await Promise.all([fetchMatches(), fetchReplays()]);
-        } catch (error) {
-          console.error("Error loading data:", error);
-        }
-      }
-    };
-    loadData();
-  }, [matchData, replayData, fetchMatches, fetchReplays, loading]);
-
-  const mockReplayData: Replay[] = React.useMemo(() => [], []);
+  const { matchData, replayData, loading, error } = useData();
+  const { slug } = useParams<{ slug: string }>();
 
   const currentMatchResults = React.useMemo(() => {
-    let matchesToFilter: Match[] = [];
+    // Flatten mockResultsData into a Match[] array
+    const mockMatches: Match[] = Object.values(mockResultsData)
+      .flat()
+      .flatMap((league: any) => league.matches);
 
-    if (!matchData.length || error) {
-      matchesToFilter = Array.isArray(mockResultsData)
-        ? (mockResultsData as Match[])
-        : [];
-    } else {
-      matchesToFilter = matchData;
-    }
+    const matchesToFilter =
+      error || !matchData?.length ? mockMatches : matchData;
 
     return matchesToFilter.filter((m) => {
       const matchDate = new Date(m.startTime ?? "");
@@ -54,32 +37,27 @@ const Result: React.FC = () => {
     });
   }, [matchData, error, slug]);
 
-  const replaySuggestions = React.useMemo(() => {
-    if (!replayData.length || error) {
-      return mockReplayData;
-    } else {
-      return replayData.filter((r) => r.sport?.slug === slug) || [];
-    }
-  }, [replayData, error, mockReplayData, slug]);
+  const replaySuggestions = React.useMemo(
+    () =>
+      error || !replayData?.length
+        ? []
+        : replayData.filter((r) => r.sport?.slug === slug),
+    [replayData, error, slug]
+  );
 
   const { dateTabs, scheduleData } =
     useScheduleDataForResults(currentMatchResults);
 
-  const initialDateId = React.useMemo(() => {
-    return (
+  const initialDateId = React.useMemo(
+    () =>
       dateTabs.find((tab) => tab.isToday)?.id ||
-      dateTabs.find((tab) => tab.id !== "live")?.id ||
-      formatDate(today)
-    );
-  }, [dateTabs]);
+      dateTabs[0]?.id ||
+      formatDate(today),
+    [dateTabs]
+  );
 
-  if (error) {
-    return <Loader />;
-  }
-
-  if (loading && !matchData.length && !replayData.length) {
-    return <Loader />;
-  }
+  if (loading && !matchData?.length && !replayData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <ResultsPage

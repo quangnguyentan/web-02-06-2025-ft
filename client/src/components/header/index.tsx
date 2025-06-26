@@ -68,11 +68,11 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
       return getSportNameFromSlug(urlSlug) ?? "eSports";
     }
     const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
-    if (savedSportName && sportData.some((s) => s.name === savedSportName)) {
+    if (savedSportName && sportData?.some((s) => s.name === savedSportName)) {
       return savedSportName;
     }
     return "eSports";
-  }, [location.pathname, sportData]);
+  }, [location.pathname, sportData, getSportNameFromSlug]);
   const style = {
     position: "absolute",
     top: "50%",
@@ -308,7 +308,7 @@ const SportsNavbar: React.FC = () => {
   const { selectedSportsNavbarPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
   React.useEffect(() => {
-    if (sportData.length === 0) return;
+    if (sportData?.length === 0) return;
 
     // Check if set by ReplayCard
     const setByReplayCard = localStorage.getItem("setByReplayCard") === "true";
@@ -355,7 +355,7 @@ const SportsNavbar: React.FC = () => {
         const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
         if (
           savedSportName &&
-          sportData.some((s) => s.name === savedSportName)
+          sportData?.some((s) => s.name === savedSportName)
         ) {
           initialSportName = savedSportName;
         }
@@ -465,14 +465,14 @@ const DrawerMenu: React.FC<{
       return getSportNameFromSlug(urlSlug) ?? "eSports";
     }
     const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
-    if (savedSportName && sportData.some((s) => s.name === savedSportName)) {
+    if (savedSportName && sportData?.some((s) => s.name === savedSportName)) {
       return savedSportName;
     }
     return "eSports";
   }, [location.pathname, sportData]);
 
   React.useEffect(() => {
-    if (sportData.length === 0) return;
+    if (sportData?.length === 0) return;
 
     // Check if set by ReplayCard
     const setByReplayCard = localStorage.getItem("setByReplayCard") === "true";
@@ -519,7 +519,7 @@ const DrawerMenu: React.FC<{
         const savedSportName = localStorage.getItem("selectedSportsNavbarPage");
         if (
           savedSportName &&
-          sportData.some((s) => s.name === savedSportName)
+          sportData?.some((s) => s.name === savedSportName)
         ) {
           initialSportName = savedSportName;
         }

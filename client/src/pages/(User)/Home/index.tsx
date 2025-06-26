@@ -3,9 +3,7 @@ import * as React from "react";
 import { DataProvider, useData } from "@/context/DataContext";
 import { MatchStatusType } from "@/types/match.types";
 import { Suspense } from "react";
-import { adjustToVietnamTime, formatDateFull } from "@/lib/helper";
-import { apiGetAllSports } from "@/services/sport.services";
-import { Sport } from "@/types/sport.types";
+import { adjustToVietnamTime, formatDate } from "@/lib/helper";
 import { EventsIcon } from "@/components/layout/Icon";
 import { Loader } from "@/components/layout/Loader";
 
@@ -17,7 +15,6 @@ const ReplaySection = React.lazy(
   () => import("@/components/layout/ReplaySection")
 );
 
-// Icon mapping for each sport slug
 const sportIconMap: Record<string, React.ReactNode> = {
   esports: "🎮",
   pool: "🎱",
@@ -31,48 +28,19 @@ const sportIconMap: Record<string, React.ReactNode> = {
 };
 
 const AppContent: React.FC = () => {
-  const { matchData, replayData, loading, fetchMatches, fetchReplays } =
-    useData();
-  const [sports, setSports] = React.useState<Sport[]>([]);
-  const today = new Date(); // Lấy thời gian hiện tại
-  const vietnamToday = adjustToVietnamTime(today); // Điều chỉnh sang UTC+07:00
+  const { matchData, replayData, sportData, loading, error } = useData();
+  const today = React.useMemo(() => new Date(), []);
+  const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
 
-  // Fetch sports data
-  React.useEffect(() => {
-    const fetchSports = async () => {
-      try {
-        const res = await apiGetAllSports();
-        setSports(res.data);
-      } catch (error) {
-        console.error("Error fetching sports:", error);
-      }
-    };
-    fetchSports();
-  }, []);
-  React.useEffect(() => {
-    const loadMatchData = async () => {
-      if ((!matchData.length && !loading) || (!replayData.length && !loading)) {
-        try {
-          await Promise.all([fetchMatches(), fetchReplays()]);
-          console.timeEnd("fetchData");
-        } catch (error) {
-          console.error("Error loading data:", error);
-        }
-      }
-    };
-    loadMatchData();
-  }, [matchData, replayData, fetchMatches, fetchReplays, loading]);
   const filterMatchesBySport = React.useCallback(
     (slug: string) => {
-      return matchData.filter((match) => {
+      return (matchData || []).filter((match) => {
         if (!match?.startTime) return false;
-        const matchDate = new Date(match.startTime); // Chuyển startTime thành Date
-        const adjustedMatchDate = adjustToVietnamTime(matchDate); // Điều chỉnh sang UTC+07:00
-        const matchDay = formatDateFull(adjustedMatchDate);
-        const todayDay = formatDateFull(vietnamToday);
+        const matchDate = adjustToVietnamTime(new Date(match.startTime));
+        const matchDay = formatDate(matchDate);
+        const todayDay = formatDate(vietnamToday);
         return (
-          match?.sport &&
-          match.sport.slug === slug &&
+          match?.sport?.slug === slug &&
           match?.status !== MatchStatusType.FINISHED &&
           match?.status !== MatchStatusType.CANCELLED &&
           matchDay === todayDay
@@ -82,25 +50,22 @@ const AppContent: React.FC = () => {
     [matchData, vietnamToday]
   );
 
-  // Compute matches for each sport
   const sportMatches = React.useMemo(() => {
-    return sports.reduce(
+    return (sportData || []).reduce(
       (acc, sport) => ({
         ...acc,
         [sport.slug ?? ""]: filterMatchesBySport(sport.slug ?? ""),
       }),
       {} as Record<string, typeof matchData>
     );
-  }, [sports, filterMatchesBySport]);
+  }, [sportData, filterMatchesBySport]);
 
-  // Spotlight matches (unchanged)
   const spotlightMatches = React.useMemo(() => {
-    return matchData.filter((match) => {
+    return (matchData || []).filter((match) => {
       if (!match?.startTime) return false;
-      const matchDate = new Date(match.startTime);
-      const adjustedMatchDate = adjustToVietnamTime(matchDate);
-      const matchDay = formatDateFull(adjustedMatchDate);
-      const todayDay = formatDateFull(vietnamToday);
+      const matchDate = adjustToVietnamTime(new Date(match.startTime));
+      const matchDay = formatDate(matchDate);
+      const todayDay = formatDate(vietnamToday);
       return (
         match?.isHot &&
         match?.status !== MatchStatusType.FINISHED &&
@@ -110,12 +75,12 @@ const AppContent: React.FC = () => {
     });
   }, [matchData, vietnamToday]);
 
-  // Replay filter (unchanged)
   const replayFilter = React.useMemo(() => {
-    return replayData?.filter((match) => match?.isShown);
+    return (replayData || []).filter((match) => match?.isShown);
   }, [replayData]);
 
-  if (loading || !sports.length) return <Loader />;
+  if (loading || !sportData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <Suspense fallback={<Loader />}>
@@ -132,7 +97,7 @@ const AppContent: React.FC = () => {
           HoiQuanTV
         </span>
       </div>
-      <div className="flex md:hidden items-center gap-2 py-4 overflow-x-auto scrollable-x w-full ">
+      <div className="flex md:hidden items-center gap-2 py-4 overflow-x-auto scrollable-x w-full">
         <span className="text-center text-white text-sm font-semibold flex-shrink-0">
           HOIQUANTV xem trực tiếp eSports, bóng đá, bóng rổ, bóng chuyền, tennis
           online nhanh nhất - Hội Quán TV. HoiQuanTV là kênh cập nhật link xem
@@ -141,28 +106,21 @@ const AppContent: React.FC = () => {
           tuyến với trên HoiQuanTV
         </span>
       </div>
-      <main
-        className="w-full mx-auto 
-        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
-        lg:max-w-[1024px] 
-        xl:max-w-[1200px] 
-        2xl:max-w-[1440px] 
-        3xl:max-w-[1440px]"
-      >
+      <main className="w-full mx-auto max-w-[640px] sm:max-w-[768px] md:max-w-[960px] lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] 3xl:max-w-[1440px]">
         <SportSection
           title="TÂM ĐIỂM THỂ THAO"
           icon={sportIconMap["events"] || <EventsIcon className="w-6 h-6" />}
           matches={spotlightMatches}
           isSpotlight
         />
-        {/* <div className="px-1 sm:px-4 md:px-6">
+        <div className="px-1 sm:px-4 md:px-6">
           <img
             src={belt_bottom_top}
             alt="Ad Banner"
             className="object-cover md:w-full"
           />
-        </div> */}
-        {sports.map((sport) => (
+        </div>
+        {sportData.map((sport) => (
           <SportSection
             key={sport._id}
             title={sport.name ?? ""}

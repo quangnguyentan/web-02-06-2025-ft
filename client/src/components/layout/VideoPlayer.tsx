@@ -11,6 +11,8 @@ import {
 import { Cog8ToothIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useUserInteraction } from "@/context/UserInteractionContext";
 import { useTheme, useMediaQuery } from "@mui/material";
+import { Match } from "@/types/match.types";
+import { CountdownCircleTimer } from "react-countdown-circle-timer";
 
 // Mở rộng kiểu HTMLVideoElement để hỗ trợ webkit
 interface ExtendedVideoElement extends HTMLVideoElement {
@@ -26,7 +28,34 @@ interface VideoPlayerProps {
   isYouTubeStream?: boolean;
   mimeType?: string;
   autoPlay?: boolean;
+  match?: Match;
 }
+
+// Define constants and helper functions
+const minuteSeconds = 60;
+const hourSeconds = 3600;
+const daySeconds = 86400;
+
+const timerProps = {
+  isPlaying: true,
+  size: 120,
+  strokeWidth: 6,
+};
+
+const renderTime = (dimension: any, time: any) => {
+  return (
+    <div className="time-wrapper">
+      <div className="time">{time}</div>
+      <div>{dimension}</div>
+    </div>
+  );
+};
+
+const getTimeSeconds = (time: any) => (minuteSeconds - time) | 0;
+const getTimeMinutes = (time: any) =>
+  ((time % hourSeconds) / minuteSeconds) | 0;
+const getTimeHours = (time: any) => ((time % daySeconds) / hourSeconds) | 0;
+const getTimeDays = (time: any) => (time / daySeconds) | 0;
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoTitle = "Live Stream",
@@ -35,6 +64,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isYouTubeStream = false,
   mimeType = "auto",
   autoPlay = false,
+  match,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -44,7 +74,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // Keep as string | null
   const [showControls, setShowControls] = useState(true); // Luôn giữ true
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
@@ -54,11 +84,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showPlayButton, setShowPlayButton] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false); // Native fullscreen state
   const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
+  const [countdownActive, setCountdownActive] = useState(false); // New state for countdown
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const lastTouchTime = useRef<number>(0); // Theo dõi thời gian chạm cuối cùng
-
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
   const isYouTubeUrl = videoUrl?.match(
@@ -78,6 +109,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setCurrentLevel(-1);
     setIsFullscreen(false);
     setIsCustomFullscreen(false);
+    setCountdownActive(false); // Reset countdown
   }, [videoUrl]);
 
   useEffect(() => {
@@ -85,6 +117,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const video = videoRef.current;
     video.playsInline = true;
+    video.controls = false; // Explicitly disable native controls
     const isM3u8 = videoUrl.endsWith(".m3u8") && !isYouTubeStream;
     const isHlsSupported = Hls.isSupported();
     const isNativeHlsSupported = video.canPlayType(
@@ -144,7 +177,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       });
       video.addEventListener("error", () => {
-        setError("Failed to load media. Please check the stream URL.");
+        const startTimeVN = new Date(
+          new Date(match?.startTime || "").toLocaleString("en-US", {
+            timeZone: "Asia/Ho_Chi_Minh",
+          })
+        ).getTime();
+        const nowVN = new Date().toLocaleString("en-US", {
+          timeZone: "Asia/Ho_Chi_Minh",
+        });
+        const nowVNTime = new Date(nowVN).getTime();
+        if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
+          setCountdownActive(true); // Activate countdown
+        } else {
+          setError("Failed to load media. Please check the stream URL.");
+        }
       });
     }
 
@@ -155,7 +201,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const isCurrentlyFullscreen =
         !!document.fullscreenElement || !!video.webkitDisplayingFullscreen;
       setIsFullscreen(isCurrentlyFullscreen);
-
+      setShowControls(isCurrentlyFullscreen); // Show controls in fullscreen
       if (!isCurrentlyFullscreen && isPlaying) {
         setTimeout(() => {
           video.play().catch((err) => {
@@ -176,6 +222,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     video.addEventListener("pause", handlePause);
 
+    // Add click listener to wrapper div for desktop
+    const handleWrapperClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      if (
+        videoRef.current &&
+        !youTubeVideoId &&
+        !isMobile &&
+        (isFullscreen || isCustomFullscreen)
+      ) {
+        console.log("Wrapper clicked in fullscreen on desktop"); // Debug log
+        togglePlay();
+      }
+    };
+    if (videoWrapperRef.current) {
+      videoWrapperRef.current.addEventListener("click", handleWrapperClick, {
+        capture: true,
+      });
+    }
+
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -187,13 +252,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         videoRef.current.removeEventListener("error", () => {});
         videoRef.current.removeEventListener("pause", handlePause);
       }
+      if (videoWrapperRef.current) {
+        videoWrapperRef.current.removeEventListener(
+          "click",
+          handleWrapperClick
+        );
+      }
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
         "webkitfullscreenchange",
         handleFullscreenChange
       );
     };
-  }, [videoUrl, isYouTubeStream, youTubeVideoId]);
+  }, [videoUrl, isYouTubeStream, youTubeVideoId, isMobile]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -260,8 +331,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             setHasUserInteracted(true);
           })
           .catch((err) => {
-            setError(`Playback failed: ${err.message}`);
+            // setError(`Playback failed: ${err.message}`);
             console.error("Play error:", err);
+            const startTimeVN = new Date(
+              new Date(match?.startTime || "").toLocaleString("en-US", {
+                timeZone: "Asia/Ho_Chi_Minh",
+              })
+            ).getTime();
+            const nowVN = new Date().toLocaleString("en-US", {
+              timeZone: "Asia/Ho_Chi_Minh",
+            });
+            const nowVNTime = new Date(nowVN).getTime();
+            if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
+              setCountdownActive(true); // Activate countdown on play error
+            } else {
+              setError("Failed to load media. Please check the stream URL.");
+            }
           });
       } else {
         videoRef.current.pause();
@@ -312,6 +397,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           video.webkitEnterFullscreen();
         }
         setIsFullscreen(true);
+        setShowControls(true); // Ensure controls are visible in fullscreen
       } else {
         if (document.fullscreenElement && document.exitFullscreen) {
           document.exitFullscreen();
@@ -319,15 +405,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           video.webkitExitFullscreen();
         }
         setIsFullscreen(false);
+        setShowControls(true); // Restore controls on exit
       }
     }
   };
 
   const handleCustomFullscreen = () => {
-    if (!isCustomFullscreen) {
-      setIsCustomFullscreen(true);
-    } else {
-      setIsCustomFullscreen(false);
+    if (!isFullscreen) {
+      // Only allow custom fullscreen if not in native fullscreen
+      setIsCustomFullscreen(!isCustomFullscreen);
     }
   };
 
@@ -397,50 +483,56 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     <div
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
+      onClick={(e) => e.stopPropagation()} // Prevent parent clicks from interfering
     >
-      <video
-        ref={videoRef}
-        poster={posterUrl}
-        className={`w-full h-full object-contain ${
+      <div
+        ref={videoWrapperRef}
+        className={`w-full h-full ${
           isCustomFullscreen
-            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0"
-            : "z-10"
+            ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            : ""
         }`}
         onClick={handleVideoClick}
-        onDoubleClick={isMobile ? undefined : handleFullscreen}
-        onTouchStart={isMobile ? handleTouchStart : undefined} // Thêm xử lý double-tap trên mobile
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onVolumeChange={() => {
-          if (videoRef.current) {
-            setVolume(videoRef.current.volume);
-            setIsMuted(videoRef.current.muted);
-          }
-        }}
-        autoPlay={false}
       >
-        {videoUrl && (
-          <source
-            src={videoUrl}
-            type={
-              mimeType ||
-              (videoUrl.endsWith(".m3u8")
-                ? "application/x-mpegURL"
-                : videoUrl.endsWith(".mp3")
-                ? "audio/mpeg"
-                : "video/mp4")
+        <video
+          ref={videoRef}
+          poster={posterUrl}
+          className={`w-full h-full object-contain z-10`}
+          onDoubleClick={isMobile ? undefined : handleFullscreen}
+          onTouchStart={isMobile ? handleTouchStart : undefined} // Thêm xử lý double-tap trên mobile
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onVolumeChange={() => {
+            if (videoRef.current) {
+              setVolume(videoRef.current.volume);
+              setIsMuted(videoRef.current.muted);
             }
-          />
-        )}
-        Your browser does not support the video tag.
-      </video>
+          }}
+          autoPlay={false}
+        >
+          {videoUrl && (
+            <source
+              src={videoUrl}
+              type={
+                mimeType ||
+                (videoUrl.endsWith(".m3u8")
+                  ? "application/x-mpegURL"
+                  : videoUrl.endsWith(".mp3")
+                  ? "audio/mpeg"
+                  : "video/mp4")
+              }
+            />
+          )}
+          Your browser does not support the video tag.
+        </video>
+      </div>
 
       {showPlayButton && isMobile && !isPlaying && (
         <button
           onClick={togglePlay}
-          aria-label="Play video"
+          aria-label={isPlaying ? "Pause" : "Play"}
           className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors z-50"
         >
           <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
@@ -453,14 +545,128 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       )}
 
-      {!isPlaying && posterUrl && !error && !showPlayButton && (
+      {!isPlaying &&
+        posterUrl &&
+        !error &&
+        !showPlayButton &&
+        !countdownActive && (
+          <button
+            onClick={togglePlay}
+            aria-label="Play video"
+            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-50"
+          >
+            {isPlaying ? (
+              <PauseCircleIconSolid className="w-20 h-20" />
+            ) : (
+              <PlayCircleIconSolid className="w-20 h-20 " />
+            )}
+          </button>
+        )}
+      {isPlaying && !showPlayButton && (
         <button
           onClick={togglePlay}
           aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-50"
+          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors opacity-0 z-50"
         >
-          <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
+          {isPlaying ? (
+            <PauseCircleIconSolid className="w-20 h-20" />
+          ) : (
+            <PlayCircleIconSolid className="w-20 h-20 " />
+          )}
         </button>
+      )}
+
+      {countdownActive && !error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-center p-4">
+          {(() => {
+            const startTimeVN = new Date(
+              new Date(match?.startTime || "").toLocaleString("en-US", {
+                timeZone: "Asia/Ho_Chi_Minh",
+              })
+            ).getTime();
+            const nowVN = new Date(
+              new Date().toLocaleString("en-US", {
+                timeZone: "Asia/Ho_Chi_Minh",
+              })
+            ).getTime();
+            const totalRemainingTime = Math.floor((startTimeVN - nowVN) / 1000);
+            const days = Math.ceil(totalRemainingTime / daySeconds);
+            const daysDuration = days * daySeconds;
+
+            return (
+              <div className="md:flex space-x-4 md:flex-row hidden">
+                <CountdownCircleTimer
+                  {...timerProps}
+                  colors="#00CCFF"
+                  duration={daysDuration}
+                  initialRemainingTime={totalRemainingTime}
+                >
+                  {({ elapsedTime, color }) => (
+                    <span style={{ color }}>
+                      {renderTime(
+                        "ngày",
+                        getTimeDays(daysDuration - elapsedTime)
+                      )}
+                    </span>
+                  )}
+                </CountdownCircleTimer>
+                <CountdownCircleTimer
+                  {...timerProps}
+                  colors="#3399FF"
+                  duration={daySeconds}
+                  initialRemainingTime={totalRemainingTime % daySeconds}
+                  onComplete={(totalElapsedTime) => ({
+                    shouldRepeat:
+                      totalRemainingTime - totalElapsedTime > hourSeconds,
+                  })}
+                >
+                  {({ elapsedTime, color }) => (
+                    <span style={{ color }}>
+                      {renderTime(
+                        "giờ",
+                        getTimeHours(daySeconds - elapsedTime)
+                      )}
+                    </span>
+                  )}
+                </CountdownCircleTimer>
+                <CountdownCircleTimer
+                  {...timerProps}
+                  colors="#00CC00"
+                  duration={hourSeconds}
+                  initialRemainingTime={totalRemainingTime % hourSeconds}
+                  onComplete={(totalElapsedTime) => ({
+                    shouldRepeat:
+                      totalRemainingTime - totalElapsedTime > minuteSeconds,
+                  })}
+                >
+                  {({ elapsedTime, color }) => (
+                    <span style={{ color }}>
+                      {renderTime(
+                        "phút",
+                        getTimeMinutes(hourSeconds - elapsedTime)
+                      )}
+                    </span>
+                  )}
+                </CountdownCircleTimer>
+                <CountdownCircleTimer
+                  {...timerProps}
+                  colors="#CC99FF"
+                  duration={minuteSeconds}
+                  initialRemainingTime={totalRemainingTime % minuteSeconds}
+                  onComplete={(totalElapsedTime) => ({
+                    shouldRepeat: totalRemainingTime - totalElapsedTime > 0,
+                  })}
+                >
+                  {({ elapsedTime, color }) => (
+                    <span style={{ color }}>
+                      {renderTime("giây", getTimeSeconds(elapsedTime))}
+                    </span>
+                  )}
+                </CountdownCircleTimer>
+              </div>
+            );
+          })()}
+        </div>
       )}
 
       {isCustomFullscreen && (
@@ -473,7 +679,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-50">
+      <div
+        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-50 ${
+          (isFullscreen || isCustomFullscreen) && !showControls ? "hidden" : ""
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -510,11 +720,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 aria-label="Volume"
               />
             </div>
-            <span className="text-xs">
+            {/* <span className="text-xs">
               {isLive
                 ? "Live"
                 : `${formatTime(currentTime)} / ${formatTime(duration)}`}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center space-x-3 relative">
@@ -573,9 +783,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               aria-label="Native Fullscreen"
               className="hover:text-red-500 transition-colors"
             >
-              <ArrowsPointingOutIconSolid
-                className={`w-6 h-6 ${isFullscreen ? "rotate-45" : ""}`}
-              />
+              <ArrowsPointingOutIconSolid />
             </button>
           </div>
         </div>

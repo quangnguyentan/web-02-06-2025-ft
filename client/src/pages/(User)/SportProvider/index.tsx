@@ -7,57 +7,48 @@ import { useScheduleData, formatDate } from "@/data/mockScheduleData";
 import { DataProvider, useData } from "@/context/DataContext";
 import { useParams } from "react-router-dom";
 import { Match, MatchStatusType } from "@/types/match.types";
-import { Replay } from "@/types/replay.types";
-import { adjustToVietnamTime, formatDateFull } from "@/lib/helper";
+import { adjustToVietnamTime } from "@/lib/helper";
 import { Loader } from "@/components/layout/Loader";
 
 const AppContent: React.FC = () => {
-  const [currentMatch, setCurrentMatch] = React.useState<Match[]>([]);
-  const [replaySuggestions, setReplaySuggestions] = React.useState<Replay[]>(
-    []
-  );
+  const { matchData, replayData, loading, error } = useData();
   const { slug } = useParams();
-  const { matchData, replayData, fetchData, loading } = useData();
-  const today = new Date();
-  const vietnamToday = adjustToVietnamTime(today); // Ensure it's in Vietnam time
+  const today = React.useMemo(() => new Date(), []);
+  const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
 
-  React.useEffect(() => {
-    const loadMatchData = async () => {
-      if ((!matchData.length && !loading) || (!replayData.length && !loading)) {
-        await fetchData();
-      }
-      const match =
-        matchData?.filter((m) => {
-          if (!m?.startTime) return false;
-          const matchDate = new Date(m?.startTime); // Chuyển startTime thành Date
-          const adjustedMatchDate = adjustToVietnamTime(matchDate); // Điều chỉnh sang UTC+07:00
-          const matchDay = formatDateFull(adjustedMatchDate);
-          const todayDay = formatDateFull(vietnamToday);
-          return (
-            m.sport?.slug === slug &&
-            m?.status !== MatchStatusType.FINISHED &&
-            m?.status !== MatchStatusType.CANCELLED &&
-            matchDay === todayDay
-          );
-        }) || [];
-      const replay = replayData?.filter((r) => r.sport?.slug === slug) || [];
-      setCurrentMatch(match);
-      setReplaySuggestions(replay);
-    };
-    loadMatchData();
-  }, [slug, matchData, replayData, fetchData, loading]);
+  const currentMatch = React.useMemo(() => {
+    return (matchData || []).filter((m) => {
+      if (!m?.startTime) return false;
+      const matchDate = adjustToVietnamTime(new Date(m.startTime));
+      const matchDay = formatDate(matchDate);
+      const todayDay = formatDate(vietnamToday);
+      return (
+        m.sport?.slug === slug &&
+        m?.status !== MatchStatusType.FINISHED &&
+        m?.status !== MatchStatusType.CANCELLED &&
+        matchDay === todayDay
+      );
+    });
+  }, [matchData, slug, vietnamToday]);
+
+  const replaySuggestions = React.useMemo(
+    () => (replayData || []).filter((r) => r.sport?.slug === slug),
+    [replayData, slug]
+  );
+
   const { dateTabs, scheduleData } = useScheduleData(currentMatch);
-
   const initialDateId = formatDate(today);
 
-  if (loading) return <Loader />;
+  if (loading && !matchData?.length && !replayData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <main className="w-full mx-auto max-w-[640px] sm:max-w-[768px] md:max-w-[960px] lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] 3xl:max-w-[1440px]">
       <div>
         <SportSection
-          isSportSection
-          title={`TÂM ĐIỂM ${currentMatch[0]?.sport?.name?.toUpperCase()}`}
+          title={`TÂM ĐIỂM ${
+            currentMatch[0]?.sport?.name?.toUpperCase() || "THỂ THAO"
+          }`}
           icon={<FootballIcon className="w-6 h-6" />}
           matches={currentMatch}
           isSpotlight

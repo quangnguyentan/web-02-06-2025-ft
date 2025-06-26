@@ -3,76 +3,44 @@ import { useScheduleData, formatDate } from "@/data/mockScheduleData";
 import { useData } from "@/context/DataContext";
 import * as React from "react";
 import { useParams } from "react-router-dom";
-import { Replay } from "@/types/replay.types";
 import { Loader } from "@/components/layout/Loader";
 
 const today = new Date();
 
 const Schedule: React.FC = () => {
-  // Loại bỏ fetchData ở đây vì nó không còn được gọi trực tiếp trong component này.
-  const { matchData, replayData, loading, error, fetchMatches, fetchReplays } =
-    useData();
+  const { matchData, replayData, loading, error } = useData();
   const { slug } = useParams();
-  React.useEffect(() => {
-    const loadData = async () => {
-      if ((!matchData.length || !replayData.length) && !loading) {
-        try {
-          await Promise.all([fetchMatches(), fetchReplays()]);
-        } catch (error) {
-          console.error("Error loading data:", error);
-        }
-      }
-    };
-    loadData();
-  }, [matchData, replayData, fetchMatches, fetchReplays, loading]);
-  // Lấy dữ liệu giả lập từ useScheduleData (chỉ gọi một lần)
+
   const { scheduleData: mockScheduleData } = useScheduleData([]);
-  const mockReplayData: Replay[] = React.useMemo(() => [], []); // Dữ liệu giả lập cho replay, memoize rỗng
+  const allMockMatches = React.useMemo(
+    () =>
+      Object.values(mockScheduleData)
+        .flat()
+        .flatMap((league: any) => league.matches),
+    [mockScheduleData]
+  );
 
-  // Lấy tất cả Match từ mockScheduleData và memoize
-  const allMockMatches = React.useMemo(() => {
-    return Object.values(mockScheduleData)
-      .flat()
-      .flatMap((league: any) => league.matches);
-  }, [mockScheduleData]);
+  const currentMatch = React.useMemo(
+    () =>
+      (error || !matchData?.length ? allMockMatches : matchData).filter(
+        (m) => m.sport?.slug === slug
+      ),
+    [matchData, error, allMockMatches, slug]
+  );
 
-  // Tính toán currentMatch bằng useMemo, giống cách Home lọc dữ liệu
-  const currentMatch = React.useMemo(() => {
-    // Nếu không có dữ liệu thực hoặc có lỗi, dùng dữ liệu giả lập
-    if (!matchData.length || error) {
-      return allMockMatches.filter((m) => m.sport?.slug === slug);
-    } else {
-      // Ngược lại, dùng dữ liệu thực
-      return matchData.filter((m) => m.sport?.slug === slug) || [];
-    }
-  }, [matchData, error, allMockMatches, slug]); // Dependencies: chỉ tính lại khi các giá trị này thay đổi
+  const replaySuggestions = React.useMemo(
+    () =>
+      error || !replayData?.length
+        ? []
+        : replayData?.filter((r) => r.sport?.slug === slug),
+    [replayData, error, slug]
+  );
 
-  // Tính toán replaySuggestions bằng useMemo
-  const replaySuggestions = React.useMemo(() => {
-    // Nếu không có dữ liệu thực hoặc có lỗi, dùng dữ liệu giả lập
-    if (!replayData.length || error) {
-      return mockReplayData;
-    } else {
-      // Ngược lại, dùng dữ liệu thực
-      return replayData.filter((r) => r.sport?.slug === slug) || [];
-    }
-  }, [replayData, error, mockReplayData, slug]); // Dependencies: chỉ tính lại khi các giá trị này thay đổi
-
-  // Gọi useScheduleData trực tiếp ở cấp cao nhất của component.
-  // Hook này sẽ tự động re-run khi `currentMatch` thay đổi.
   const { dateTabs, scheduleData } = useScheduleData(currentMatch);
-
   const initialDateId = formatDate(today);
 
-  // Hiển thị thông báo lỗi nếu có
-  if (error) {
-    return <Loader />;
-  }
-
-  // Chỉ hiển thị loading khi đang fetch lần đầu và chưa có dữ liệu
-  if (loading && !matchData.length && !replayData.length) {
-    return <Loader />;
-  }
+  if (loading && !matchData?.length && !replayData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <SchedulePage

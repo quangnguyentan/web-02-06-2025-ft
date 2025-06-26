@@ -7,26 +7,14 @@ import { useParams } from "react-router-dom";
 import { Loader } from "@/components/layout/Loader";
 
 const Replay: React.FC = () => {
-  const { replayData, fetchReplays, loading } = useData();
-
-  const [replaySuggestions, setReplaySuggestions] = React.useState<Replay[]>(
-    []
-  );
+  const { replayData, loading, error } = useData();
   const { slug } = useParams();
-  React.useEffect(() => {
-    const loadMatchData = async () => {
-      if (!replayData.length && !loading) {
-        await fetchReplays();
-      }
-    };
-    loadMatchData();
-  }, [replayData.length, loading, fetchReplays]);
-  const filteredReplays = React.useMemo(() => {
-    return replayData.filter((r) => r.sport?.slug === slug && r.isShown);
-  }, [replayData, slug]);
-  React.useEffect(() => {
-    setReplaySuggestions(filteredReplays);
-  }, [filteredReplays]);
+
+  const replaySuggestions = React.useMemo(
+    () => (replayData || []).filter((r) => r.sport?.slug === slug && r.isShown),
+    [replayData, slug]
+  );
+
   const featuredBroadcasts = React.useMemo(() => {
     return replaySuggestions.map((replay) => ({
       id: replay._id ?? "",
@@ -42,7 +30,7 @@ const Replay: React.FC = () => {
     }));
   }, [replaySuggestions]);
 
-  const highlightedEvent = React.useMemo(() => {
+  const highlightedEvent = React.useMemo<HighlightedEventInfo | null>(() => {
     const replay = replaySuggestions[0];
     if (!replay) return null;
     return {
@@ -51,7 +39,7 @@ const Replay: React.FC = () => {
         replay.match?.awayTeam?.logo ?? "",
         replay.thumbnail ?? "",
       ],
-      replay: replay,
+      replay,
       description: `${replay?.title}`,
       commentatorInfo: `${replay.commentator} | ${new Date(
         replay.publishDate || ""
@@ -81,22 +69,22 @@ const Replay: React.FC = () => {
 
     return Object.entries(categories).map(([title, replays]) => ({
       id: title.toLowerCase().replace(/\s+/g, "-"),
-      title: title,
-      icon: React.createElement(FootballIcon, {
-        className: "w-5 h-5 text-green-400",
-      }),
-      replays: replays,
+      title,
+      icon: <FootballIcon className="w-5 h-5 text-green-400" />,
+      replays,
       viewAllUrl: "#",
     }));
   }, [replaySuggestions]);
 
-  if (loading) return <Loader />;
+  if (loading && !replayData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
+
   return (
     <ReplayHubPage
       featuredBroadcasts={featuredBroadcasts}
-      highlightedEvent={highlightedEvent as HighlightedEventInfo}
+      highlightedEvent={highlightedEvent || undefined}
       categorizedReplays={categorizedReplays}
-      sidebarReplays={filteredReplays}
+      sidebarReplays={replaySuggestions}
     />
   );
 };

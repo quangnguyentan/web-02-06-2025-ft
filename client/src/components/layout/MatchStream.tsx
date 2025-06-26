@@ -95,6 +95,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
                   : wait_football
               } // Placeholder poster
               autoPlay={autoPlay}
+              match={match}
             />
             <div className="hidden md:block">
               <MatchInfoBar match={match} />

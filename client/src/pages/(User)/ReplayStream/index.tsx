@@ -1,9 +1,6 @@
-import { useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { Replay } from "@/types/replay.types";
+import ReplayStreamPage from "@/components/layout/ReplayStreamPage";
 import { useData } from "@/context/DataContext";
 import * as React from "react";
-import { useSelectedPageContext } from "@/hooks/use-context";
 import {
   FootballIcon,
   BasketballIcon,
@@ -11,41 +8,29 @@ import {
   EventsIcon,
 } from "@/components/layout/Icon";
 import { Loader } from "@/components/layout/Loader";
-
-const ReplayStreamPage = React.lazy(
-  () => import("@/components/layout/ReplayStreamPage")
-);
+import { Replay } from "@/types/replay.types";
+import { useParams } from "react-router-dom";
 
 const ReplayStream: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { replayData, fetchReplays, loading, error } = useData();
-  const { selectedSportsNavbarPage } = useSelectedPageContext();
-  React.useEffect(() => {
-    const loadReplayData = async () => {
-      if (!replayData.length && !loading) {
-        await fetchReplays();
-      }
-    };
-    loadReplayData();
-  }, [replayData, fetchReplays, loading]);
-  const currentReplay = useMemo(() => {
-    if (error || !replayData.length) {
-      return null;
-    }
-    return replayData.find((r) => r.title === slug) || null;
-  }, [replayData, slug, error]);
+  const { replayData, loading, error } = useData();
 
-  const relatedReplays = useMemo(
+  const currentReplay = React.useMemo(
+    () => (replayData || []).find((r) => r.title === slug) || null,
+    [replayData, slug]
+  );
+
+  const relatedReplays = React.useMemo(
     () =>
-      replayData.filter(
-        (r) => r.title !== slug && r.sport?.name === selectedSportsNavbarPage
+      (replayData || []).filter(
+        (r) => r.title !== slug && r.sport?.slug === currentReplay?.sport?.slug
       ),
-    [replayData, slug, selectedSportsNavbarPage]
+    [replayData, slug, currentReplay]
   );
 
   const categorizedReplays = React.useMemo(() => {
     const categories: { [key: string]: Replay[] } = {};
-    relatedReplays?.forEach((replay) => {
+    relatedReplays.forEach((replay) => {
       const sportName = replay.sport?.name || "Khác";
       if (!categories[sportName]) {
         categories[sportName] = [];
@@ -72,27 +57,18 @@ const ReplayStream: React.FC = () => {
 
       return {
         id: title.toLowerCase().replace(/\s+/g, "-"),
-        title: title,
-        icon: React.createElement(IconComponent, {
-          className: "w-5 h-5 text-green-400",
-        }),
-        replays: replays,
+        title,
+        icon: <IconComponent className="w-5 h-5 text-green-400" />,
+        replays,
         viewAllUrl: "#",
       };
     });
   }, [relatedReplays]);
 
-  if (loading && !replayData.length) {
-    return <Loader />;
-  }
+  if (loading && !replayData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!currentReplay) return <div>No replay found</div>;
 
-  if (error) {
-    return <Loader />;
-  }
-
-  if (!currentReplay) {
-    return <Loader />;
-  }
   return (
     <React.Suspense fallback={<Loader />}>
       <ReplayStreamPage

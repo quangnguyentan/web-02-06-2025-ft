@@ -1,5 +1,5 @@
 import image_404 from "@/assets/admin/404.png";
-const index = () => {
+const NotFound = () => {
   return (
     <div className="w-full h-screen flex items-center justify-center">
       <img src={image_404} alt="404" className="w-full h-screen" />
@@ -7,4 +7,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default NotFound;

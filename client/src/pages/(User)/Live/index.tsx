@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import * as React from "react";
 import { useParams } from "react-router-dom";
 import { Match, MatchStatusType } from "@/types/match.types";
 import { useData } from "@/context/DataContext";
 import belt from "@/assets/user/160t1800.gif";
-import * as React from "react";
-import { formatDateFull } from "@/lib/helper";
+import { formatDate } from "@/lib/helper";
 import { Loader } from "@/components/layout/Loader";
 import { UserInteractionProvider } from "@/context/UserInteractionContext";
-// Lazy load components
 const MatchStreamPage = React.lazy(
   () => import("@/components/layout/MatchStream")
 );
@@ -17,17 +15,16 @@ const VerticalAdBanner = React.lazy(
 
 const Live: React.FC = () => {
   const { slug, slugSport } = useParams<{ slug: string; slugSport: string }>();
-  const { matchData, replayData, fetchData, loading } = useData();
-  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const today = useMemo(() => new Date(), []);
+  const { matchData, replayData, loading, error } = useData();
+  const today = React.useMemo(() => new Date(), []);
 
-  const relatedMatches = useMemo(
+  const relatedMatches = React.useMemo(
     () =>
-      matchData?.filter((m) => {
+      (matchData || []).filter((m) => {
         if (!m?.startTime) return false;
-        const matchDate = new Date(m?.startTime);
-        const matchDay = formatDateFull(matchDate);
-        const todayDay = formatDateFull(today);
+        const matchDate = new Date(m.startTime);
+        const matchDay = formatDate(matchDate);
+        const todayDay = formatDate(today);
         return (
           m?.sport?.slug === slugSport &&
           m?.slug !== slug &&
@@ -36,43 +33,38 @@ const Live: React.FC = () => {
           matchDay === todayDay
         );
       }),
-    [matchData, slugSport, slug, today] // Added `today` to dependency array for correctness
+    [matchData, slugSport, slug, today]
   );
 
-  const replaySuggestions = useMemo(
-    () => replayData?.filter((replay) => replay?.sport?.slug === slugSport),
+  const replaySuggestions = React.useMemo(
+    () =>
+      (replayData || []).filter((replay) => replay?.sport?.slug === slugSport),
     [replayData, slugSport]
   );
-  useEffect(() => {
-    const loadMatchData = async () => {
-      if (!matchData.length && !loading) {
-        await fetchData();
-      }
-      const match = matchData.find((m) => m?.slug === slug) || null;
-      setCurrentMatch(match);
-    };
-    loadMatchData();
-  }, [slugSport, slug, matchData, fetchData, loading]); // Added `slug` to dependency array
-  useEffect(() => {
-    console.log("Current match updated:", currentMatch);
-  }, [currentMatch]);
+
+  const currentMatch = React.useMemo(
+    () => matchData?.find((m) => m?.slug === slug) || null,
+    [matchData, slug]
+  );
+
+  if (loading && !matchData?.length) return <Loader />;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!currentMatch) return <div>No match found</div>;
+
   return (
     <React.Suspense fallback={<Loader />}>
-      <div className="flex">
-        <VerticalAdBanner position="left" imageUrl={belt} />
-        {/* FIX: Conditionally render MatchStreamPage only if currentMatch is not null */}
-        {currentMatch ? (
+      <UserInteractionProvider>
+        <div className="flex">
+          <VerticalAdBanner position="left" imageUrl={belt} />
           <MatchStreamPage
-            match={currentMatch} // TypeScript now knows currentMatch is definitely 'Match' here
+            match={currentMatch}
             relatedMatches={relatedMatches}
             replaySuggestions={replaySuggestions}
             autoPlay={true}
           />
-        ) : (
-          <Loader />
-        )}
-        <VerticalAdBanner position="right" imageUrl={belt} />
-      </div>
+          <VerticalAdBanner position="right" imageUrl={belt} />
+        </div>
+      </UserInteractionProvider>
     </React.Suspense>
   );
 };
