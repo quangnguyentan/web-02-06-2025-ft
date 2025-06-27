@@ -577,136 +577,141 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       )}
 
       {countdownActive && !error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white  text-center p-2 ">
-          <div className="bg-white md:py-20 px-10 py-6 relative flex flex-col gap-2 md:gap-4">
-            <div className="flex-col items-start justify-start absolute top-1 left-0 px-4 bg-slate-50 w-full py-2 hidden md:flex">
-              <span className="text-black text-xs md:text-sm font-semibold">
-                Giải đấu {match?.league?.name}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white  text-center p-2 z-10">
+          <div className="bg-white md:py-20 md:px-32 px-10 py-6 relative  ">
+            <div className="max-w-xs w-full flex flex-col gap-2 md:gap-6">
+              <div className="flex-col items-start justify-start absolute top-1 left-0 px-4 bg-slate-50 w-full py-2 hidden md:flex ">
+                <span className="text-black text-xs md:text-sm font-semibold">
+                  Giải đấu {match?.league?.name}
+                </span>
+                <span className="text-black text-xs md:text-sm font-semibold">
+                  Thời gian:{" "}
+                  {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  })}
+                </span>
+              </div>
+              <span className="text-black font-semibold md:text-lg text-xs">
+                Trận đấu này sẽ bắt đầu sau
               </span>
+              <div>
+                {(() => {
+                  const startTimeVN = new Date(
+                    new Date(match?.startTime || "").toLocaleString("en-US", {
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    })
+                  ).getTime();
+                  const nowVN = new Date(
+                    new Date().toLocaleString("en-US", {
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    })
+                  ).getTime();
+                  const totalRemainingTime = Math.floor(
+                    (startTimeVN - nowVN) / 1000
+                  );
+                  const days = Math.ceil(totalRemainingTime / daySeconds);
+                  const daysDuration = days * daySeconds;
 
-              <span className="text-black text-xs md:text-sm font-semibold">
-                Thời gian:{" "}
-                {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                  hour12: false,
-                })}
-              </span>
-            </div>
-            <span className="text-black font-semibold md:text-lg text-xs">
-              Trận đấu này sẽ bắt đầu sau
-            </span>
-            <div>
-              {(() => {
-                const startTimeVN = new Date(
-                  new Date(match?.startTime || "").toLocaleString("en-US", {
-                    timeZone: "Asia/Ho_Chi_Minh",
-                  })
-                ).getTime();
-                const nowVN = new Date(
-                  new Date().toLocaleString("en-US", {
-                    timeZone: "Asia/Ho_Chi_Minh",
-                  })
-                ).getTime();
-                const totalRemainingTime = Math.floor(
-                  (startTimeVN - nowVN) / 1000
-                );
-                const days = Math.ceil(totalRemainingTime / daySeconds);
-                const daysDuration = days * daySeconds;
-
-                return (
-                  <div className="flex flex-row space-x-2">
-                    <CountdownCircleTimer
-                      {...timerProps}
-                      size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
-                      colors="#3399FF"
-                      duration={daysDuration}
-                      initialRemainingTime={totalRemainingTime}
-                    >
-                      {({ elapsedTime, color }) => (
-                        <span
-                          style={{ color }}
-                          className="text-xs !text-black  md:text-sm md:font-bold"
-                        >
-                          {renderTime(
-                            "Ngày",
-                            getTimeDays(daysDuration - elapsedTime)
-                          )}
-                        </span>
-                      )}
-                    </CountdownCircleTimer>
-                    <CountdownCircleTimer
-                      {...timerProps}
-                      size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
-                      colors="#3399FF"
-                      duration={daySeconds}
-                      initialRemainingTime={totalRemainingTime % daySeconds}
-                      onComplete={(totalElapsedTime) => ({
-                        shouldRepeat:
-                          totalRemainingTime - totalElapsedTime > hourSeconds,
-                      })}
-                    >
-                      {({ elapsedTime, color }) => (
-                        <span
-                          style={{ color }}
-                          className="text-xs !text-black  md:text-sm md:font-bold "
-                        >
-                          {renderTime(
-                            "Giờ",
-                            getTimeHours(daySeconds - elapsedTime)
-                          )}
-                        </span>
-                      )}
-                    </CountdownCircleTimer>
-                    <CountdownCircleTimer
-                      {...timerProps}
-                      size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
-                      colors="#3399FF"
-                      duration={hourSeconds}
-                      initialRemainingTime={totalRemainingTime % hourSeconds}
-                      onComplete={(totalElapsedTime) => ({
-                        shouldRepeat:
-                          totalRemainingTime - totalElapsedTime > minuteSeconds,
-                      })}
-                    >
-                      {({ elapsedTime, color }) => (
-                        <span
-                          style={{ color }}
-                          className="text-xs !text-black  md:text-sm md:font-bold "
-                        >
-                          {renderTime(
-                            "Phút",
-                            getTimeMinutes(hourSeconds - elapsedTime)
-                          )}
-                        </span>
-                      )}
-                    </CountdownCircleTimer>
-                    <CountdownCircleTimer
-                      {...timerProps}
-                      size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
-                      colors="#3399FF"
-                      duration={minuteSeconds}
-                      initialRemainingTime={totalRemainingTime % minuteSeconds}
-                      onComplete={(totalElapsedTime) => ({
-                        shouldRepeat: totalRemainingTime - totalElapsedTime > 0,
-                      })}
-                    >
-                      {({ elapsedTime, color }) => (
-                        <span
-                          style={{ color }}
-                          className="text-xs !text-black  md:text-sm md:font-bold "
-                        >
-                          {renderTime("Giây", getTimeSeconds(elapsedTime))}
-                        </span>
-                      )}
-                    </CountdownCircleTimer>
-                  </div>
-                );
-              })()}
+                  return (
+                    <div className="flex flex-row space-x-2">
+                      <CountdownCircleTimer
+                        {...timerProps}
+                        size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
+                        colors="#3399FF"
+                        duration={daysDuration}
+                        initialRemainingTime={totalRemainingTime}
+                      >
+                        {({ elapsedTime, color }) => (
+                          <span
+                            style={{ color }}
+                            className="text-xs !text-black  md:text-sm md:font-bold"
+                          >
+                            {renderTime(
+                              "Ngày",
+                              getTimeDays(daysDuration - elapsedTime)
+                            )}
+                          </span>
+                        )}
+                      </CountdownCircleTimer>
+                      <CountdownCircleTimer
+                        {...timerProps}
+                        size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
+                        colors="#3399FF"
+                        duration={daySeconds}
+                        initialRemainingTime={totalRemainingTime % daySeconds}
+                        onComplete={(totalElapsedTime) => ({
+                          shouldRepeat:
+                            totalRemainingTime - totalElapsedTime > hourSeconds,
+                        })}
+                      >
+                        {({ elapsedTime, color }) => (
+                          <span
+                            style={{ color }}
+                            className="text-xs !text-black  md:text-sm md:font-bold "
+                          >
+                            {renderTime(
+                              "Giờ",
+                              getTimeHours(daySeconds - elapsedTime)
+                            )}
+                          </span>
+                        )}
+                      </CountdownCircleTimer>
+                      <CountdownCircleTimer
+                        {...timerProps}
+                        size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
+                        colors="#3399FF"
+                        duration={hourSeconds}
+                        initialRemainingTime={totalRemainingTime % hourSeconds}
+                        onComplete={(totalElapsedTime) => ({
+                          shouldRepeat:
+                            totalRemainingTime - totalElapsedTime >
+                            minuteSeconds,
+                        })}
+                      >
+                        {({ elapsedTime, color }) => (
+                          <span
+                            style={{ color }}
+                            className="text-xs !text-black  md:text-sm md:font-bold "
+                          >
+                            {renderTime(
+                              "Phút",
+                              getTimeMinutes(hourSeconds - elapsedTime)
+                            )}
+                          </span>
+                        )}
+                      </CountdownCircleTimer>
+                      <CountdownCircleTimer
+                        {...timerProps}
+                        size={isMobile ? 60 : 90} // Giảm kích thước vòng tròn xuống `${isMobile ? 60 : 90}`px
+                        colors="#3399FF"
+                        duration={minuteSeconds}
+                        initialRemainingTime={
+                          totalRemainingTime % minuteSeconds
+                        }
+                        onComplete={(totalElapsedTime) => ({
+                          shouldRepeat:
+                            totalRemainingTime - totalElapsedTime > 0,
+                        })}
+                      >
+                        {({ elapsedTime, color }) => (
+                          <span
+                            style={{ color }}
+                            className="text-xs !text-black  md:text-sm md:font-bold "
+                          >
+                            {renderTime("Giây", getTimeSeconds(elapsedTime))}
+                          </span>
+                        )}
+                      </CountdownCircleTimer>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>
