@@ -74,21 +74,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLive, setIsLive] = useState(false);
-  const [error, setError] = useState<string | null>(null); // Keep as string | null
-  const [showControls, setShowControls] = useState(true); // Luôn giữ true
+  const [error, setError] = useState<string | null>(null);
+  const [showControls, setShowControls] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [qualityLevels, setQualityLevels] = useState<
     { id: number; height: number }[]
   >([]);
   const [currentLevel, setCurrentLevel] = useState(-1);
   const [showPlayButton, setShowPlayButton] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false); // Native fullscreen state
-  const [isCustomFullscreen, setIsCustomFullscreen] = useState(false); // Custom fullscreen state
-  const [countdownActive, setCountdownActive] = useState(false); // New state for countdown
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCustomFullscreen, setIsCustomFullscreen] = useState(false);
+  const [countdownActive, setCountdownActive] = useState(false);
   const videoRef = useRef<ExtendedVideoElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const lastTouchTime = useRef<number>(0); // Theo dõi thời gian chạm cuối cùng
+  const lastTouchTime = useRef<number>(0);
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const { hasUserInteracted, setHasUserInteracted } = useUserInteraction();
 
@@ -97,27 +97,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   );
   const youTubeVideoId = isYouTubeUrl ? isYouTubeUrl[1] : null;
 
-  useEffect(() => {
-    setIsPlaying(false);
-    setIsMuted(true);
-    setCurrentTime(0);
-    setDuration(0);
-    setIsLive(false);
-    setError(null);
-    setShowPlayButton(false);
-    setQualityLevels([]);
-    setCurrentLevel(-1);
-    setIsFullscreen(false);
-    setIsCustomFullscreen(false);
-    setCountdownActive(false); // Reset countdown
-  }, [videoUrl]);
+  const isFacebookUrl = videoUrl?.match(
+    /(?:https?:\/\/)?(?:www\.)?facebook\.com\/.*(?:reel|watch|video)\/(\d+)/
+  );
+  const facebookVideoId = isFacebookUrl ? isFacebookUrl[1] : null;
+
+  const isTikTokUrl = videoUrl?.match(
+    /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[\w\d._]+\/video\/(\d+)/
+  );
+  const tikTokVideoId = isTikTokUrl ? isTikTokUrl[1] : null;
 
   useEffect(() => {
-    if (!videoRef.current || !videoUrl) return;
+    if (
+      !videoRef.current ||
+      !videoUrl ||
+      youTubeVideoId ||
+      facebookVideoId ||
+      tikTokVideoId
+    ) {
+      return;
+    }
 
     const video = videoRef.current;
     video.playsInline = true;
-    video.controls = false; // Explicitly disable native controls
+    video.controls = false;
     const isM3u8 = videoUrl.endsWith(".m3u8");
     const isDash = videoUrl.endsWith(".mpd");
     const isHlsSupported = Hls.isSupported();
@@ -136,13 +139,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     video.autoplay = false;
 
     if (isM3u8 && isNativeHlsSupported && !isHlsSupported) {
-      // Native HLS support (e.g., Safari)
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
       });
     } else if (isM3u8 && isHlsSupported) {
-      // HLS.js for non-native HLS support
       const hls = new Hls();
       hlsRef.current = hls;
 
@@ -172,7 +173,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       });
     } else if (isDash) {
-      // Handle DASH streams (used by some CDNs, including YouTube)
       import("dashjs").then((dashjs) => {
         const player = dashjs.MediaPlayer().create();
         player.initialize(video, videoUrl, autoPlay);
@@ -187,7 +187,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         };
       });
     } else {
-      // Direct video playback (e.g., MP4, WebM, etc.)
       video.src = videoUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLive(isNaN(video.duration) || video.duration === Infinity);
@@ -206,7 +205,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         });
         const nowVNTime = new Date(nowVN).getTime();
         if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
-          setCountdownActive(true); // Activate countdown
+          setCountdownActive(true);
         } else {
           setError("Không thể tải video. Vui lòng kiểm tra lại URL.");
         }
@@ -220,14 +219,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const isCurrentlyFullscreen =
         !!document.fullscreenElement || !!video.webkitDisplayingFullscreen;
       setIsFullscreen(isCurrentlyFullscreen);
-      setShowControls(isCurrentlyFullscreen); // Show controls in fullscreen
+      setShowControls(isCurrentlyFullscreen);
       if (!isCurrentlyFullscreen && isPlaying) {
         setTimeout(() => {
           video.play().catch((err) => {
             console.error("Resume playback error:", err);
           });
           setShowPlayButton(false);
-        }, 100); // Slight delay for iOS
+        }, 100);
       }
     };
 
@@ -241,16 +240,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     video.addEventListener("pause", handlePause);
 
-    // Add click listener to wrapper div for desktop
     const handleWrapperClick = (e: MouseEvent) => {
       e.stopPropagation();
       if (
         videoRef.current &&
         !youTubeVideoId &&
+        !facebookVideoId &&
+        !tikTokVideoId &&
         !isMobile &&
         (isFullscreen || isCustomFullscreen)
       ) {
-        console.log("Wrapper clicked in fullscreen on desktop"); // Debug log
         togglePlay();
       }
     };
@@ -283,38 +282,40 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         handleFullscreenChange
       );
     };
-  }, [videoUrl, isYouTubeStream, youTubeVideoId, isMobile]);
-
-  // Rest of the useEffect hooks remain unchanged
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video && !youTubeVideoId && isPlaying) {
-      video.muted = false;
-      setIsMuted(false);
-      setError(null);
-      setShowPlayButton(false);
-      setQualityLevels([]);
-      setCurrentLevel(-1);
-      setIsFullscreen(false);
-      setIsCustomFullscreen(false);
-      setCountdownActive(false); // Reset countdown
-    }
-  }, [videoUrl, isPlaying, youTubeVideoId]);
+  }, [
+    videoUrl,
+    isYouTubeStream,
+    youTubeVideoId,
+    facebookVideoId,
+    tikTokVideoId,
+    isMobile,
+  ]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (video && !youTubeVideoId && isPlaying) {
+    if (
+      video &&
+      !youTubeVideoId &&
+      !facebookVideoId &&
+      !tikTokVideoId &&
+      isPlaying
+    ) {
       video.muted = false;
       setIsMuted(false);
     }
-  }, [isPlaying, youTubeVideoId]);
+  }, [isPlaying, youTubeVideoId, facebookVideoId, tikTokVideoId]);
 
   useEffect(() => {
-    if (videoRef.current && !youTubeVideoId) {
+    if (
+      videoRef.current &&
+      !youTubeVideoId &&
+      !facebookVideoId &&
+      !tikTokVideoId
+    ) {
       videoRef.current.volume = volume;
       videoRef.current.muted = isMuted;
     }
-  }, [volume, isMuted, youTubeVideoId]);
+  }, [volume, isMuted, youTubeVideoId, facebookVideoId, tikTokVideoId]);
 
   useEffect(() => {
     if (isCustomFullscreen && playerRef.current) {
@@ -354,8 +355,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const togglePlay = () => {
-    setIsFullscreen(false); // Reset custom fullscreen on play toggle
-    if (videoRef.current && !youTubeVideoId) {
+    setIsFullscreen(false);
+    if (
+      videoRef.current &&
+      !youTubeVideoId &&
+      !facebookVideoId &&
+      !tikTokVideoId
+    ) {
       if (videoRef.current.paused || videoRef.current.ended) {
         videoRef.current.muted = false;
         setIsMuted(false);
@@ -378,7 +384,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             });
             const nowVNTime = new Date(nowVN).getTime();
             if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
-              setCountdownActive(true); // Activate countdown on play error
+              setCountdownActive(true);
             }
           });
       } else {
@@ -389,7 +395,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const toggleMute = () => {
-    if (videoRef.current) {
+    if (
+      videoRef.current &&
+      !youTubeVideoId &&
+      !facebookVideoId &&
+      !tikTokVideoId
+    ) {
       const newMutedState = !isMuted;
       videoRef.current.muted = newMutedState;
       setIsMuted(newMutedState);
@@ -420,7 +431,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleFullscreen = () => {
     const video = videoRef.current;
-    if (video && !youTubeVideoId) {
+    if (video && !youTubeVideoId && !facebookVideoId && !tikTokVideoId) {
       if (!isFullscreen) {
         if (video.requestFullscreen) {
           video.requestFullscreen().catch((err) => {
@@ -430,7 +441,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           video.webkitEnterFullscreen();
         }
         setIsFullscreen(true);
-        setShowControls(true); // Ensure controls are visible in fullscreen
+        setShowControls(true);
       } else {
         if (document.fullscreenElement && document.exitFullscreen) {
           document.exitFullscreen();
@@ -438,14 +449,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           video.webkitExitFullscreen();
         }
         setIsFullscreen(false);
-        setShowControls(true); // Restore controls on exit
+        setShowControls(true);
       }
     }
   };
 
   const handleCustomFullscreen = () => {
     if (!isFullscreen) {
-      // Only allow custom fullscreen if not in native fullscreen
       setIsCustomFullscreen(!isCustomFullscreen);
     }
   };
@@ -463,7 +473,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleVideoClick = () => {
-    if (videoRef.current && !youTubeVideoId) {
+    if (
+      videoRef.current &&
+      !youTubeVideoId &&
+      !facebookVideoId &&
+      !tikTokVideoId
+    ) {
       if (!isMobile) {
         togglePlay();
       } else {
@@ -472,17 +487,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  // Xử lý double-tap trên mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTouchTime.current;
     if (tapLength < 300 && tapLength > 0) {
-      e.preventDefault(); // Ngăn chạm kép mở menu trình duyệt
+      e.preventDefault();
       handleFullscreen();
     }
     lastTouchTime.current = currentTime;
   };
-  console.log(lastTouchTime);
+
   if (!videoUrl) {
     return (
       <div className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl flex items-center justify-center">
@@ -512,11 +526,56 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
+  if (facebookVideoId) {
+    return (
+      <div
+        ref={playerRef}
+        className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden"
+      >
+        <iframe
+          className="absolute inset-0 max-w-2xl h-full mx-auto"
+          src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+            videoUrl
+          )}&show_text=false&width=480&height=980&appId=343576674949979`}
+          title={videoTitle}
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+        <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+          <h2 className="text-sm font-semibold">{videoTitle}</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (tikTokVideoId) {
+    return (
+      <div
+        ref={playerRef}
+        className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl"
+      >
+        <iframe
+          className="absolute inset-0 w-full h-full tiktok-embed"
+          src={`https://www.tiktok.com/embed/v2/${tikTokVideoId}`}
+          title={videoTitle}
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+        {/* Overlay to hide content */}
+        <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+          <h2 className="text-sm font-semibold">{videoTitle}</h2>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={playerRef}
       className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl overflow-hidden group"
-      onClick={(e) => e.stopPropagation()} // Prevent parent clicks from interfering
+      onClick={(e) => e.stopPropagation()}
     >
       <div
         ref={videoWrapperRef}
@@ -532,7 +591,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           poster={posterUrl}
           className={`w-full h-full object-contain z-10`}
           onDoubleClick={isMobile ? undefined : handleFullscreen}
-          onTouchStart={isMobile ? handleTouchStart : undefined} // Thêm xử lý double-tap trên mobile
+          onTouchStart={isMobile ? handleTouchStart : undefined}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onTimeUpdate={handleTimeUpdate}
@@ -560,7 +619,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     ? "video/webm"
                     : videoUrl.endsWith(".ogg")
                     ? "video/ogg"
-                    : "video/mp4" // Default to MP4 for most CDN videos
+                    : "video/mp4"
                   : mimeType
               }
             />
@@ -598,7 +657,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {isPlaying ? (
               <PauseCircleIconSolid className="w-20 h-20" />
             ) : (
-              <PlayCircleIconSolid className="w-20 h-20 " />
+              <PlayCircleIconSolid className="w-20 h-20" />
             )}
           </button>
         )}
@@ -611,7 +670,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           {isPlaying ? (
             <PauseCircleIconSolid className="w-20 h-20" />
           ) : (
-            <PlayCircleIconSolid className="w-20 h-20 " />
+            <PlayCircleIconSolid className="w-20 h-20" />
           )}
         </button>
       )}

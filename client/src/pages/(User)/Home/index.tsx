@@ -63,7 +63,6 @@ const AppContent: React.FC = () => {
     },
     [matchData, vietnamToday]
   );
-  console.log(matchData);
   const sportMatches = React.useMemo(() => {
     return (sportData || []).reduce(
       (acc, sport) => ({
