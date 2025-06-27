@@ -188,8 +188,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         const nowVNTime = new Date(nowVN).getTime();
         if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
           setCountdownActive(true); // Activate countdown
-        } else {
-          setError("Failed to load media. Please check the stream URL.");
         }
       });
     }
@@ -344,8 +342,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             const nowVNTime = new Date(nowVN).getTime();
             if (match?.status !== "LIVE" && startTimeVN > nowVNTime) {
               setCountdownActive(true); // Activate countdown on play error
-            } else {
-              setError("Failed to load media. Please check the stream URL.");
             }
           });
       } else {
@@ -449,7 +445,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
     lastTouchTime.current = currentTime;
   };
-
+  console.log(lastTouchTime);
   if (!videoUrl) {
     return (
       <div className="relative w-full aspect-video bg-black text-white rounded-lg shadow-2xl flex items-center justify-center">
@@ -562,7 +558,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
           </button>
         )}
-      {isPlaying && !showPlayButton && (
+      {isPlaying && !showPlayButton && !isMobile && (
         <button
           onClick={togglePlay}
           aria-label="Play video"
