@@ -11,7 +11,8 @@ import { adjustToVietnamTime } from "@/lib/helper";
 import { Loader } from "@/components/layout/Loader";
 
 const AppContent: React.FC = () => {
-  const { matchData, replayData, loading, error } = useData();
+  const { matchData, replayData, loading, error, initialLoadComplete } =
+    useData();
   const { slug } = useParams();
   const today = React.useMemo(() => new Date(), []);
   const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
@@ -20,13 +21,20 @@ const AppContent: React.FC = () => {
     return (matchData || []).filter((m) => {
       if (!m?.startTime) return false;
       const matchDate = adjustToVietnamTime(new Date(m.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(vietnamToday);
+      // const matchDay = formatDate(matchDate);
+      // const todayDay = formatDate(vietnamToday);
+      const now = vietnamToday;
+      const durationHours = m?.sport?.name === "eSports" ? 6 : 3;
+      const matchEndTime = new Date(
+        matchDate.getTime() + durationHours * 60 * 60 * 1000
+      );
+      const isOngoing =
+        m?.status === MatchStatusType.LIVE ? now <= matchEndTime : true;
       return (
         m.sport?.slug === slug &&
         m?.status !== MatchStatusType.FINISHED &&
         m?.status !== MatchStatusType.CANCELLED &&
-        matchDay === todayDay
+        isOngoing
       );
     });
   }, [matchData, slug, vietnamToday]);
@@ -39,7 +47,13 @@ const AppContent: React.FC = () => {
   const { dateTabs, scheduleData } = useScheduleData(currentMatch);
   const initialDateId = formatDate(today);
 
-  if (loading && !matchData?.length && !replayData?.length) return <Loader />;
+  if (
+    loading &&
+    !initialLoadComplete &&
+    !matchData?.length &&
+    !replayData?.length
+  )
+    return <Loader />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (

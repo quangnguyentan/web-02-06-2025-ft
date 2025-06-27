@@ -52,3 +52,16 @@ export const createSlug = (name: string): string => {
     trim: true,
   });
 };
+
+// @/lib/helper.ts
+export const setInitialLoadComplete = (value: boolean) => {
+  localStorage.setItem("initialLoadComplete", value.toString());
+};
+
+export const isInitialLoadComplete = () => {
+  return localStorage.getItem("initialLoadComplete") === "true";
+};
+
+export const resetInitialLoadComplete = () => {
+  localStorage.removeItem("initialLoadComplete");
+};

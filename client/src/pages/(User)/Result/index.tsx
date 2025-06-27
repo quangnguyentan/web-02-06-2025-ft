@@ -14,7 +14,8 @@ import { Loader } from "@/components/layout/Loader";
 const today = new Date();
 
 const Result: React.FC = () => {
-  const { matchData, replayData, loading, error } = useData();
+  const { matchData, replayData, loading, error, initialLoadComplete } =
+    useData();
   const { slug } = useParams<{ slug: string }>();
 
   const currentMatchResults = React.useMemo(() => {
@@ -55,8 +56,13 @@ const Result: React.FC = () => {
       formatDate(today),
     [dateTabs]
   );
-
-  if (loading && !matchData?.length && !replayData?.length) return <Loader />;
+  if (
+    loading &&
+    !initialLoadComplete &&
+    !matchData?.length &&
+    !replayData?.length
+  )
+    return <Loader />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (

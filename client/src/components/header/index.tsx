@@ -33,6 +33,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Auth from "@/pages/Auth";
 import avatar from "@/assets/user/avatar.webp";
 import { useMediaQuery, useTheme } from "@mui/material";
+import { MatchStatusType } from "@/types/match.types";
+import { adjustToVietnamTime, formatDate } from "@/lib/helper";
 
 const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const theme = useTheme();
@@ -301,6 +303,8 @@ const MainNavbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
 };
 
 const SportsNavbar: React.FC = () => {
+  const today = React.useMemo(() => new Date(), []);
+  const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
   const navigate = useNavigate();
   const location = useLocation();
   const { sportData, matchData } = useData();
@@ -415,10 +419,34 @@ const SportsNavbar: React.FC = () => {
           }
         `}
           />
-          {matchData?.some(
-            (match) =>
-              match.sport?.slug === category.slug && match.status === "LIVE"
-          ) && (
+          {matchData?.some((match) => {
+            if (
+              match.sport?.slug === category.slug &&
+              match.status === "LIVE"
+            ) {
+              if (!match?.startTime) return false;
+              const matchDate = adjustToVietnamTime(new Date(match.startTime));
+              const matchDay = formatDate(matchDate);
+              const todayDay = formatDate(vietnamToday);
+              const now = vietnamToday;
+              const durationHours = match.sport?.name === "eSports" ? 6 : 3;
+              const matchEndTime = new Date(
+                matchDate.getTime() + durationHours * 60 * 60 * 1000
+              );
+              const isOngoing = now <= matchEndTime;
+
+              console.log(
+                `Match: ${match.title}, startTime: ${
+                  match.startTime
+                }, matchDate: ${matchDate.toISOString()}, matchDay: ${matchDay}, todayDay: ${todayDay}, isSameDay: ${
+                  matchDay === todayDay
+                }, isOngoing: ${isOngoing}`
+              );
+
+              return matchDay === todayDay && isOngoing;
+            }
+            return false;
+          }) && (
             <span className="ml-1 text-[6px] md:text-[7px] font-bold bg-red-500 text-white px-1 md:px-2 rounded-full md:rounded-full absolute right-[-5px] md:right-[-10px] top-0 md:top-[0px] animate-pulse">
               LIVE
             </span>

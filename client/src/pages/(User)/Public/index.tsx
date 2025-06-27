@@ -15,6 +15,7 @@ import Modal from "@mui/material/Modal";
 import { X } from "lucide-react";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { UserInteractionProvider } from "@/context/UserInteractionContext";
+import { isInitialLoadComplete, setInitialLoadComplete } from "@/lib/helper";
 const style = {
   position: "absolute",
   top: "50%",
@@ -32,7 +33,7 @@ const Public = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { setSelectedPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(!isInitialLoadComplete());
   const handleClose = () => setOpen(false);
 
   React.useEffect(() => {
@@ -48,8 +49,9 @@ const Public = () => {
 
   // Effect to show image on reload (component mount)
   React.useEffect(() => {
-    setOpen(true); // Set to true when component mounts (on reload)
-  }, []); // Empty dependency array ensures it runs only once on mount
+    setOpen(true);
+    setInitialLoadComplete(true);
+  }, []);
 
   return (
     <UserInteractionProvider>

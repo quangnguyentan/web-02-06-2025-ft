@@ -13,7 +13,7 @@ import { useParams } from "react-router-dom";
 
 const ReplayStream: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { replayData, loading, error } = useData();
+  const { replayData, loading, error, initialLoadComplete } = useData();
 
   const currentReplay = React.useMemo(
     () => (replayData || []).find((r) => r.title === slug) || null,
@@ -65,7 +65,7 @@ const ReplayStream: React.FC = () => {
     });
   }, [relatedReplays]);
 
-  if (loading && !replayData?.length) return <Loader />;
+  if (loading && !initialLoadComplete && !replayData?.length) return <Loader />;
   if (error) return <div>Error: {error.message}</div>;
   if (!currentReplay) return <div>No replay found</div>;
 

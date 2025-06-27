@@ -116,13 +116,13 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
             </div>
           </div>
         </div>
-        <div className="py-3">
+        {/* <div className="py-3">
           <img
             src={belt_bottom_top}
             alt="Small Ad Banner"
             className="w-full rounded-md shadow"
           />
-        </div>
+        </div> */}
       </main>
     </div>
   );

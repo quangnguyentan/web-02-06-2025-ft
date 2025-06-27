@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { Loader } from "@/components/layout/Loader";
 
 const Replay: React.FC = () => {
-  const { replayData, loading, error } = useData();
+  const { replayData, loading, error, initialLoadComplete } = useData();
   const { slug } = useParams();
 
   const replaySuggestions = React.useMemo(
@@ -76,7 +76,7 @@ const Replay: React.FC = () => {
     }));
   }, [replaySuggestions]);
 
-  if (loading && !replayData?.length) return <Loader />;
+  if (loading && !initialLoadComplete && !replayData?.length) return <Loader />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (

@@ -28,7 +28,14 @@ const sportIconMap: Record<string, React.ReactNode> = {
 };
 
 const AppContent: React.FC = () => {
-  const { matchData, replayData, sportData, loading, error } = useData();
+  const {
+    matchData,
+    replayData,
+    sportData,
+    loading,
+    error,
+    initialLoadComplete,
+  } = useData();
   const today = React.useMemo(() => new Date(), []);
   const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
 
@@ -37,19 +44,26 @@ const AppContent: React.FC = () => {
       return (matchData || []).filter((match) => {
         if (!match?.startTime) return false;
         const matchDate = adjustToVietnamTime(new Date(match.startTime));
-        const matchDay = formatDate(matchDate);
-        const todayDay = formatDate(vietnamToday);
+        // const matchDay = formatDate(matchDate);
+        // const todayDay = formatDate(vietnamToday);
+        const now = vietnamToday;
+        const durationHours = match.sport?.name === "eSports" ? 6 : 3;
+        const matchEndTime = new Date(
+          matchDate.getTime() + durationHours * 60 * 60 * 1000
+        );
+        const isOngoing =
+          match.status === MatchStatusType.LIVE ? now <= matchEndTime : true;
         return (
           match?.sport?.slug === slug &&
           match?.status !== MatchStatusType.FINISHED &&
           match?.status !== MatchStatusType.CANCELLED &&
-          matchDay === todayDay
+          isOngoing
         );
       });
     },
     [matchData, vietnamToday]
   );
-
+  console.log(matchData);
   const sportMatches = React.useMemo(() => {
     return (sportData || []).reduce(
       (acc, sport) => ({
@@ -64,13 +78,20 @@ const AppContent: React.FC = () => {
     return (matchData || []).filter((match) => {
       if (!match?.startTime) return false;
       const matchDate = adjustToVietnamTime(new Date(match.startTime));
-      const matchDay = formatDate(matchDate);
-      const todayDay = formatDate(vietnamToday);
+      // const matchDay = formatDate(matchDate);
+      // const todayDay = formatDate(vietnamToday);
+      const now = vietnamToday;
+      const durationHours = match.sport?.name === "eSports" ? 6 : 3;
+      const matchEndTime = new Date(
+        matchDate.getTime() + durationHours * 60 * 60 * 1000
+      );
+      const isOngoing =
+        match.status === MatchStatusType.LIVE ? now <= matchEndTime : true;
       return (
         match?.isHot &&
         match?.status !== MatchStatusType.FINISHED &&
         match?.status !== MatchStatusType.CANCELLED &&
-        matchDay === todayDay
+        isOngoing
       );
     });
   }, [matchData, vietnamToday]);
@@ -79,7 +100,9 @@ const AppContent: React.FC = () => {
     return (replayData || []).filter((match) => match?.isShown);
   }, [replayData]);
 
-  if (loading || !sportData?.length) return <Loader />;
+  if (loading && !initialLoadComplete && !sportData?.length) {
+    return <Loader />;
+  }
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -113,14 +136,14 @@ const AppContent: React.FC = () => {
           matches={spotlightMatches}
           isSpotlight
         />
-        <div className="px-1 sm:px-4 md:px-6">
+        {/* <div className="px-1 sm:px-4 md:px-6">
           <img
             src={belt_bottom_top}
             alt="Ad Banner"
             className="object-cover md:w-full"
           />
-        </div>
-        {sportData.map((sport) => (
+        </div> */}
+        {sportData?.map((sport) => (
           <SportSection
             key={sport._id}
             title={sport.name ?? ""}

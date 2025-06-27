@@ -15,7 +15,8 @@ const VerticalAdBanner = React.lazy(
 
 const Live: React.FC = () => {
   const { slug, slugSport } = useParams<{ slug: string; slugSport: string }>();
-  const { matchData, replayData, loading, error } = useData();
+  const { matchData, replayData, loading, error, initialLoadComplete } =
+    useData();
   const today = React.useMemo(() => new Date(), []);
 
   const relatedMatches = React.useMemo(
@@ -47,7 +48,7 @@ const Live: React.FC = () => {
     [matchData, slug]
   );
 
-  if (loading && !matchData?.length) return <Loader />;
+  if (loading && !initialLoadComplete && !matchData?.length) return <Loader />;
   if (error) return <div>Error: {error.message}</div>;
   if (!currentMatch) return <div>No match found</div>;
 
