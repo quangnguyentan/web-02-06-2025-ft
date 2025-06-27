@@ -138,16 +138,6 @@ const transformMatchesToSchedule = (
       scores: match.scores,
       streamLinks: match.streamLinks,
       isHot: match.isHot,
-      mainCommentator:
-        match.mainCommentator ||
-        (match?.streamLinks && match.streamLinks[0]?.commentator) ||
-        "Người Dùng",
-      mainCommentatorImage:
-        match.mainCommentatorImage ||
-        (match?.streamLinks && match.streamLinks[0]?.commentatorImage) ||
-        "https://via.placeholder.com/24/4A5568/E2E8F0?text=U",
-      secondaryCommentator: match.secondaryCommentator,
-      secondaryCommentatorImage: match.secondaryCommentatorImage,
     };
 
     // Thêm vào ngày tương ứng
