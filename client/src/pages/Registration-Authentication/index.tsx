@@ -17,9 +17,8 @@ type registerProps = {
 };
 const RegistrationAuthentication = ({
   onLogin,
-  onReset,
-  onTogglePassword,
   onShowPassword,
+  onTogglePassword,
   onClickTypeLogin,
   onClose,
 }: registerProps) => {
