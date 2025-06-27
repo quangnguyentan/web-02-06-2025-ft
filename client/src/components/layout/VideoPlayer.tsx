@@ -317,6 +317,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const togglePlay = () => {
+    setIsFullscreen(false); // Reset custom fullscreen on play toggle
     if (videoRef.current && !youTubeVideoId) {
       if (videoRef.current.paused || videoRef.current.ended) {
         videoRef.current.muted = false;
