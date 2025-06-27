@@ -35,7 +35,17 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Môn thể thao",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Môn thể thao
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="capitalize w-[150px] sm:w-auto">
         {row.getValue("name")}
@@ -44,17 +54,7 @@ export const getColumns = (
   },
   {
     accessorKey: "slug",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Slug
-          <ArrowUpDown />
-        </Button>
-      );
-    },
+
     cell: ({ row }) => (
       <div className="lowercase px-4">{row.getValue("slug")}</div>
     ),

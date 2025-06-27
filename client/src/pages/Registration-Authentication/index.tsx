@@ -102,7 +102,7 @@ const RegistrationAuthentication = ({
             <input
               onChange={handleInput}
               type="text"
-              placeholder="Họ và tên"
+              placeholder="Tên hiển thị"
               name="username"
               className={`${styles.inputField} ${styles.animation} ${styles.a2} !text-black no-arrows`}
             />

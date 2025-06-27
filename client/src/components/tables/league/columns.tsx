@@ -39,7 +39,17 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Tên giải đấu",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên giải đấu
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="capitalize w-[150px] sm:w-auto">
         {row.getValue("name")}
@@ -47,27 +57,18 @@ export const getColumns = (
     ),
   },
   {
-    accessorKey: "slug",
+    accessorKey: "sport",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Slug
+          Môn thể thao
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase px-4  w-[230px] sm:w-auto">
-        {row.getValue("slug")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "sport",
-    header: "Môn thể thao",
     cell: ({ row }) => {
       const sportData = row.original.sport; // Lấy dữ liệu sport thô
 

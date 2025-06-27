@@ -49,7 +49,17 @@ export const getColumns = (
   },
   {
     accessorKey: "fullname",
-    header: () => <div className="">Họ và tên</div>,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên hiển thị
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const user = row.original as User;
 

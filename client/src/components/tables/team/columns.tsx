@@ -39,7 +39,17 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Môn thể thao",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Môn thể thao
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "N/A";
@@ -61,22 +71,22 @@ export const getColumns = (
   },
   {
     accessorKey: "name",
-    header: "Tên đội bóng",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "slug",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Slug
+          Tên đội bóng
           <ArrowUpDown />
         </Button>
       );
     },
+    cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+  },
+  {
+    accessorKey: "slug",
+
     cell: ({ row }) => (
       <div className="lowercase px-4">{row.getValue("slug")}</div>
     ),

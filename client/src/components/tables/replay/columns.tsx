@@ -41,26 +41,19 @@ export const getColumns = (
   },
   {
     accessorKey: "title",
-    header: "Tiêu đề",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("title")}</div>
-    ),
-  },
-  {
-    accessorKey: "slug",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Slug
+          Tiêu đề
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase px-4">{row.getValue("slug")}</div>
+      <div className="capitalize">{row.getValue("title")}</div>
     ),
   },
   {
@@ -107,7 +100,17 @@ export const getColumns = (
   },
   {
     accessorKey: "match",
-    header: "Trận đấu", // Đổi tên header cho rõ ràng hơn
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Trận đấu
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const matchData = row.original.match;
       let matchTitle = "N/A";
@@ -128,7 +131,17 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Môn thể thao", // Đổi tên header cho rõ ràng hơn
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Môn thể thao
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "N/A";

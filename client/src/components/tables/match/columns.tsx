@@ -43,31 +43,35 @@ export const getColumns = (
   },
   {
     accessorKey: "title",
-    header: "Tiêu đề",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("title")}</div>
-    ),
-  },
-  {
-    accessorKey: "slug",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Slug
+          Tiêu đề
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase px-4">{row.getValue("slug")}</div>
+      <div className="capitalize">{row.getValue("title")}</div>
     ),
   },
+
   {
     accessorKey: "homeTeam",
-    header: "Tên đội nhà",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên đội nhà
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const teamData = row.original.homeTeam;
       let teamName = "N/A";
@@ -95,7 +99,17 @@ export const getColumns = (
   },
   {
     accessorKey: "awayTeam",
-    header: "Tên đội khách",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên đội khách
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const teamData = row.original.awayTeam;
       let teamName = "N/A";
@@ -123,7 +137,17 @@ export const getColumns = (
   },
   {
     accessorKey: "league",
-    header: "Tên giải đấu",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên giải đấu
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const leagueData = row.original.league;
       let leagueName = "N/A";
@@ -144,7 +168,17 @@ export const getColumns = (
   },
   {
     accessorKey: "sport",
-    header: "Môn thể thao",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Môn thể thao
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const sportData = row.original.sport;
       let sportName = "Không có môn thể thao";
