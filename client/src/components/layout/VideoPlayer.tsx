@@ -910,8 +910,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           aria-label="Exit Custom Fullscreen"
           className={
             isCustomFullscreen
-              ? "absolute top-2 right-1  z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
-              : "absolute top-2 right-1  z-10 hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+              ? "absolute top-2 right-1 z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+              : "absolute top-2 right-1 z-10 hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
           }
         >
           <XMarkIcon className="w-7 h-7 text-white/80 stroke-white hover:text-white" />
@@ -972,7 +972,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   ? "hidden"
                   : ""
               }`
-            : `absolute top-0 left-0 right-0 p-2 bg-gradient-to-t from-black/40 via-black/80 to-transparent z-10 ${
+            : `absolute top-0 left-0 right-0 p-1 bg-gradient-to-t from-black/40 via-black/80 to-transparent z-10 ${
                 (isFullscreen || isCustomFullscreen) && !showControls
                   ? "hidden"
                   : ""

@@ -18,7 +18,6 @@ const Live: React.FC = () => {
   const { matchData, replayData, loading, error, initialLoadComplete } =
     useData();
   const today = React.useMemo(() => new Date(), []);
-
   const relatedMatches = React.useMemo(
     () =>
       (matchData || []).filter((m) => {

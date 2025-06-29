@@ -59,10 +59,11 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
         "Chưa cập nhật BLV"
       : "Chưa cập nhật BLV";
   return (
-    <div
+    <a
+      href={targetUrl}
       onClick={() => {
         setHasUserInteracted(true);
-        navigate(targetUrl);
+        // navigate(targetUrl);
         setSelectedSportsNavbarPage(match?.sport?.name ?? "");
         localStorage.setItem(
           "selectedSportsNavbarPage",
@@ -203,7 +204,7 @@ const MatchCard: React.FC<{ match: Match; small?: boolean }> = ({
           </a>
         </div>
       </div>
-    </div>
+    </a>
   );
 };
 
