@@ -2,20 +2,17 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "@/components/header/index";
 import FooterInfo from "@/components/footer/index";
 import StickyAdBanner from "@/components/layout/StickyAdBanner";
-import FloatingChatButton from "@/components/layout/FloatingChatButton";
-import belt_left_right from "@/assets/user/160t1800.gif";
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import * as React from "react";
 import VerticalAdBanner from "@/components/layout/VerticalAdBanner";
-import { DataProvider } from "@/context/DataContext";
+import { useData } from "@/context/DataContext";
 import { useSelectedPageContext } from "@/hooks/use-context";
-import propImage from "@/assets/user/500t1500.gif";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import { X } from "lucide-react";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { UserInteractionProvider } from "@/context/UserInteractionContext";
 import { isInitialLoadComplete, setInitialLoadComplete } from "@/lib/helper";
+import { Banner } from "@/types/banner.types";
 const style = {
   position: "absolute",
   top: "50%",
@@ -33,9 +30,23 @@ const Public = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { setSelectedPage, setSelectedSportsNavbarPage } =
     useSelectedPageContext();
+  const { bannerData } = useData();
   const [open, setOpen] = React.useState(!isInitialLoadComplete());
   const handleClose = () => setOpen(false);
-
+  // In Public.tsx
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   React.useEffect(() => {
     containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
@@ -47,12 +58,10 @@ const Public = () => {
     if (savedSportsPage) setSelectedSportsNavbarPage(savedSportsPage);
   }, [setSelectedPage, setSelectedSportsNavbarPage]);
 
-  // Effect to show image on reload (component mount)
   React.useEffect(() => {
     setOpen(true);
     setInitialLoadComplete(true);
   }, []);
-
   return (
     <UserInteractionProvider>
       <div
@@ -60,21 +69,39 @@ const Public = () => {
         className="bg-slate-700 text-brand-text overflow-y-auto h-screen "
       >
         <div className="flex flex-col min-h-screen bg-[#1E2027]">
-          {/* <StickyAdBanner position="top" imageUrl={belt_bottom_top} /> */}
+          <StickyAdBanner
+            position="top"
+            imageUrl={filterBanners("TOP", "ALL_PAGE")?.imageUrl}
+          />
           <div className="pt-[6px] flex-grow relative">
             <Header />
             <div className="container mx-auto relative px-1 sm:px-0">
               <div className="hidden lg:block">
-                {/* <VerticalAdBanner position="left" imageUrl={belt_left_right} /> */}
-                {/* <VerticalAdBanner position="right" imageUrl={belt_left_right} /> */}
+                <VerticalAdBanner
+                  position="left"
+                  imageUrl={filterBanners("SIDEBAR_LEFT", "ALL_PAGE")?.imageUrl}
+                />
+                <VerticalAdBanner
+                  position="right"
+                  imageUrl={
+                    filterBanners("SIDEBAR_RIGHT", "ALL_PAGE")?.imageUrl
+                  }
+                />
               </div>
               <Outlet />
             </div>
-            <FooterInfo />
+            {location.pathname.startsWith("/truc-tiep") && isMobile ? (
+              ""
+            ) : (
+              <FooterInfo />
+            )}
           </div>
-          {/* <StickyAdBanner position="bottom" imageUrl={belt_bottom_top} /> */}
+          <StickyAdBanner
+            position="bottom"
+            imageUrl={filterBanners("BOTTOM", "ALL_PAGE")?.imageUrl}
+          />
           {/* <FloatingChatButton /> */}
-          {/* <Modal
+          <Modal
             open={open}
             onClose={handleClose}
             aria-labelledby="modal-modal-title"
@@ -90,7 +117,7 @@ const Public = () => {
                   }
                 >
                   <img
-                    src={propImage}
+                    src={filterBanners("POPUP", "ALL_PAGE")?.imageUrl}
                     alt="Centered Ad Banner"
                     className="w-full h-auto"
                   />
@@ -103,7 +130,7 @@ const Public = () => {
                 </div>
               </div>
             </Box>
-          </Modal> */}
+          </Modal>
         </div>
       </div>
     </UserInteractionProvider>

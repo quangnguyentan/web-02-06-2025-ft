@@ -6,13 +6,20 @@ import SchedulePage from "@/components/layout/SchedulePage";
 import { useScheduleData, formatDate } from "@/data/mockScheduleData";
 import { DataProvider, useData } from "@/context/DataContext";
 import { useParams } from "react-router-dom";
-import { Match, MatchStatusType } from "@/types/match.types";
+import { MatchStatusType } from "@/types/match.types";
 import { adjustToVietnamTime } from "@/lib/helper";
 import { Loader } from "@/components/layout/Loader";
+import { Banner } from "@/types/banner.types";
 
 const AppContent: React.FC = () => {
-  const { matchData, replayData, loading, error, initialLoadComplete } =
-    useData();
+  const {
+    matchData,
+    replayData,
+    bannerData,
+    loading,
+    error,
+    initialLoadComplete,
+  } = useData();
   const { slug } = useParams();
   const today = React.useMemo(() => new Date(), []);
   const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
@@ -43,7 +50,19 @@ const AppContent: React.FC = () => {
     () => (replayData || []).filter((r) => r.sport?.slug === slug),
     [replayData, slug]
   );
-
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   const { dateTabs, scheduleData } = useScheduleData(currentMatch);
   const initialDateId = formatDate(today);
 
@@ -67,9 +86,9 @@ const AppContent: React.FC = () => {
           matches={currentMatch}
           isSpotlight
         />
-        <div className="px-1 sm:px-4 md:px-6 pt-2 pb-4">
+        <div className="pb-4">
           <img
-            src={belt_bottom_top}
+            src={filterBanners("INLINE", "HOME_PAGE")?.imageUrl}
             alt="Ad Banner"
             className="object-cover md:w-full"
           />
@@ -82,6 +101,13 @@ const AppContent: React.FC = () => {
         scheduleData={scheduleData}
         replayItems={replaySuggestions}
       />
+      <div className="pb-4">
+        <img
+          src={filterBanners("INLINE", "HOME_PAGE")?.imageUrl}
+          alt="Ad Banner"
+          className="object-cover md:w-full"
+        />
+      </div>
     </main>
   );
 };

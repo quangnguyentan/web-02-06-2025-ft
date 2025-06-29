@@ -43,6 +43,7 @@ import { createSlug } from "@/lib/helper";
 import Select from "react-select";
 import { FixedSizeList as List } from "react-window";
 import debounce from "lodash.debounce";
+import { Banner } from "@/types/banner.types";
 
 registerLocale("vi", vi);
 setDefaultLocale("vi");
@@ -690,7 +691,7 @@ export const EditMatchModal = () => {
       if (res?.data) {
         toast.success(`Đã cập nhật ${values.title} thành công`);
         onClose();
-        const updatedList = match?.map((item) =>
+        const updatedList = match?.map((item: Banner) =>
           item._id === res.data._id ? res.data : item
         );
         setMatch(updatedList);

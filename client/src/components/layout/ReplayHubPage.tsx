@@ -64,7 +64,6 @@ const Pagination: React.FC<{
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   if (totalPages <= 1) return null;
-
   return (
     <div className="flex justify-center items-center space-x-2 my-4">
       <button
@@ -75,7 +74,7 @@ const Pagination: React.FC<{
       >
         &lt;
       </button>
-      {pages.map((page) => (
+      {pages?.map((page) => (
         <button
           key={page}
           onClick={() => onPageChange(page)}

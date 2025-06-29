@@ -5,10 +5,12 @@ import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
 import { DateTabInfo, LeagueSchedule } from "@/types/match.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { Replay } from "@/types/replay.types";
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { Banner } from "@/types/banner.types";
+import { useData } from "@/context/DataContext";
+import VideoReelsHubPage from "./VideoReelHubPage";
 
 interface ResultsPageProps {
   availableDates: DateTabInfo[];
@@ -66,7 +68,20 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
   const selectedDateTab = useMemo(() => {
     return availableDates.find((d) => d.id === selectedDateId);
   }, [selectedDateId, availableDates]);
-
+  const { bannerData } = useData();
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   const pageTitleDate = selectedDateTab?.isToday
     ? "HÔM NAY"
     : selectedDateTab?.dateSuffix;
@@ -120,16 +135,17 @@ const ResultsPage: React.FC<ResultsPageProps> = ({
                 title="XEM LẠI BÓNG ĐÁ"
                 titleHidden
               />
-              <div className="my-3">
-                <img
-                  src={belt_bottom_top}
-                  alt="Small Ad Banner"
-                  className="w-full rounded-md shadow"
-                />
-              </div>
             </div>
           </div>
         </div>
+        <div className="py-3">
+          <img
+            src={filterBanners("BOTTOM", "SHEDULE_PAGE")?.imageUrl}
+            alt="Small Ad Banner"
+            className="w-full rounded-md shadow"
+          />
+        </div>
+        <VideoReelsHubPage />
       </main>
     </div>
   );

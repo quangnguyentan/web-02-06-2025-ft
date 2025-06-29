@@ -1,8 +1,10 @@
 import { Match, MatchStatusType } from "@/types/match.types";
 import { UserIcon } from "./Icon"; // For streamer avatar fallback or details icon
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
+  const navigate = useNavigate();
   const getStatusText = (status: MatchStatusType) => {
     switch (status) {
       case MatchStatusType.LIVE:
@@ -21,7 +23,12 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         "Unknown Commentator"
       : "Unknown Commentator";
   return (
-    <div className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0 relative">
+    <div
+      onClick={() => {
+        navigate(`/truc-tiep/${match?.slug}/${match?.sport?.slug}`);
+      }}
+      className="flex items-center p-3 bg-slate-800 hover:bg-slate-700/50 transition-colors duration-150 border-b border-slate-700 last:border-b-0 relative cursor-pointer"
+    >
       <div className="w-[15%] sm:w-[12%] text-xs text-gray-400 pr-2">
         <div>
           {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
@@ -96,7 +103,7 @@ const ResultsListItem: React.FC<{ match: Match }> = ({ match }) => {
         )}
 
         {!match?.streamLinks?.[0]?.commentator && (
-          <span className="text-gray-500 italic">N/A</span>
+          <span className="text-gray-500 italic">Chưa cập nhật BLV</span>
         )}
       </div>
       {match.status === "LIVE" && (

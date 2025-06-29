@@ -14,6 +14,8 @@ const ResultPage = lazy(() => import("../Result/index"));
 const ReplayPage = lazy(() => import("../Replay/index"));
 const XoiLacTVPage = lazy(() => import("../XoiLacTV/index"));
 const ReplayStreamPage = lazy(() => import("../ReplayStream/index"));
+const VideoReelPage = lazy(() => import("../VideoReelStream/index"));
+
 import { Loader } from "@/components/layout/Loader";
 // Wrapper component to decide between ReplayPage and ReplayStreamPage
 const ReplayRouteHandler: React.FC = () => {
@@ -80,6 +82,10 @@ const publicRoutes: (RouteObject & { role?: string[] })[] = [
       {
         path: "/xem-lai/:slug",
         element: <ReplayRouteHandler />,
+      },
+      {
+        path: "/video-reel/:title/:sportSlug",
+        element: <VideoReelPage />,
       },
       {
         path: "/xoi-lac-tv",

@@ -5,6 +5,8 @@ import { Match } from "@/types/match.types";
 import { Team } from "@/types/team.types";
 import { Replay } from "@/types/replay.types";
 import { League } from "@/types/league.types";
+import { Banner } from "@/types/banner.types";
+import { VideoReels } from "@/types/videoReel.type";
 
 export type ModalType =
   | "createUser"
@@ -24,7 +26,13 @@ export type ModalType =
   | "deleteReplay"
   | "createLeague"
   | "deleteLeague"
-  | "editLeague";
+  | "editLeague"
+  | "createVideoReel"
+  | "editVideoReel"
+  | "deleteVideoReel"
+  | "editBanner"
+  | "deleteBanner"
+  | "createBanner"
 
 export interface ModalData {
   user?: User;
@@ -33,6 +41,8 @@ export interface ModalData {
   team?: Team;
   replay?: Replay;
   league?: League;
+  banner?: Banner;
+  videoReel?: VideoReels;
 }
 interface ModalStore {
   type: ModalType | null;

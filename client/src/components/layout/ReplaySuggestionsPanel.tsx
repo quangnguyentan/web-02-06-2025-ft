@@ -2,6 +2,7 @@ import ReplayCard from "./ReplayCard"; // Using the updated ReplayCard with 'com
 import { TVIcon } from "./Icon";
 import * as React from "react";
 import { Replay } from "@/types/replay.types";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 interface ReplaySuggestionsPanelProps {
   replays: Replay[];
@@ -14,6 +15,8 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
   title = "XEM LẠI",
   titleHidden,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   if (!replays || replays.length === 0) {
     return (
       <div className="bg-slate-800 p-2 sm:p-3 rounded-lg shadow text-center text-gray-500 text-xs sm:text-sm">
@@ -21,7 +24,6 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
       </div>
     );
   }
-
   return (
     // <div className="bg-slate-800 p-2 sm:p-3 rounded-lg shadow mt-3 sm:mt-0">
     <div className="rounded-lg shadow">
@@ -39,6 +41,16 @@ const ReplaySuggestionsPanel: React.FC<ReplaySuggestionsPanelProps> = ({
           <>
             {replays?.slice(1, 4).map((replay) => (
               <ReplayCard key={replay?._id} replay={replay} variant="default" />
+            ))}
+          </>
+        ) : location.pathname?.startsWith("/truc-tiep/") && isMobile ? (
+          <>
+            {replays?.slice(0, 6).map((replay, index) => (
+              <ReplayCard
+                key={replay?._id}
+                replay={replay}
+                variant={index === 0 ? "default" : "compact"}
+              />
             ))}
           </>
         ) : (

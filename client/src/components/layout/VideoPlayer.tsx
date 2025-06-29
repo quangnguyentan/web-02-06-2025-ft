@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Hls from "hls.js";
 import {
   PlayCircleIconSolid,
@@ -13,6 +13,8 @@ import { useUserInteraction } from "@/context/UserInteractionContext";
 import { useTheme, useMediaQuery } from "@mui/material";
 import { Match } from "@/types/match.types";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import { Banner } from "@/types/banner.types";
+import { useData } from "@/context/DataContext";
 
 // Mở rộng kiểu HTMLVideoElement để hỗ trợ webkit
 interface ExtendedVideoElement extends HTMLVideoElement {
@@ -66,6 +68,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   autoPlay = false,
   match,
 }) => {
+  const { bannerData } = useData();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isPlaying, setIsPlaying] = useState(false);
@@ -106,7 +109,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@[\w\d._]+\/video\/(\d+)/
   );
   const tikTokVideoId = isTikTokUrl ? isTikTokUrl[1] : null;
-
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   useEffect(() => {
     if (
       !videoRef.current ||
@@ -220,6 +235,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         !!document.fullscreenElement || !!video.webkitDisplayingFullscreen;
       setIsFullscreen(isCurrentlyFullscreen);
       setShowControls(isCurrentlyFullscreen);
+
       if (!isCurrentlyFullscreen && isPlaying) {
         setTimeout(() => {
           video.play().catch((err) => {
@@ -323,8 +339,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerRef.current.style.top = "0";
       playerRef.current.style.left = "0";
       playerRef.current.style.width = "100%";
-      playerRef.current.style.height = "100%";
-      playerRef.current.style.zIndex = "10";
+      // playerRef.current.style.height = "76.5%";
+      playerRef.current.style.height = `${window.innerHeight}px`;
+      playerRef.current.style.zIndex = "80";
       playerRef.current.style.backgroundColor = "black";
       document.body.style.overflow = "hidden";
       playerRef.current.style.display = "flex";
@@ -354,7 +371,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return `${minutes}:${seconds}`;
   };
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
+    setShowSettings(false);
     setIsFullscreen(false);
     if (
       videoRef.current &&
@@ -392,7 +410,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setIsPlaying(false);
       }
     }
-  };
+  }, [
+    facebookVideoId,
+    tikTokVideoId,
+    youTubeVideoId,
+    setHasUserInteracted,
+    match?.startTime,
+    match?.status,
+  ]);
 
   const toggleMute = () => {
     if (
@@ -454,11 +479,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  const handleCustomFullscreen = () => {
+  const handleCustomFullscreen = useCallback(() => {
     if (!isFullscreen) {
       setIsCustomFullscreen(!isCustomFullscreen);
     }
-  };
+  }, [isCustomFullscreen, isFullscreen]);
 
   const handleSettings = () => {
     setShowSettings(!showSettings);
@@ -496,6 +521,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
     lastTouchTime.current = currentTime;
   };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isCustomFullscreen) {
+        setIsCustomFullscreen(false);
+      }
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault(); // Ngăn cuộn trang khi nhấn space
+        togglePlay();
+      }
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault(); // Ngăn hành vi mặc định
+        setShowControls(true);
+        handleCustomFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCustomFullscreen, togglePlay, handleCustomFullscreen]);
 
   if (!videoUrl) {
     return (
@@ -589,7 +636,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <video
           ref={videoRef}
           poster={posterUrl}
-          className={`w-full h-full object-contain z-10`}
+          className={
+            isCustomFullscreen
+              ? `w-full h-full object-contain z-10 relative`
+              : `w-full h-full object-contain z-0 relative`
+          }
           onDoubleClick={isMobile ? undefined : handleFullscreen}
           onTouchStart={isMobile ? handleTouchStart : undefined}
           onPlay={() => setIsPlaying(true)}
@@ -626,13 +677,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
           Your browser does not support the video tag.
         </video>
+        {isFullscreen && (
+          <div
+            className={
+              isCustomFullscreen
+                ? "absolute bottom-0 left-0 right-0 z-[1000]"
+                : "absolute bottom-0 left-0 right-0 z-10"
+            }
+          >
+            <img
+              src={filterBanners("INLINE", "LIVE_PAGE")?.imageUrl}
+              alt="Ad Banner"
+              className={
+                !isMobile && isCustomFullscreen
+                  ? "object-cover md:w-full"
+                  : "object-cover md:w-full"
+              }
+            />
+          </div>
+        )}
       </div>
 
       {showPlayButton && isMobile && !isPlaying && (
         <button
           onClick={togglePlay}
           aria-label={isPlaying ? "Pause" : "Play"}
-          className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors z-50"
+          className={
+            isCustomFullscreen
+              ? "absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors z-50"
+              : "absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors z-0"
+          }
         >
           <PlayCircleIconSolid className="w-20 h-20 text-white/80 hover:text-white" />
         </button>
@@ -652,7 +726,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <button
             onClick={togglePlay}
             aria-label="Play video"
-            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-50"
+            className={
+              isCustomFullscreen
+                ? "absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-50"
+                : "absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors z-0"
+            }
           >
             {isPlaying ? (
               <PauseCircleIconSolid className="w-20 h-20" />
@@ -665,7 +743,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={togglePlay}
           aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors opacity-0 z-50"
+          className={
+            isCustomFullscreen
+              ? "absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors opacity-0 z-50"
+              : "absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors opacity-0 z-0"
+          }
         >
           {isPlaying ? (
             <PauseCircleIconSolid className="w-20 h-20" />
@@ -676,7 +758,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       )}
 
       {countdownActive && !error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-center p-2 z-10">
+        <div
+          className={
+            isCustomFullscreen
+              ? "absolute inset-0 flex items-center justify-center bg-black/70 text-white text-center p-2 z-10"
+              : "absolute inset-0 flex items-center justify-center bg-black/70 text-white text-center p-2 z-0"
+          }
+        >
           <div className="bg-white md:py-20 md:px-32 px-10 py-6 relative">
             <div className="max-w-xs w-full flex flex-col gap-2 md:gap-6">
               <div className="flex-col items-start justify-start absolute top-1 left-0 px-4 bg-slate-50 w-full py-2 hidden md:flex">
@@ -820,16 +908,76 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button
           onClick={handleCustomFullscreen}
           aria-label="Exit Custom Fullscreen"
-          className="absolute top-1 right-2 z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+          className={
+            isCustomFullscreen
+              ? "absolute top-2 right-1  z-[10000] hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+              : "absolute top-2 right-1  z-10 hover:text-red-500 transition-colors rounded-xl bg-black hover:bg-black/70 p-1"
+          }
         >
-          <XMarkIcon className="w-6 h-6 text-white/80 hover:text-white stroke-border" />
+          <XMarkIcon className="w-7 h-7 text-white/80 stroke-white hover:text-white" />
         </button>
       )}
-
       <div
-        className={`absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-50 ${
-          (isFullscreen || isCustomFullscreen) && !showControls ? "hidden" : ""
-        }`}
+        className={
+          isCustomFullscreen
+            ? "absolute bottom-4 md:bottom-14 right-2 z-[1000]"
+            : "absolute bottom-4 md:bottom-8 right-2 z-0"
+        }
+      >
+        <div className="flex items-center gap-2">
+          <button
+            className=" bg-green-500 hover:bg-green-600 text-white md:text-xs font-semibold py-0.5 md:py-2 rounded transition-colors text-center text-[9px] cursor-pointer px-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // window.open("https://b.thapcam73.life/", "_blank");
+            }}
+          >
+            CƯỢC SV368
+          </button>
+          <button
+            className=" bg-blue-500 hover:bg-blue-600 text-white md:text-xs font-semibold py-0.5 md:py-2 rounded transition-colors text-center text-[9px] cursor-pointer px-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // window.open("https://b.thapcam73.life/", "_blank");
+            }}
+          >
+            CHIA SẺ NGAY
+          </button>
+        </div>
+      </div>
+      <div
+        className={
+          isCustomFullscreen
+            ? "absolute bottom-0 left-0 right-0 z-[1000]"
+            : "absolute bottom-0 left-0 right-0 z-100"
+        }
+      >
+        <img
+          src={filterBanners("INLINE", "LIVE_PAGE")?.imageUrl}
+          alt="Ad Banner"
+          className={
+            !isMobile && isCustomFullscreen
+              ? "object-cover md:w-full"
+              : "object-cover md:w-full"
+          }
+        />
+      </div>
+      <div
+        className={
+          isCustomFullscreen
+            ? `absolute top-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-50 ${
+                (isFullscreen || isCustomFullscreen) && !showControls
+                  ? "hidden"
+                  : ""
+              }`
+            : `absolute top-0 left-0 right-0 p-2 bg-gradient-to-t from-black/40 via-black/80 to-transparent z-10 ${
+                (isFullscreen || isCustomFullscreen) && !showControls
+                  ? "hidden"
+                  : ""
+              }`
+        }
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -878,7 +1026,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               <Cog8ToothIcon className="w-6 h-6" />
             </button>
             {showSettings && qualityLevels.length > 0 && (
-              <div className="absolute bottom-10 right-0 bg-black/90 text-white rounded-md shadow-lg p-2 z-10">
+              <div className="absolute top-10 right-10 bg-black/90 text-white rounded-md shadow-lg p-2 z-10">
                 <ul className="space-y-1">
                   <li>
                     <button
@@ -890,11 +1038,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       Auto
                     </button>
                   </li>
-                  {qualityLevels.map((level) => (
+                  {qualityLevels?.map((level) => (
                     <li key={level.id}>
                       <button
                         onClick={() => handleQualityChange(level.id)}
-                        className={`w-full text-left px-2 py-1 rounded hover:bg-red-500/50 ${
+                        className={`w-full text-left px-2 py-1 rounded  ${
                           currentLevel === level.id ? "bg-red-500/70" : ""
                         }`}
                       >
@@ -907,13 +1055,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
             {isMobile && (
               <button
-                onClick={handleCustomFullscreen}
+                onClick={() => {
+                  handleCustomFullscreen();
+                  setShowControls(true);
+                  setShowSettings(false);
+                }}
                 aria-label={
                   isCustomFullscreen
                     ? "Exit Custom Fullscreen"
                     : "Custom Fullscreen"
                 }
-                className="hover:text-red-500 transition-colors"
+                className=" transition-colors"
               >
                 <ArrowsPointingIconSolid
                   className={`w-6 h-6 ${isCustomFullscreen ? "rotate-45" : ""}`}
@@ -921,9 +1073,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               </button>
             )}
             <button
-              onClick={handleFullscreen}
+              onClick={() => {
+                if (isMobile) {
+                  setShowSettings(false);
+                  handleFullscreen();
+                } else {
+                  setShowSettings(false);
+                  setIsCustomFullscreen(!isCustomFullscreen);
+                  setShowControls(true); // ⚠️ Mở controls custom khi bấm
+                }
+              }}
               aria-label="Native Fullscreen"
-              className="hover:text-red-500 transition-colors"
+              className=" transition-colors"
             >
               <ArrowsPointingOutIconSolid />
             </button>
@@ -931,9 +1092,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent z-50">
+      {/* <div className="absolute top-0 left-0 p-2 bg-gradient-to-b from-black/70 to-transparent z-50">
         <h2 className="text-sm font-semibold">{videoTitle}</h2>
-      </div>
+      </div> */}
     </div>
   );
 };

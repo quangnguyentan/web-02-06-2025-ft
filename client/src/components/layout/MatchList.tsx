@@ -27,7 +27,7 @@ const MatchList: React.FC<MatchListProps> = (props: MatchListProps) => {
 
   return (
     <div className="bg-slate-850 rounded-b-md flex flex-col gap-4 py-4">
-      {leagues.map((league) => (
+      {leagues?.map((league) => (
         <div key={league.id} className="mb-0 last:mb-0">
           <div className="bg-blue-500/60 flex items-center p-2.5 border-b border-slate-600 sticky top-0 z-10">
             {/* Sticky header for league */}

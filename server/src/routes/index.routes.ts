@@ -6,7 +6,8 @@ import teamRoutes from "./team.routes";
 import leagueRoutes from "./league.routes";
 import replayRoutes from "./replay.routes";
 import matchRoutes from "./match.routes";
-
+import bannerRoutes from "./banner.routes"
+import videoReelRoutes from "./videoReel.routes"
 export const initRoutes = (app: Application) => {
   app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
@@ -15,4 +16,6 @@ export const initRoutes = (app: Application) => {
   app.use("/api/leagues", leagueRoutes);
   app.use("/api/replays", replayRoutes);
   app.use("/api/matches", matchRoutes);
+  app.use("/api", bannerRoutes);
+  app.use("/api", videoReelRoutes);
 };

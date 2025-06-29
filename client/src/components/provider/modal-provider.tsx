@@ -16,6 +16,12 @@ import { EditReplayModal } from "../modals/replay-modal/edit-replay-modal";
 import { CreateLeagueModal } from "../modals/league-modal/create-league-modal";
 import { DeleteLeagueModal } from "../modals/league-modal/delete-league-modal";
 import { EditLeagueModal } from "../modals/league-modal/edit-league-modal";
+import { CreateVideoReelModal } from "../modals/videoReel-modal/create-videoReel-modal";
+import { DeleteVideoReelModal } from "../modals/videoReel-modal/delete-videoReel-modal";
+import { EditVideoReelModal } from "../modals/videoReel-modal/edit-videoReel-modal";
+import { CreateBannerModal } from "../modals/banner-modal/create-banner-modal";
+import { EditBannerModal } from "../modals/banner-modal/edit-banner-modal";
+import { DeleteBannerModal } from "../modals/banner-modal/delete-banner-modal";
 const ModalProvider = () => {
   return (
     <>
@@ -37,6 +43,12 @@ const ModalProvider = () => {
       <CreateLeagueModal />
       <EditLeagueModal />
       <DeleteLeagueModal />
+      <CreateVideoReelModal />
+      <DeleteVideoReelModal />
+      <EditVideoReelModal />
+      <CreateBannerModal />
+      <EditBannerModal />
+      <DeleteBannerModal />
     </>
   );
 };

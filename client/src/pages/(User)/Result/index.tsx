@@ -10,10 +10,11 @@ import { Match, MatchStatusType } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { useParams } from "react-router-dom";
 import { Loader } from "@/components/layout/Loader";
-
-const today = new Date();
+import { adjustToVietnamTime } from "@/lib/helper";
 
 const Result: React.FC = () => {
+  const today = React.useMemo(() => new Date(), []);
+  const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
   const { matchData, replayData, loading, error, initialLoadComplete } =
     useData();
   const { slug } = useParams<{ slug: string }>();
@@ -27,11 +28,19 @@ const Result: React.FC = () => {
     const matchesToFilter =
       error || !matchData?.length ? mockMatches : matchData;
 
-    return matchesToFilter.filter((m) => {
-      const matchDate = new Date(m.startTime ?? "");
+    return matchesToFilter?.filter((m) => {
+      if (!m?.startTime) return false;
+      const matchDate = adjustToVietnamTime(new Date(m.startTime));
+      const now = vietnamToday;
+      const durationHours = m?.sport?.name === "eSports" ? 6 : 3;
+      const matchEndTime = new Date(
+        matchDate.getTime() + durationHours * 60 * 60 * 1000
+      );
+      const isOngoing =
+        m?.status === MatchStatusType.LIVE ? now <= matchEndTime : true;
       return (
         m.sport?.slug === slug &&
-        !isNaN(matchDate.getTime()) &&
+        isOngoing &&
         (m.status === MatchStatusType.FINISHED ||
           m.status === MatchStatusType.LIVE)
       );

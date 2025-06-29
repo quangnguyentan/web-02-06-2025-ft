@@ -1,9 +1,11 @@
+import { Banner } from "@/types/banner.types";
 import { League } from "@/types/league.types";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
 import { Team } from "@/types/team.types";
 import { User } from "@/types/user.types";
+import { VideoReels } from "@/types/videoReel.type";
 import { createContext, useContext } from "react";
 
 export type SelectedPageProps = {
@@ -29,6 +31,12 @@ export type SelectedPageProps = {
   team: Team[];
   setTeam: (list: Team[]) => void;
   addTeam: (s: Team) => void;
+  banner: Banner[];
+  setBanner: (list: Banner[]) => void;
+  addBanner: (s: Banner) => void;
+  videoReel: VideoReels[];
+  setVideoReel: (list: VideoReels[]) => void;
+  addVideoReel: (s: VideoReels) => void;
 };
 export const SelectedPageContext = createContext<SelectedPageProps | undefined>(
   undefined

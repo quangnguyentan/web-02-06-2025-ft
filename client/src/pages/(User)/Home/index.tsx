@@ -1,11 +1,11 @@
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import * as React from "react";
 import { DataProvider, useData } from "@/context/DataContext";
-import { MatchStatusType } from "@/types/match.types";
+import { Match, MatchStatusType } from "@/types/match.types";
 import { Suspense } from "react";
-import { adjustToVietnamTime, formatDate } from "@/lib/helper";
+import { adjustToVietnamTime } from "@/lib/helper";
 import { EventsIcon } from "@/components/layout/Icon";
 import { Loader } from "@/components/layout/Loader";
+import { Banner } from "@/types/banner.types";
 
 const HeroSection = React.lazy(() => import("@/components/layout/HeroSection"));
 const SportSection = React.lazy(
@@ -32,13 +32,26 @@ const AppContent: React.FC = () => {
     matchData,
     replayData,
     sportData,
+    bannerData,
     loading,
     error,
     initialLoadComplete,
   } = useData();
   const today = React.useMemo(() => new Date(), []);
   const vietnamToday = React.useMemo(() => adjustToVietnamTime(today), [today]);
-
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   const filterMatchesBySport = React.useCallback(
     (slug: string) => {
       return (matchData || []).filter((match) => {
@@ -129,19 +142,28 @@ const AppContent: React.FC = () => {
         </span>
       </div>
       <main className="w-full mx-auto max-w-[640px] sm:max-w-[768px] md:max-w-[960px] lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] 3xl:max-w-[1440px]">
+        <div>
+          <img
+            src={filterBanners("TOP", "HOME_PAGE")?.imageUrl}
+            alt="Ad Banner"
+            className="object-cover md:w-full"
+          />
+        </div>
         <SportSection
           title="TÂM ĐIỂM THỂ THAO"
           icon={sportIconMap["events"] || <EventsIcon className="w-6 h-6" />}
           matches={spotlightMatches}
           isSpotlight
         />
-        {/* <div className="px-1 sm:px-4 md:px-6">
-          <img
-            src={belt_bottom_top}
-            alt="Ad Banner"
-            className="object-cover md:w-full"
-          />
-        </div> */}
+        {matchData?.find((match: Match) => match?.isHot) && (
+          <div>
+            <img
+              src={filterBanners("TOP", "HOME_PAGE")?.imageUrl}
+              alt="Ad Banner"
+              className="object-cover md:w-full"
+            />
+          </div>
+        )}
         {sportData?.map((sport) => (
           <SportSection
             key={sport._id}
@@ -151,11 +173,25 @@ const AppContent: React.FC = () => {
             viewAllUrl="#"
           />
         ))}
+        <div>
+          <img
+            src={filterBanners("TOP", "HOME_PAGE")?.imageUrl}
+            alt="Ad Banner"
+            className="object-cover md:w-full"
+          />
+        </div>
         <ReplaySection
           title="XEM LẠI CÁC TRẬN ĐẤU"
           replays={replayFilter}
           viewAllUrl="#"
         />
+        <div className="pb-4">
+          <img
+            src={filterBanners("BOTTOM", "HOME_PAGE")?.imageUrl}
+            alt="Ad Banner"
+            className="object-cover md:w-full"
+          />
+        </div>
       </main>
     </Suspense>
   );

@@ -8,8 +8,10 @@ import {
   BanknotesIcon,
   CalendarDateRangeIcon,
   GlobeAsiaAustraliaIcon,
+  PhotoIcon,
   UserGroupIcon,
   UsersIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/24/solid";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -66,6 +68,16 @@ const Home = () => {
       id: 6,
       name: "Phát lại",
       icon: <ArrowPathIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+    {
+      id: 7,
+      name: "Thước phim ngắn",
+      icon: <VideoCameraIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
+    },
+    {
+      id: 6,
+      name: "Banner quảng cáo",
+      icon: <PhotoIcon className="stroke-white stroke-[1] min-w-5 w-5" />,
     },
   ];
   // Sử dụng React.useMemo để lọc các mục dựa trên vai trò của người dùng

@@ -8,6 +8,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Match } from "@/types/match.types";
 import { Replay } from "@/types/replay.types";
 import { Sport } from "@/types/sport.types";
+import { VideoReels } from "@/types/videoReel.type";
+import { Banner } from "@/types/banner.types";
 import { setInitialLoadComplete, isInitialLoadComplete } from "@/lib/helper";
 
 const production = "https://sv.hoiquan.live";
@@ -35,11 +37,15 @@ const fetchData = async (url: string) => {
 const fetchMatches = () => fetchData("/api/matches");
 const fetchReplays = () => fetchData("/api/replays");
 const fetchSports = () => fetchData("/api/sports");
+const fetchVideoReels = () => fetchData("/api/video-reels");
+const fetchBanners = () => fetchData("/api/banners");
 
 interface DataContextType {
   matchData: Match[] | undefined;
   replayData: Replay[] | undefined;
   sportData: Sport[] | undefined;
+  videoReelData: VideoReels[] | undefined;
+  bannerData: Banner[] | undefined;
   loading: boolean;
   error: Error | null;
   refetchData: () => Promise<void>;
@@ -70,6 +76,20 @@ const useSports = () =>
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 
+const useVideoReels = () =>
+  useQuery<VideoReels[]>({
+    queryKey: ["videoReels"],
+    queryFn: fetchVideoReels,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+const useBanners = () =>
+  useQuery<Banner[]>({
+    queryKey: ["banners"],
+    queryFn: fetchBanners,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
 const DataProviderInner: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -89,13 +109,29 @@ const DataProviderInner: React.FC<{ children: React.ReactNode }> = ({
     isLoading: sportLoading,
     error: sportError,
   } = useSports();
+  const {
+    data: videoReelData = [],
+    isLoading: videoReelLoading,
+    error: videoReelError,
+  } = useVideoReels();
+  const {
+    data: bannerData = [],
+    isLoading: bannerLoading,
+    error: bannerError,
+  } = useBanners();
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [initialLoadComplete, setIsInitialLoadComplete] = useState(
     isInitialLoadComplete()
   );
 
-  const loading = matchLoading || replayLoading || sportLoading;
-  const error = matchError || replayError || sportError;
+  const loading =
+    matchLoading ||
+    replayLoading ||
+    sportLoading ||
+    videoReelLoading ||
+    bannerLoading;
+  const error =
+    matchError || replayError || sportError || videoReelError || bannerError;
 
   // Set initial load complete when data fetching is complete
   useEffect(() => {
@@ -161,7 +197,7 @@ const DataProviderInner: React.FC<{ children: React.ReactNode }> = ({
 
   const refetchData = async () => {
     await queryClient.refetchQueries({
-      queryKey: ["matches", "replays", "sports"],
+      queryKey: ["matches", "replays", "sports", "videoReels", "banners"],
     });
   };
 
@@ -170,6 +206,8 @@ const DataProviderInner: React.FC<{ children: React.ReactNode }> = ({
       "/api/matches": fetchMatches,
       "/api/replays": fetchReplays,
       "/api/sports": fetchSports,
+      "/api/video-reels": fetchVideoReels,
+      "/api/banners": fetchBanners,
     };
 
     const queryFn = endpointMap[endpoint];
@@ -189,6 +227,8 @@ const DataProviderInner: React.FC<{ children: React.ReactNode }> = ({
         matchData,
         replayData,
         sportData,
+        videoReelData,
+        bannerData,
         loading,
         error: error instanceof Error ? error : null,
         refetchData,
@@ -229,7 +269,8 @@ export const useData = () => {
 // import { Match } from "@/types/match.types";
 // import { Replay } from "@/types/replay.types";
 // import { Sport } from "@/types/sport.types";
-// console.log("Vite NODE_ENV:", import.meta.env.VITE_NODE_ENV);
+// import { setInitialLoadComplete, isInitialLoadComplete } from "@/lib/helper";
+
 // const production = "https://sv.hoiquan.live";
 // const development = "http://localhost:8080";
 // const API_BASE_URL =
@@ -264,6 +305,7 @@ export const useData = () => {
 //   error: Error | null;
 //   refetchData: () => Promise<void>;
 //   prefetchData: (endpoint: string) => void;
+//   initialLoadComplete: boolean;
 // }
 
 // const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -272,12 +314,14 @@ export const useData = () => {
 //   useQuery<Match[]>({
 //     queryKey: ["matches"],
 //     queryFn: fetchMatches,
+//     staleTime: 5 * 60 * 1000, // 5 minutes
 //   });
 
 // const useReplays = () =>
 //   useQuery<Replay[]>({
 //     queryKey: ["replays"],
 //     queryFn: fetchReplays,
+//     staleTime: 5 * 60 * 1000, // 5 minutes
 //   });
 
 // const useSports = () =>
@@ -307,13 +351,24 @@ export const useData = () => {
 //     error: sportError,
 //   } = useSports();
 //   const [ws, setWs] = useState<WebSocket | null>(null);
+//   const [initialLoadComplete, setIsInitialLoadComplete] = useState(
+//     isInitialLoadComplete()
+//   );
 
 //   const loading = matchLoading || replayLoading || sportLoading;
 //   const error = matchError || replayError || sportError;
 
+//   // Set initial load complete when data fetching is complete
+//   useEffect(() => {
+//     if (!loading && !error) {
+//       setInitialLoadComplete(true); // Persist to localStorage
+//       setIsInitialLoadComplete(true); // Update React state
+//     }
+//   }, [loading, error]);
+
 //   useEffect(() => {
 //     const wsUrl =
-//       process.env.NODE_ENV === "production"
+//       import.meta.env.VITE_NODE_ENV === "production"
 //         ? "wss://sv.hoiquan.live/ws"
 //         : "ws://localhost:8080/ws";
 //     const websocket = new WebSocket(wsUrl);
@@ -399,6 +454,7 @@ export const useData = () => {
 //         error: error instanceof Error ? error : null,
 //         refetchData,
 //         prefetchData,
+//         initialLoadComplete,
 //       }}
 //     >
 //       {children}
@@ -410,7 +466,6 @@ export const useData = () => {
 //   children,
 // }) => {
 //   const queryClient = new QueryClient();
-
 //   return (
 //     <QueryClientProvider client={queryClient}>
 //       <DataProviderInner>{children}</DataProviderInner>

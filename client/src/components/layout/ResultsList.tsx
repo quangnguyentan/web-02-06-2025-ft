@@ -17,13 +17,13 @@ const ResultsList: React.FC<ResultsListProps> = ({
   const hasMatches =
     leagues &&
     leagues.length > 0 &&
-    leagues.some((league) => league.matches.length > 0);
+    leagues?.some((league) => league.matches.length > 0);
 
   return (
     <div className="bg-slate-850 rounded-b-md shadow-lg">
       {hasMatches ? (
-        leagues.map((league) => (
-          <div key={league.id} className="mb-0 last:mb-0">
+        leagues?.map((league) => (
+          <div key={league?.id} className="mb-0 last:mb-0">
             <div className="bg-blue-500/60 flex items-center p-2.5 border-b border-slate-600/50 sticky top-0 z-10">
               {league.icon && <span className="mr-2">{league.icon}</span>}
               <h3 className="text-sm font-semibold text-white tracking-wide">

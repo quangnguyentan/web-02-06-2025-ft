@@ -4,10 +4,11 @@ import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
 import { CategorizedReplayGroup, Replay } from "@/types/replay.types";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import CategoryReplaySection from "./CategoryReplaySection";
 import { useNavigate } from "react-router-dom";
 import { useSelectedPageContext } from "@/hooks/use-context";
+import { Banner } from "@/types/banner.types";
+import { useData } from "@/context/DataContext";
 
 interface ReplayStreamPageProps {
   mainReplay: Replay;
@@ -67,6 +68,21 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
   suggestedReplays,
   categorizedReplays,
 }) => {
+  const { bannerData } = useData();
+
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   const filteredCategorizedReplays = categorizedReplays
     ? categorizedReplays?.filter((_, index) => index === 0 || index >= 4)
     : [];
@@ -93,15 +109,16 @@ const ReplayStreamPage: React.FC<ReplayStreamPageProps> = ({
             videoUrl={mainReplay?.videoUrl}
             posterUrl={mainReplay?.thumbnail}
           />
+
+          <div className="rounded-md text-xs font-bold sm:text-sm text-white py-2">
+            <p>{mainReplay?.title}</p>
+          </div>
           <div className="">
             <img
-              src={belt_bottom_top}
+              src={filterBanners("FOOTER", "REPLAY_VIDEO_PAGE")?.imageUrl}
               alt="Ad Banner"
               className="object-cover md:w-full "
             />
-          </div>
-          <div className="rounded-md text-xs sm:text-sm text-white py-2">
-            <p>{mainReplay?.title}</p>
           </div>
         </div>
 

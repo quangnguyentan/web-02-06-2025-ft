@@ -15,21 +15,15 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
   return (
     <div
       className={`
-    ${position === "top" ? "top-0" : "absolute bottom-0"}
-    z-40
-    flex items-center
-    justify-between
-    shadow-lg
-   h-auto 
-    sm:justify-center
-    md:justify-between
-
-   w-full mx-auto 
-        max-w-[640px] sm:max-w-[768px] md:max-w-[960px] 
-        lg:max-w-[1024px] 
-        xl:max-w-[1200px] 
-        2xl:max-w-[1440px] 
-        3xl:max-w-[1440px]
+    ${position === "top" ? "top-0" : "sticky bottom-0"}
+      z-70
+      flex items-center
+      justify-between
+      shadow-lg
+      h-auto 
+      sm:justify-center
+      md:justify-between
+      w-full mx-auto max-w-[640px] sm:max-w-[768px] md:max-w-[960px] lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] 3xl:max-w-[1440px] 
   `}
     >
       {!hiddenBanner && (
@@ -45,10 +39,10 @@ const StickyAdBanner: React.FC<StickyAdBannerProps> = ({
           {position === "bottom" && (
             <div
               onClick={() => setHiddenBanner(true)}
-              className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0.5 px-2 rounded text-sm shadow absolute right-0 top-0 cursor-pointer"
+              className="opacity-80 bg-red-500 hover:bg-red-600 text-white font-semibold py-0 md:py-0.5 px-1.5 md:px-2.5 text-xs md:text-xs shadow absolute right-0 top-0 cursor-pointer"
             >
               {buttonText}
-              <button className="text-white hover:text-yellow-200 text-xl leading-none">
+              <button className="text-white hover:text-yellow-200 text-xs md:text-lg leading-none">
                 &times;
               </button>
             </div>

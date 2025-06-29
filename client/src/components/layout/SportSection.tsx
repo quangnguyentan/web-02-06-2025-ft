@@ -82,23 +82,26 @@ const SportSection: React.FC<SportSectionProps> = ({
           </div>
         )}
       </div>
+
       {isSpotlight ? (
-        <div
-          className={
-            isSportSection
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
-              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
-          }
-        >
-          {matches.map((match) => (
-            <SpotlightMatchCard key={match._id} match={match} />
-          ))}
-        </div>
+        <>
+          <div
+            className={
+              isSportSection
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+            }
+          >
+            {matches.map((match) => (
+              <SpotlightMatchCard key={match._id} match={match} />
+            ))}
+          </div>
+        </>
       ) : (
         <div>
           <div className="block lg:hidden">
             <div className="flex overflow-x-auto space-x-3 sm:space-x-4 pb-3 sm:pb-4 -mx-1 sm:-mx-4 px-1 sm:px-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-              {matches.map((match) => (
+              {matches?.map((match) => (
                 <MatchCard key={match._id} match={match} small />
               ))}
               <div className="flex-shrink-0 w-px"></div>

@@ -3,7 +3,6 @@ import MatchInfoBar from "@/components/layout/MatchInfoBar";
 import ChatPanel from "@/components/layout/ChatPanel";
 import ReplaySuggestionsPanel from "@/components/layout/ReplaySuggestionsPanel";
 import SportSection from "@/components/layout/SportSection";
-import belt_bottom_top from "@/assets/user/1330t190.gif";
 import { HomeIconSolid, ChevronRightIcon } from "@/components/layout/Icon";
 import * as React from "react";
 import { Match } from "@/types/match.types";
@@ -11,6 +10,10 @@ import { Replay } from "@/types/replay.types";
 import { useSelectedPageContext } from "@/hooks/use-context";
 import { useNavigate } from "react-router-dom";
 import wait_football from "@/assets/user/wait_football.webp";
+import { useMediaQuery, useTheme } from "@mui/material";
+import { useData } from "@/context/DataContext";
+import { Banner } from "@/types/banner.types";
+
 interface MatchStreamPageProps {
   match: Match;
   relatedMatches: Match[];
@@ -20,7 +23,6 @@ interface MatchStreamPageProps {
 
 const Breadcrumbs: React.FC<{ match: Match }> = ({ match }) => {
   const navigate = useNavigate();
-
   const { setSelectedSportsNavbarPage, setSelectedPage } =
     useSelectedPageContext();
   return (
@@ -61,12 +63,29 @@ const Breadcrumbs: React.FC<{ match: Match }> = ({ match }) => {
     </nav>
   );
 };
+
 const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
   match,
   relatedMatches,
   replaySuggestions,
   autoPlay = false,
 }) => {
+  const { bannerData } = useData();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const filterBanners = (
+    position: Banner["position"],
+    displayPage: Banner["displayPage"]
+  ): Banner | undefined => {
+    return bannerData
+      ?.filter(
+        (banner) =>
+          banner.position === position &&
+          banner.displayPage === displayPage &&
+          banner.isActive
+      )
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+  };
   return (
     <div className="flex flex-col min-h-screen w-full">
       <main
@@ -78,14 +97,85 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
         3xl:max-w-[1440px]
     "
       >
-        {/* Margin to avoid overlap with side ads */}
         <Breadcrumbs match={match} />
-        <div className="md:hidden">
-          <MatchInfoBar match={match} />
+        <div className="my-3">
+          <img
+            src={filterBanners("TOP", "LIVE_PAGE")?.imageUrl}
+            alt="Horizontal Ad Banner"
+            className="w-full rounded-md shadow"
+          />
         </div>
-        <div className="flex flex-col lg:flex-row ">
+        <div
+          style={{
+            backgroundImage: `url("https://b.thapcam73.life/images/bg-topz-min.jpg")`,
+            backgroundSize: "cover",
+          }}
+          className="w-full text-white py-2 md:py-6 text-xs md:text-base"
+        >
+          <div className="flex flex-col justify-center items-center w-full">
+            <div className="flex items-center justify-center gap-2 md:gap-8">
+              <div className="flex items-center gap-3">
+                <span className="font-medium">{match?.homeTeam?.name}</span>
+                <img
+                  className="w-10 md:w-16 h-10 md:h-16"
+                  src={match?.homeTeam?.logo}
+                  alt={match?.homeTeam?.name}
+                />
+              </div>
+              <div className="flex flex-col gap-2 items-center justify-center">
+                <span className="pb-2 md:pb-4">{match?.title}</span>
+                <span className="font-bold text-xs md:text-sm text-red-500">
+                  {match?.status === "LIVE"
+                    ? "ĐANG DIỄN RA"
+                    : match?.status === "FINISHED"
+                    ? "KẾT THÚC"
+                    : match?.status === "UPCOMING"
+                    ? "SẮP DIỄN RA"
+                    : match?.status === "CANCELLED"
+                    ? "ĐÃ HỦY"
+                    : match?.status === "POSTPONED"
+                    ? "DỜI TRẬN"
+                    : ""}
+                </span>
+                <span className="font-bold text-xl">
+                  {match?.scores?.homeScore} - {match?.scores?.awayScore}
+                </span>
+
+                <span className="text-sm font-medium">
+                  {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <img
+                  className="w-10 md:w-16 h-10 md:h-16"
+                  src={match?.awayTeam?.logo}
+                  alt={match?.awayTeam?.name}
+                />
+                <span className="font-medium">{match?.awayTeam?.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* <div className="md:hidden">
+          <MatchInfoBar match={match} />
+        </div> */}
+        <div className="flex flex-col lg:flex-row pt-4">
           {/* Left Column: Video + Match Info + Related */}
-          <div className="lg:w-2/3 flex-shrink-0 pr-2 ">
+          <div
+            className={
+              isMobile
+                ? "sticky top-0 z-[1000] w-full"
+                : "lg:w-2/3 flex-shrink-0 pr-2 "
+            }
+          >
+            {/* Sticky VideoPlayer wrapper for mobile only */}
             <VideoPlayer
               videoUrl={`${match?.streamLinks?.[0]?.url}`}
               videoTitle={`${match?.homeTeam?.name} vs ${match?.awayTeam?.name}`}
@@ -93,7 +183,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
                 match?.streamLinks?.[0]?.image
                   ? match?.streamLinks?.[0]?.image
                   : wait_football
-              } // Placeholder poster
+              }
               autoPlay={autoPlay}
               match={match}
             />
@@ -117,9 +207,9 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
                 matches={relatedMatches}
               />
             </div>
-            <div className="my-3">
+            <div className="pb-4">
               <img
-                src={belt_bottom_top}
+                src={filterBanners("FOOTER", "LIVE_PAGE")?.imageUrl}
                 alt="Small Ad Banner"
                 className="w-full rounded-md shadow"
               />
@@ -127,11 +217,11 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
             <ReplaySuggestionsPanel replays={replaySuggestions} />
           </div>
         </div>
-        <div className="my-3">
+        <div className="pb-8 pt-4">
           <img
-            src={belt_bottom_top}
+            src={filterBanners("BOTTOM", "LIVE_PAGE")?.imageUrl}
             alt="Horizontal Ad Banner"
-            className="w-full rounded-md shadow"
+            className="w-full rounded-md shadow "
           />
         </div>
       </main>

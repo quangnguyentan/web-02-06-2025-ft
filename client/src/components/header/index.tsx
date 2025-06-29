@@ -435,14 +435,6 @@ const SportsNavbar: React.FC = () => {
               );
               const isOngoing = now <= matchEndTime;
 
-              console.log(
-                `Match: ${match.title}, startTime: ${
-                  match.startTime
-                }, matchDate: ${matchDate.toISOString()}, matchDay: ${matchDay}, todayDay: ${todayDay}, isSameDay: ${
-                  matchDay === todayDay
-                }, isOngoing: ${isOngoing}`
-              );
-
               return matchDay === todayDay && isOngoing;
             }
             return false;

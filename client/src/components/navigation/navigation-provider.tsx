@@ -7,6 +7,8 @@ import { Team } from "@/types/team.types";
 import { Replay } from "@/types/replay.types";
 import { League } from "@/types/league.types";
 import { User } from "@/types/user.types";
+import { VideoReels } from "@/types/videoReel.type";
+import { Banner } from "@/types/banner.types";
 
 export const SelectedPageProvider = ({
   children,
@@ -56,7 +58,14 @@ export const SelectedPageProvider = ({
   const addLeague = (newLeague: League) => {
     setLeague((prev) => [newLeague, ...prev]);
   };
-
+  const [videoReel, setVideoReel] = useState<VideoReels[]>([]);
+  const addVideoReel = (newVideoReel: VideoReels) => {
+    setVideoReel((prev) => [newVideoReel, ...prev]);
+  };
+  const [banner, setBanner] = useState<Banner[]>([]);
+  const addBanner = (newBanner: Banner) => {
+    setBanner((prev) => [newBanner, ...prev]);
+  };
   return (
     <SelectedPageContext.Provider
       value={{
@@ -82,6 +91,12 @@ export const SelectedPageProvider = ({
         league,
         setLeague,
         addLeague,
+        banner,
+        addBanner,
+        setBanner,
+        videoReel,
+        setVideoReel,
+        addVideoReel,
       }}
     >
       {children}
