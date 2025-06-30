@@ -1,5 +1,5 @@
 import * as React from "react";
-
+import logo from "@/assets/user/Banner logo hoi quan khong nen.png";
 const FooterInfo: React.FC = () => {
   const infoSections = [
     {
@@ -31,26 +31,23 @@ const FooterInfo: React.FC = () => {
 
   return (
     <footer className="bg-slate-800 !text-gray-400 py-8 px-4 md:px-6">
-      <div
-        className="lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px]
-      lg:translate-x-0 xl:translate-x-[calc((100vw-1200px)/2)] 2xl:translate-x-[calc((100vw-1440px)/2)] space-y-6"
-      >
+      <div className="w-full mx-auto max-w-[640px] sm:max-w-[768px] md:max-w-[960px] lg:max-w-[1024px] xl:max-w-[1200px] 2xl:max-w-[1440px] 3xl:max-w-[1440px] space-y-6">
         {infoSections.map((section, index) => (
           <div key={index}>
-            <h2 className="!text-xl font-semibold !text-yellow-400 mb-3">
+            <h2 className="text-base md:!text-xl font-semibold !text-yellow-400 mb-3">
               {section.title}
             </h2>
             {section.content && (
-              <ul className="space-y-1 list-disc list-inside pl-2 !text-sm">
+              <ul className="space-y-1 list-disc list-inside pl-2 text-xs md:!text-sm">
                 {section.content.map((item, itemIndex) => (
                   <li key={itemIndex}>{item}</li>
                 ))}
               </ul>
             )}
             {section.contentParagraphs && (
-              <div className="space-y-3 !text-sm leading-relaxed">
+              <div className="space-y-3 !text-sm leading-relaxed ">
                 {section.contentParagraphs.map((paragraph, pIndex) => (
-                  <p className="!text-sm text-white" key={pIndex}>
+                  <p className="text-xs md:!text-sm text-white" key={pIndex}>
                     {paragraph}
                   </p>
                 ))}
@@ -59,8 +56,11 @@ const FooterInfo: React.FC = () => {
           </div>
         ))}
         <div className="border-t border-slate-700 pt-6 !text-center !text-xs">
-          &copy; {new Date().getFullYear()} HoiQuanTV. For demonstration
-          purposes only.
+          <img
+            src={logo}
+            className="md:w-60 md:h-20 w-32 mx-auto "
+            alt="logo"
+          />
         </div>
       </div>
     </footer>
