@@ -82,7 +82,7 @@ const SchedulePage: React.FC<SchedulePageProps> = ({
   }, [selectedDateId, availableDates]);
   const pageTitle = `Lịch Thi Đấu ${nameSlug} ${
     selectedDateTab?.dateSuffix || ""
-  } Cập Nhật Mới Nhất 24H - Thập Cẩm TV`;
+  } Cập Nhật Mới Nhất 24H - Hội Quán TV`;
   const pageDescription = `Lịch trực tiếp ${nameSlug} ${
     selectedDateTab?.dateSuffix || ""
   } mới nhất được HoiQuanTV cập nhật liên tục 24h. Các fan hâm mộ có thể theo dõi nhiều hơn nữa BXH các giải đấu cho tới giải to trên toàn thế giới tại HoiQuanTV.`;

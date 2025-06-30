@@ -58,7 +58,7 @@ export const Pagination: React.FC<{
 };
 
 const VideoReelsHubPage: React.FC = () => {
-  const { videoReelData, loading } = useData();
+  const { videoReelData, loading, sportData } = useData();
   const [currentPage, setCurrentPage] = React.useState(1);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { slug } = useParams<{ slug?: string }>(); // Lấy slug từ URL, mặc định undefined nếu không có
@@ -145,6 +145,10 @@ const VideoReelsHubPage: React.FC = () => {
       containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [currentPage]);
+  const sportFilter = React.useMemo(() => {
+    if (!sportData || sportData.length === 0) return [];
+    return slug ? sportData.filter((sport) => sport?.slug === slug) : sportData;
+  }, [sportData, slug]);
 
   return (
     <div
@@ -158,11 +162,15 @@ const VideoReelsHubPage: React.FC = () => {
     >
       <main className="w-full pt-2">
         <div className="bg-slate-800 p-4 rounded-lg shadow-xl mb-4">
-          <h1 className="text-xl font-bold text-yellow-400 mb-2">
-            THƯỚC PHIM NGẮN ĐÁNG CHÚ Ý
+          <h1 className="text-xl font-bold text-yellow-400 mb-2 uppercase">
+            {slug === "esports"
+              ? "VIDEO LIÊN MINH THÚ VỊ"
+              : `VIDEO ${sportFilter?.[0]?.name} THÚ VỊ`}
           </h1>
           <p className="text-sm text-gray-300 leading-relaxed">
-            Xem lại các thước phim ngắn nổi bật, cập nhật liên tục trên Hoiquan
+            {slug === "esports"
+              ? "  Xem lại các video liên minh đáng chú ý cập nhật liên tục trên HoiquanTV"
+              : `Xem lại các video ${sportFilter?.[0]?.name?.toLocaleLowerCase()} đáng chú ý cập nhật liên tục trên HoiquanTV`}
             TV.
           </p>
         </div>
@@ -170,7 +178,8 @@ const VideoReelsHubPage: React.FC = () => {
           <div className="text-center text-white">Đang tải...</div>
         ) : paginatedGroups.length === 0 ? (
           <div className="text-center text-white">
-            Không có thước phim ngắn đáng chú ý nào!
+            Không có video {sportFilter?.[0]?.name?.toLowerCase()} đáng chú ý
+            nào!
           </div>
         ) : (
           <>
