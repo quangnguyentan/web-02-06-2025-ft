@@ -125,7 +125,7 @@ const VideoReelCard: React.FC<VideoReelCardProps> = ({
         );
         localStorage.setItem("setByVideoReelCard", "true");
       }}
-      className="block rounded-lg shadow-2xl overflow-hidden group cursor-pointer"
+      className="block rounded-lg shadow-2xl overflow-hidden group cursor-pointer  rounded-none md:rounded-xl"
       ref={cardRef}
     >
       <div className="relative">
@@ -133,7 +133,7 @@ const VideoReelCard: React.FC<VideoReelCardProps> = ({
           src={reel?.thumbnail}
           alt={reel.title}
           loading="lazy"
-          className="w-full h-32 sm:h-40 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-32 sm:h-96 object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-opacity-20 group-hover:bg-opacity-40 flex items-center justify-center transition-opacity duration-300">
           <DefaultPlayIcon className="w-10 h-10 sm:w-12 sm:h-12 text-white opacity-70 group-hover:opacity-100" />
@@ -149,11 +149,6 @@ const VideoReelCard: React.FC<VideoReelCardProps> = ({
             hour12: false,
           })}
         </div>
-        {reel?.duration && (
-          <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-[11px] sm:text-xs px-1.5 py-0.5 rounded-sm">
-            {formatDuration(reel?.duration)}
-          </div>
-        )}
       </div>
       <div className="p-2 sm:p-3">
         <h3

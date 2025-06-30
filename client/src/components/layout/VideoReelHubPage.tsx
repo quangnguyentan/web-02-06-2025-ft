@@ -9,7 +9,7 @@ export const Pagination: React.FC<{
   totalItems: number;
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalItems, onPageChange }) => {
-  const itemsPerPage = [8, 12, 12]; // Page 1: 8, Page 2+: 12
+  const itemsPerPage = [12, 12, 12]; // Page 1: 8, Page 2+: 12
   let cumulativeItems = 4; // Start from index 0
   let totalPages = 1;
 
@@ -62,7 +62,6 @@ const VideoReelsHubPage: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const { slug } = useParams<{ slug?: string }>(); // Lấy slug từ URL, mặc định undefined nếu không có
-  console.log("Slug from URL:", slug);
 
   // Lọc videoReelData theo slug trước khi nhóm
   const filteredVideoReels = React.useMemo(() => {
@@ -113,10 +112,10 @@ const VideoReelsHubPage: React.FC = () => {
   const getPageIndices = (page: number) => {
     let startIndex = 0; // Start from index 0
     if (page === 1) {
-      return { start: startIndex, end: startIndex + 8 }; // 8 items on page 1
+      return { start: startIndex, end: startIndex + 12 }; // 8 items on page 1
     }
     for (let i = 2; i <= page; i++) {
-      startIndex += i === 2 ? 8 : 12; // Page 1: 8, Page 2+: 12
+      startIndex += i === 2 ? 12 : 12; // Page 1: 8, Page 2+: 12
     }
     return { start: startIndex, end: startIndex + 12 };
   };

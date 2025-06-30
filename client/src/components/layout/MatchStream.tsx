@@ -113,7 +113,7 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
           className="w-full text-white py-2 md:py-6 text-xs md:text-base"
         >
           <div className="flex flex-col justify-center items-center w-full">
-            <div className="flex items-center justify-center gap-1 md:gap-8">
+            <div className="flex items-center justify-center gap-4 md:gap-8">
               <div className="flex items-center gap-1 md:gap-3 flex-col md:flex-row">
                 <span className="font-medium text-[9px] md:text-base line-clamp-1 hidden md:block">
                   {match?.homeTeam?.name}

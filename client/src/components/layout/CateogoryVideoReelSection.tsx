@@ -16,7 +16,7 @@ const CategoryVideoReelSection: React.FC<CategoryVideoReelSectionProps> = ({
 
   return (
     <section className="py-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 l  g:grid-cols-6 3xl:grid-cols-6 gap-4">
         {group?.replays?.map((reel: VideoReels) => (
           <VideoReelCard key={reel?._id} reel={reel} />
         ))}
