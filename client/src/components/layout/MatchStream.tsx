@@ -113,18 +113,33 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
           className="w-full text-white py-2 md:py-6 text-xs md:text-base"
         >
           <div className="flex flex-col justify-center items-center w-full">
-            <div className="flex items-center justify-center gap-2 md:gap-8">
-              <div className="flex items-center gap-3">
-                <span className="font-medium">{match?.homeTeam?.name}</span>
-                <img
-                  className="w-10 md:w-16 h-10 md:h-16"
-                  src={match?.homeTeam?.logo}
-                  alt={match?.homeTeam?.name}
-                />
+            <div className="flex items-center justify-center gap-1 md:gap-8">
+              <div className="flex items-center gap-1 md:gap-3 flex-col md:flex-row">
+                <span className="font-medium text-[9px] md:text-base line-clamp-1 hidden md:block">
+                  {match?.homeTeam?.name}
+                </span>
+                {match?.homeTeam?.name?.startsWith("Việt Nam") ? (
+                  <img
+                    className="w-10 md:w-16 h-8 md:h-12"
+                    src={match?.homeTeam?.logo}
+                    alt={match?.homeTeam?.name}
+                  />
+                ) : (
+                  <img
+                    className="w-8 md:w-16 h-8 md:h-16"
+                    src={match?.homeTeam?.logo}
+                    alt={match?.homeTeam?.name}
+                  />
+                )}
+                <span className="font-medium text-[9px] md:text-base line-clamp-1 md:hidden">
+                  {match?.homeTeam?.name}
+                </span>
               </div>
-              <div className="flex flex-col gap-2 items-center justify-center">
-                <span className="pb-2 md:pb-4">{match?.title}</span>
-                <span className="font-bold text-xs md:text-sm text-red-500">
+              <div className="flex flex-col gap-0 md:gap-2 items-center justify-center">
+                <span className="pb-2 md:pb-4 text-[9px] md:text-base line-clamp-1">
+                  {match?.title}
+                </span>
+                <span className="font-bold text-[11px] md:text-sm text-red-500">
                   {match?.status === "LIVE"
                     ? "ĐANG DIỄN RA"
                     : match?.status === "FINISHED"
@@ -137,11 +152,11 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
                     ? "DỜI TRẬN"
                     : ""}
                 </span>
-                <span className="font-bold text-xl">
+                <span className="font-bold text-base md:text-xl">
                   {match?.scores?.homeScore} - {match?.scores?.awayScore}
                 </span>
 
-                <span className="text-sm font-medium">
+                <span className="text-xs md:text-sm font-medium">
                   {new Date(match?.startTime ?? "").toLocaleString("vi-VN", {
                     day: "2-digit",
                     month: "2-digit",
@@ -152,13 +167,23 @@ const MatchStreamPage: React.FC<MatchStreamPageProps> = ({
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <img
-                  className="w-10 md:w-16 h-10 md:h-16"
-                  src={match?.awayTeam?.logo}
-                  alt={match?.awayTeam?.name}
-                />
-                <span className="font-medium">{match?.awayTeam?.name}</span>
+              <div className="flex items-center gap-1 md:gap-3 md:flex-row flex-col">
+                {match?.awayTeam?.name?.startsWith("Việt Nam") ? (
+                  <img
+                    className="w-10 md:w-16 h-8 md:h-12"
+                    src={match?.awayTeam?.logo}
+                    alt={match?.awayTeam?.name}
+                  />
+                ) : (
+                  <img
+                    className="w-8 md:w-16 h-8 md:h-16"
+                    src={match?.awayTeam?.logo}
+                    alt={match?.awayTeam?.name}
+                  />
+                )}
+                <span className="font-medium text-[9px] md:text-base line-clamp-1">
+                  {match?.awayTeam?.name}
+                </span>
               </div>
             </div>
           </div>
